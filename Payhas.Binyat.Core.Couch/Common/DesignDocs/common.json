@@ -1,0 +1,8 @@
+﻿{
+    "views": {
+        "common-revisions": {
+          "map": "common-revisions-map.js",
+          "reduce": "_count"
+        }
+    }
+}

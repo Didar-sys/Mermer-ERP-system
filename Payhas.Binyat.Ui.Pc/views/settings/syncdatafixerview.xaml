@@ -1,0 +1,58 @@
+<mvx:MvxWpfView x:Class="Payhas.Binyat.Ui.Pc.Views.Settings.SyncDataFixerView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+                xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
+                xmlns:vm="clr-namespace:Payhas.Binyat.Ui.Core.ViewModels.Settings;assembly=Payhas.Binyat.Ui.Core">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal"
+                dx:ThemeManager.ThemeName="Office2013DarkGray;Touch">
+      <Button Content="{Localize Check}" Command="{Binding CheckCommand}"/>
+      <Button IsCancel="true" Content="{Localize Cancel}" Command="{Binding CloseCommand}"/>
+    </StackPanel>
+    <Grid FocusManager.FocusedElement="{Binding ElementName=FirstFocus}">
+      <dxlc:LayoutControl Width="400" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center"
+                          IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
+        <dxlc:LayoutGroup View="Tabs">
+          <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize 'Check Content'}">
+            <dxlc:LayoutItem Label="{Localize 'Check Main'}">
+              <dxe:CheckEdit EditValue="{Binding CheckMain, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Check Stocks'}">
+              <dxe:CheckEdit EditValue="{Binding CheckStocks, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Check Invoice Transactions'}">
+              <dxe:CheckEdit EditValue="{Binding CheckInvoiceTransactions, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Check Bill Transactions'}">
+              <dxe:CheckEdit EditValue="{Binding CheckBillTransactions, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Check Stock Transactions'}">
+              <dxe:CheckEdit EditValue="{Binding CheckStockTransactions, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Check Other Transactions'}">
+              <dxe:CheckEdit EditValue="{Binding CheckOtherTransactions, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Height="15"/>
+            <dxlc:LayoutItem Label="{Localize From}">
+              <dxe:DateEdit NullValueButtonPlacement="EditBox"
+                            EditValue="{Binding TransactionStartDate, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize Till}">
+              <dxe:DateEdit NullValueButtonPlacement="EditBox"
+                            EditValue="{Binding TransactionEndDate, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+          </dxlc:LayoutGroup>
+        </dxlc:LayoutGroup>
+      </dxlc:LayoutControl>
+      <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+        <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</mvx:MvxWpfView>

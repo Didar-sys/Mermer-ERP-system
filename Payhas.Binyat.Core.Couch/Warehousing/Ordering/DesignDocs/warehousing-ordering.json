@@ -1,0 +1,7 @@
+﻿{
+    "views": {
+        "stock-orders": {
+          "map": "stock-orders-map.js"
+        }
+    }
+}

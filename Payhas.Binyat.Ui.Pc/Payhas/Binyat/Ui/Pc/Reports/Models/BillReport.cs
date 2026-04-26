@@ -1,0 +1,26 @@
+﻿// Decompiled with JetBrains decompiler
+// Type: Payhas.Binyat.Ui.Pc.Reports.Models.BillReport
+// Assembly: Payhas.Binyat.Ui.Pc, Version=1.4.4.0, Culture=neutral, PublicKeyToken=null
+// MVID: D54C0BF8-E817-4120-9485-68C30ADFDFE4
+// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Payhas.Binyat.Ui.Pc.exe
+
+using System;
+
+#nullable disable
+namespace Payhas.Binyat.Ui.Pc.Reports.Models;
+
+public class BillReport : FundsTransactionReport<BillReportLine>
+{
+  public string Partner { get; set; }
+
+  public Decimal PartnerPrevBalance { get; set; }
+
+  public Decimal PartnerDebitEffect { get; set; }
+
+  public Decimal PartnerCreditEffect { get; set; }
+
+  public Decimal PartnerNextBalance
+  {
+    get => this.PartnerPrevBalance + this.PartnerDebitEffect - this.PartnerCreditEffect;
+  }
+}

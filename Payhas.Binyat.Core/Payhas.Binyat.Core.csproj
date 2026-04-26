@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Project was exported from assembly: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Payhas.Binyat.Core.dll-->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8761E129-8DEB-429E-AA19-302FD35B23AB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Payhas.Binyat.Core</AssemblyName>
+    <ApplicationVersion>1.0.0.0</ApplicationVersion>
+    <RootNamespace>Payhas.Binyat.Core</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>lib\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Payhas">
+      <HintPath>lib\Payhas.dll</HintPath>
+    </Reference>
+    <Reference Include="Payhas.Binyat">
+      <HintPath>lib\Payhas.Binyat.dll</HintPath>
+    </Reference>
+    <Reference Include="netstandard">
+      <HintPath>lib\netstandard.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BinyatCoreModule.cs" />
+    <Compile Include="StockManagement\Functions\StockActionsToStockBalance.cs" />
+    <Compile Include="StockManagement\Functions\StockActionsToStockBalanceByTypeByDay.cs" />
+    <Compile Include="StockManagement\Functions\StockAlternatives.cs" />
+    <Compile Include="StockManagement\Functions\StockBalanceByTypeByDayToByMonth.cs" />
+    <Compile Include="StockManagement\Functions\StockBalanceByTypeByMonthToByYear.cs" />
+    <Compile Include="FundsManagement\Functions\FundsActionsToFundsBalanceByTypeByDay.cs" />
+    <Compile Include="FundsManagement\Functions\FundsActionsToFundsBalances.cs" />
+    <Compile Include="FundsManagement\Functions\FundsBalanceByTypeByDayToByMonth.cs" />
+    <Compile Include="FundsManagement\Functions\FundsBalanceByTypeByMonthToByYear.cs" />
+    <Compile Include="Finance\Functions\FundsSlipsToFundsActions.cs" />
+    <Compile Include="Finance\Functions\FundsTransfersToFundsActions.cs" />
+    <Compile Include="Finance\Spending\Functions\ExpenseSlipsToExpenseActions.cs" />
+    <Compile Include="Finance\Spending\Functions\ExpenseSlipsToFundsActions.cs" />
+    <Compile Include="CRM\Functions\PartnerActionsToPartnerBalanceByTypeByDay.cs" />
+    <Compile Include="CRM\Functions\PartnerActionsToPartnerBalances.cs" />
+    <Compile Include="CRM\Functions\PartnerBalanceByTypeByDayToByMonth.cs" />
+    <Compile Include="CRM\Functions\PartnerBalanceByTypeByMonthToByYear.cs" />
+    <Compile Include="CRM\Functions\PartnerSlipsToPartnerActions.cs" />
+    <Compile Include="CRM\Functions\PartnerTransfersToPartnerActions.cs" />
+    <Compile Include="Commerce\Functions\BillsToFundsActions.cs" />
+    <Compile Include="Commerce\Functions\InvoicesToFundsActions.cs" />
+    <Compile Include="Authorization\Services\LoginService.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,12 @@
+﻿{
+    "views": {
+        "expense-facets": {
+            "map": "expense-facets-map.js",
+            "reduce": "common-facets-reduce.js"
+        },
+        "expense-actions": {
+          "map": "expense-actions-map.js",
+          "reduce": "_count"
+        } 
+    }
+}

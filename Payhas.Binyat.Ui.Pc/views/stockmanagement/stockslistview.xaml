@@ -1,0 +1,119 @@
+<mvx:MvxWpfView x:Class="Payhas.Binyat.Ui.Pc.Views.StockManagement.StocksListView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui"
+                xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
+                xmlns:cnv="clr-namespace:Payhas.Binyat.Ui.Pc.Converters"
+                xmlns:ctrl="clr-namespace:Payhas.Binyat.Ui.Pc.Controls"
+                xmlns:menu="clr-namespace:Payhas.Binyat.Ui.Pc.Controls.MenuItems"
+                xmlns:vm="clr-namespace:Payhas.Binyat.Ui.Core.ViewModels.StockManagement;assembly=Payhas.Binyat.Ui.Core"
+                xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors">
+  <DockPanel>
+    <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
+      <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
+      <menu:ListCreateNew/>
+      <menu:ListViewDetails/>
+      <menu:CommonImport/>
+      <menu:ListMerge/>
+      <dxwui:AppBarSeparator/>
+      <menu:CommonReload/>
+      <menu:ListPrint x:Name="PrintButton"/>
+      <menu:ListFilter x:Name="FilterButton"/>
+      <menu:CommonClose/>
+      <dxwui:AppBarButton Label="Synch Duzelt" HorizontalAlignment="Right" Style="{StaticResource AppBarButtonBaseStyle}"
+                          Command="{Binding FixSynchIssuesCommand}" Glyph="{dx:DXImageGrayscale Image=ListBullets_32x32.png}"/>
+    </dxwui:AppBar>
+    <Grid>
+      <dxlc:LayoutControl Orientation="Vertical" Margin="0">
+        <dxlc:LayoutGroup Orientation="Horizontal" Margin="0,0,10,0">
+          <dxlc:LayoutItem HorizontalAlignment="Right" Margin="0,0,20,0" Label="{Localize 'Additional Price Group'}">
+            <dxe:ComboBoxEdit NullValueButtonPlacement="EditBox" IncrementalFiltering="True" ImmediatePopup="True" MinWidth="200"
+                              EditValue="{Binding AdditionalPriceGroup, UpdateSourceTrigger=PropertyChanged}"
+                              ItemsSource="{Binding PriceGroupNames}">
+              <dxe:BaseEdit.StyleSettings>
+                <dxe:ComboBoxStyleSettings/>
+              </dxe:BaseEdit.StyleSettings>
+            </dxe:ComboBoxEdit>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutItem HorizontalAlignment="Right" Label="{Localize 'Additional Price Currency'}">
+            <dxg:LookUpEdit NullValueButtonPlacement="EditBox" AutoPopulateColumns="false" DisplayMember="Name"
+                            ValueMember="Id" MinWidth="100"
+                            EditValue="{Binding AdditionalPriceCurrencyId, UpdateSourceTrigger=PropertyChanged}"
+                            ItemsSource="{Binding Currencies.List}">
+              <dxe:PopupBaseEdit.PopupContentTemplate>
+                <ControlTemplate>
+                  <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
+                    <dxg:GridControl.Columns>
+                      <dxg:GridColumn FieldName="Name"/>
+                    </dxg:GridControl.Columns>
+                    <dxg:GridControl.View>
+                      <dxg:TableView AutoWidth="true"/>
+                    </dxg:GridControl.View>
+                  </dxg:GridControl>
+                </ControlTemplate>
+              </dxe:PopupBaseEdit.PopupContentTemplate>
+            </dxg:LookUpEdit>
+          </dxlc:LayoutItem>
+        </dxlc:LayoutGroup>
+        <ctrl:StyledGridControl x:Name="GridControl" Margin="10,0,10,10"
+                                PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
+                                FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
+                                SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}"
+                                IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
+          <dxg:GridControl.Columns>
+            <dxg:GridColumn FieldName="Code" SortOrder="Ascending" Header="{Localize Code}"/>
+            <dxg:GridColumn FieldName="Name" SortOrder="Ascending" Width="700" Header="{Localize Name}"/>
+            <dxg:GridColumn FieldName="ShortName" Header="{Localize ShortName}"/>
+            <dxg:GridColumn FieldName="Unit" Header="{Localize Unit}"/>
+            <dxg:GridColumn FieldName="Price" Header="{Localize Price}"/>
+            <dxg:GridColumn FieldName="CurrencyId" Header="{Localize Currency}">
+              <dxg:ColumnBase.EditSettings>
+                <dxg:LookUpEditSettings DisplayMember="Name" ValueMember="Id" ItemsSource="{Binding Currencies.List}"/>
+              </dxg:ColumnBase.EditSettings>
+            </dxg:GridColumn>
+            <dxg:GridColumn FieldName="AdditionalPrice" Header="{Localize 'Additional Price'}"
+                            Visible="{Binding ShowAdditionalPrice}"/>
+            <dxg:GridColumn FieldName="AdditionalPriceCurrencyId" Header="{Localize 'Additional Price Currency'}"
+                            Visible="{Binding ShowAdditionalPrice}">
+              <dxg:ColumnBase.EditSettings>
+                <dxg:LookUpEditSettings DisplayMember="Name" ValueMember="Id" ItemsSource="{Binding Currencies.List}"/>
+              </dxg:ColumnBase.EditSettings>
+            </dxg:GridColumn>
+            <dxg:GridColumn Binding="{Binding Barcodes, Converter={cnv:TokenConverter}}" Header="{Localize Barcodes}">
+              <dxg:ColumnBase.EditSettings>
+                <dxg:LookUpEditSettings>
+                  <dxe:BaseEditSettings.StyleSettings>
+                    <dxg:TokenLookUpEditStyleSettings/>
+                  </dxe:BaseEditSettings.StyleSettings>
+                </dxg:LookUpEditSettings>
+              </dxg:ColumnBase.EditSettings>
+            </dxg:GridColumn>
+            <dxg:GridColumn Binding="{Binding Tags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
+              <dxg:ColumnBase.EditSettings>
+                <dxg:LookUpEditSettings>
+                  <dxe:BaseEditSettings.StyleSettings>
+                    <dxg:TokenLookUpEditStyleSettings/>
+                  </dxe:BaseEditSettings.StyleSettings>
+                </dxg:LookUpEditSettings>
+              </dxg:ColumnBase.EditSettings>
+            </dxg:GridColumn>
+            <dxg:GridColumn FieldName="Group" GroupIndex="1" Header="{Localize Group}"/>
+            <dxg:GridColumn FieldName="Type" GroupIndex="0" Header="{Localize Type}"/>
+          </dxg:GridControl.Columns>
+          <dxg:GridControl.TotalSummary>
+            <dxg:GridSummaryItem FieldName="Code" DisplayFormat="{0}" SummaryType="Count"/>
+          </dxg:GridControl.TotalSummary>
+        </ctrl:StyledGridControl>
+      </dxlc:LayoutControl>
+      <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+        <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</mvx:MvxWpfView>

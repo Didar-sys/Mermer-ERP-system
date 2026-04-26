@@ -1,0 +1,55 @@
+<mvx:MvxWpfView x:Class="Payhas.Binyat.Ui.Pc.Views.CRM.PartnersListView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+                xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui"
+                xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
+                xmlns:ctrl="clr-namespace:Payhas.Binyat.Ui.Pc.Controls"
+                xmlns:menu="clr-namespace:Payhas.Binyat.Ui.Pc.Controls.MenuItems"
+                xmlns:cnv="clr-namespace:Payhas.Binyat.Ui.Pc.Converters">
+  <DockPanel>
+    <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
+      <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
+      <menu:ListCreateNew/>
+      <menu:ListViewDetails/>
+      <menu:CommonImport/>
+      <menu:ListMerge/>
+      <dxwui:AppBarSeparator/>
+      <menu:CommonReload/>
+      <menu:ListPrint x:Name="PrintButton"/>
+      <menu:ListFilter x:Name="FilterButton"/>
+      <menu:CommonClose/>
+    </dxwui:AppBar>
+    <Grid>
+      <ctrl:StyledGridControl x:Name="GridControl" ShowLoadingPanel="false"
+                              PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
+                              FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
+                              SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}"
+                              IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
+        <dxg:GridControl.Columns>
+          <dxg:GridColumn FieldName="Code" SortOrder="Ascending" Header="{Localize Code}"/>
+          <dxg:GridColumn FieldName="Name" SortOrder="Ascending" Width="500" Header="{Localize Name}"/>
+          <dxg:GridColumn FieldName="Phone" Header="{Localize Phone}"/>
+          <dxg:GridColumn FieldName="Address" Header="{Localize Address}"/>
+          <dxg:GridColumn Binding="{Binding Tags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
+            <dxg:ColumnBase.EditSettings>
+              <dxg:LookUpEditSettings>
+                <BaseEditSettings.StyleSettings>
+                  <dxg:TokenLookUpEditStyleSettings/>
+                </BaseEditSettings.StyleSettings>
+              </dxg:LookUpEditSettings>
+            </dxg:ColumnBase.EditSettings>
+          </dxg:GridColumn>
+          <dxg:GridColumn FieldName="Group" GroupIndex="1" Header="{Localize Group}"/>
+        </dxg:GridControl.Columns>
+      </ctrl:StyledGridControl>
+      <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+        <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</mvx:MvxWpfView>

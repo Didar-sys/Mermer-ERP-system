@@ -1,0 +1,85 @@
+<mvx:MvxWpfView x:Class="Payhas.Binyat.Ui.Pc.Views.Settings.BarcodeSettingsView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+                xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
+                xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                xmlns:vm="clr-namespace:Payhas.Binyat.Ui.Core.ViewModels.Settings;assembly=Payhas.Binyat.Ui.Core">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal"
+                dx:ThemeManager.ThemeName="Office2013DarkGray;Touch">
+      <Button Margin="0,0,10,0" IsDefault="true" Content="{Localize Save}" Command="{Binding SaveCommand}"/>
+      <Button IsCancel="true" Content="{Localize Cancel}" Command="{Binding CloseCommand}"/>
+    </StackPanel>
+    <dxlc:LayoutControl Width="400" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center"
+                        IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
+      <dxlc:LayoutGroup View="Tabs">
+        <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize PageSettings}">
+          <dxlc:LayoutItem Label="{Localize RowsCount}">
+            <dxe:SpinEdit MinValue="0" IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                          EditValue="{Binding Config.RowsCount, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutItem Label="{Localize Orientation}">
+            <dxe:SpinEdit MinValue="0" MaxValue="1" IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                          EditValue="{Binding Config.Orientation, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutItem Label="{Localize Spaceing}">
+            <dxe:SpinEdit IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                          EditValue="{Binding Config.Spaceing, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutItem Height="10"/>
+          <dxlc:LayoutItem Label="{Localize LeftMargin}">
+            <dxe:SpinEdit MinValue="0" IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                          EditValue="{Binding Config.LeftMargin, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutItem Label="{Localize RightMargin}">
+            <dxe:SpinEdit MinValue="0" IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                          EditValue="{Binding Config.RightMargin, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+        </dxlc:LayoutGroup>
+        <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize TagSettings}">
+          <dxlc:LayoutItem Label="{Localize TagWidth}">
+            <dxe:SpinEdit MinValue="0" IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                          EditValue="{Binding Config.TagWidth, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutItem Label="{Localize TagHeight}">
+            <dxe:SpinEdit MinValue="0" IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                          EditValue="{Binding Config.TagHeight, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutItem Height="10"/>
+          <dxlc:LayoutItem Label="{Localize TagMarginLeft}">
+            <dxe:SpinEdit MinValue="0" IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                          EditValue="{Binding Config.TagMarginLeft, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutItem Label="{Localize TagMarginRight}">
+            <dxe:SpinEdit MinValue="0" IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                          EditValue="{Binding Config.TagMarginRight, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutItem Label="{Localize TagMarginTop}">
+            <dxe:SpinEdit MinValue="0" IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                          EditValue="{Binding Config.TagMarginTop, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutItem Label="{Localize TagMarginBottom}">
+            <dxe:SpinEdit MinValue="0" IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                          EditValue="{Binding Config.TagMarginBottom, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutItem Height="10"/>
+          <dxlc:LayoutItem Label="{Localize PriceOption}">
+            <dxe:CheckEdit EditValue="{Binding Config.PrintPrice, UpdateSourceTrigger=PropertyChanged}"
+                           Content="{Localize PrintPrice}"/>
+          </dxlc:LayoutItem>
+        </dxlc:LayoutGroup>
+      </dxlc:LayoutGroup>
+    </dxlc:LayoutControl>
+    <Grid FocusManager.FocusedElement="{Binding ElementName=FirstFocus}">
+      <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+        <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</mvx:MvxWpfView>

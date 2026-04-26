@@ -1,0 +1,175 @@
+<mvx:MvxWpfView x:Class="Payhas.Binyat.Ui.Pc.Views.Settings.ApplicationSettingsView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+                xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+                xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
+                xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                xmlns:vm="clr-namespace:Payhas.Binyat.Ui.Core.ViewModels.Settings;assembly=Payhas.Binyat.Ui.Core">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal"
+                dx:ThemeManager.ThemeName="Office2013DarkGray;Touch">
+      <Button Margin="0,0,10,0" IsDefault="true" Content="{Localize Save}" Command="{Binding SaveCommand}"/>
+      <Button IsCancel="true" Content="{Localize Cancel}" Command="{Binding CloseCommand}"/>
+    </StackPanel>
+    <Grid FocusManager.FocusedElement="{Binding ElementName=FirstFocus}">
+      <dxlc:LayoutControl Width="500" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center"
+                          IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
+        <dxlc:LayoutGroup View="Tabs">
+          <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize General}">
+            <dxlc:LayoutItem Label="{Localize Language}">
+              <dxe:ComboBoxEdit DisplayMember="Text" ValueMember="Value" ItemsSource="{Binding Languages}"
+                                EditValue="{Binding Config.Culture, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'POS Options'}">
+              <dxe:CheckEdit Content="{Localize 'Open POS on Load'}"
+                             EditValue="{Binding Config.OpenPosOnLoad, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Menu Options'}">
+              <dxe:CheckEdit Content="{Localize 'Auto hide menu'}"
+                             EditValue="{Binding Config.AutoHideMenu, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Height="10"/>
+            <dxlc:LayoutItem Label="{Localize 'Due date in days'}">
+              <dxe:SpinEdit IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                            EditValue="{Binding Config.DefaultDueDateInDays, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Height="10"/>
+            <dxlc:LayoutItem Label="{Localize 'Default Currency'}">
+              <dxg:LookUpEdit DisplayMember="Name" ValueMember="Id" AutoPopulateColumns="false"
+                              EditValue="{Binding Config.DefaultCurrencyId, UpdateSourceTrigger=PropertyChanged}"
+                              ItemsSource="{Binding Currencies.List}">
+                <dxe:PopupBaseEdit.PopupContentTemplate>
+                  <ControlTemplate>
+                    <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
+                      <dxg:GridControl.Columns>
+                        <dxg:GridColumn FieldName="Name"/>
+                      </dxg:GridControl.Columns>
+                      <dxg:GridControl.View>
+                        <dxg:TableView AutoWidth="true"/>
+                      </dxg:GridControl.View>
+                    </dxg:GridControl>
+                  </ControlTemplate>
+                </dxe:PopupBaseEdit.PopupContentTemplate>
+              </dxg:LookUpEdit>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Height="5"/>
+            <dxlc:LayoutItem Label="{Localize 'Default Office'}">
+              <dxg:LookUpEdit DisplayMember="Name" ValueMember="Id" AutoPopulateColumns="false"
+                              EditValue="{Binding Config.DefaultOfficeId, UpdateSourceTrigger=PropertyChanged}"
+                              ItemsSource="{Binding Offices.List}">
+                <dxe:PopupBaseEdit.PopupContentTemplate>
+                  <ControlTemplate>
+                    <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
+                      <dxg:GridControl.Columns>
+                        <dxg:GridColumn FieldName="Name"/>
+                      </dxg:GridControl.Columns>
+                      <dxg:GridControl.View>
+                        <dxg:TableView AutoWidth="true"/>
+                      </dxg:GridControl.View>
+                    </dxg:GridControl>
+                  </ControlTemplate>
+                </dxe:PopupBaseEdit.PopupContentTemplate>
+              </dxg:LookUpEdit>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Default warehouse'}">
+              <dxg:LookUpEdit DisplayMember="Name" ValueMember="Id" AutoPopulateColumns="false"
+                              EditValue="{Binding Config.DefaultWarehouseId, UpdateSourceTrigger=PropertyChanged}"
+                              ItemsSource="{Binding Warehouses.List}">
+                <dxe:PopupBaseEdit.PopupContentTemplate>
+                  <ControlTemplate>
+                    <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
+                      <dxg:GridControl.Columns>
+                        <dxg:GridColumn FieldName="Name"/>
+                      </dxg:GridControl.Columns>
+                      <dxg:GridControl.View>
+                        <dxg:TableView AutoWidth="true"/>
+                      </dxg:GridControl.View>
+                    </dxg:GridControl>
+                  </ControlTemplate>
+                </dxe:PopupBaseEdit.PopupContentTemplate>
+              </dxg:LookUpEdit>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Default depository'}">
+              <dxg:LookUpEdit DisplayMember="Name" ValueMember="Id" AutoPopulateColumns="false"
+                              EditValue="{Binding Config.DefaultDepositoryId, UpdateSourceTrigger=PropertyChanged}"
+                              ItemsSource="{Binding Depositories.List}">
+                <dxe:PopupBaseEdit.PopupContentTemplate>
+                  <ControlTemplate>
+                    <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
+                      <dxg:GridControl.Columns>
+                        <dxg:GridColumn FieldName="Name"/>
+                      </dxg:GridControl.Columns>
+                      <dxg:GridControl.View>
+                        <dxg:TableView AutoWidth="true"/>
+                      </dxg:GridControl.View>
+                    </dxg:GridControl>
+                  </ControlTemplate>
+                </dxe:PopupBaseEdit.PopupContentTemplate>
+              </dxg:LookUpEdit>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Height="10"/>
+            <dxlc:LayoutItem Label="{Localize 'Default Price Group'}">
+              <dxe:ComboBoxEdit NullValueButtonPlacement="EditBox" IncrementalFiltering="True" ImmediatePopup="True"
+                                EditValue="{Binding Config.DefaultStockPriceGroup, UpdateSourceTrigger=PropertyChanged}"
+                                ItemsSource="{Binding PriceGroupNames}">
+                <dxe:BaseEdit.StyleSettings>
+                  <dxe:ComboBoxStyleSettings/>
+                </dxe:BaseEdit.StyleSettings>
+              </dxe:ComboBoxEdit>
+            </dxlc:LayoutItem>
+          </dxlc:LayoutGroup>
+          <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize 'Code Generation'}">
+            <dxlc:LayoutItem Label="{Localize 'Local code prefix'}">
+              <dxe:SpinEdit IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                            EditValue="{Binding Config.LocalCodePrefix, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Height="10"/>
+            <dxlc:LayoutItem Label="{Localize 'Last stock code value'}">
+              <dxe:SpinEdit IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                            EditValue="{Binding Config.LastStockCodeValue, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Last partner code value'}">
+              <dxe:SpinEdit IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                            EditValue="{Binding Config.LastPartnerCodeValue, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Last transaction code value'}">
+              <dxe:SpinEdit IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                            EditValue="{Binding Config.LastTransactionCodeValue, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+          </dxlc:LayoutGroup>
+          <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize Revision}">
+            <dxlc:LayoutItem Height="10"/>
+            <dxlc:LayoutItem Label="{Localize 'Balance Options'}">
+              <dxe:CheckEdit Content="{Localize 'Use balance at added date'}"
+                             EditValue="{Binding Config.FreezeStockBlanaceOnRevision, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Price Options'}">
+              <dxe:CheckEdit Content="{Localize 'Allow Editing Stokc Price'}"
+                             EditValue="{Binding Config.AllowStockPriceChangeOnRevision, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+          </dxlc:LayoutGroup>
+          <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize 'POS Options'}">
+            <dxlc:LayoutItem Height="10"/>
+            <dxlc:LayoutItem Label="{Localize 'POS Price Options'}">
+              <dxe:CheckEdit Content="{Localize 'Show last purchase price on search'}"
+                             EditValue="{Binding Config.ShowLastPurchasePriceOnSearch, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'POS Line Adding Options'}">
+              <dxe:CheckEdit Content="{Localize 'Open editor when adding'}"
+                             EditValue="{Binding Config.OpenEditorWhenAdding, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+          </dxlc:LayoutGroup>
+        </dxlc:LayoutGroup>
+      </dxlc:LayoutControl>
+      <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+        <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</mvx:MvxWpfView>

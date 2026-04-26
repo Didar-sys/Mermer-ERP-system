@@ -1,0 +1,67 @@
+<mvx:MvxWpfView x:Class="Payhas.Binyat.Ui.Pc.Views.Settings.ConnectionSettingsView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+                xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+                xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
+                xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                xmlns:vm="clr-namespace:Payhas.Binyat.Ui.Core.ViewModels.Settings;assembly=Payhas.Binyat.Ui.Core">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal"
+                dx:ThemeManager.ThemeName="Office2013DarkGray;Touch">
+      <Button Margin="0,0,10,0" IsDefault="true" Content="{Localize Save}" Command="{Binding SaveCommand}"/>
+      <Button IsCancel="true" Content="{Localize Cancel}" Command="{Binding CloseCommand}"/>
+    </StackPanel>
+    <Grid FocusManager.FocusedElement="{Binding ElementName=FirstFocus}">
+      <dxlc:LayoutControl Width="400" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center"
+                          IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
+        <dxlc:LayoutGroup Orientation="Vertical">
+          <dxlc:LayoutItem Label="{Localize 'Connection mode'}">
+            <dxe:ComboBoxEdit x:Name="FirstFocus" DisplayMember="Text" ValueMember="Value"
+                              ItemsSource="{Binding ConnectionModes}"
+                              EditValue="{Binding Config.Mode, UpdateSourceTrigger=PropertyChanged}"/>
+          </dxlc:LayoutItem>
+          <dxlc:LayoutGroup Orientation="Vertical"
+                            Visibility="{Binding Config.IsDirectModeSelected, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+            <dxlc:LayoutItem Label="{Localize 'Database address'}">
+              <dxe:TextEdit EditValue="{Binding Config.DatabaseAddress, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Database name'}">
+              <dxe:TextEdit EditValue="{Binding Config.DatabaseName, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Database user'}">
+              <dxe:TextEdit EditValue="{Binding Config.DatabaseUser, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize 'Database password'}">
+              <dxe:PasswordBoxEdit EditValue="{Binding Config.DatabasePassword, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+            <dxlc:LayoutItem Label="{Localize Initialization}">
+              <dxlc:LayoutGroup Orientation="Vertical">
+                <dxe:CheckEdit Content="{Localize 'Allow Reporting'}"
+                               EditValue="{Binding Config.AllowReporting, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button MinHeight="30" Content="{Localize 'Create/Update Indexes'}"
+                        Command="{Binding CreateInitialSchemaCommand}"/>
+                <Button MinHeight="30" Content="{Localize 'Create Initial Data'}"
+                        Command="{Binding CreateInitialDataCommand}"/>
+              </dxlc:LayoutGroup>
+            </dxlc:LayoutItem>
+          </dxlc:LayoutGroup>
+          <dxlc:LayoutGroup Orientation="Vertical"
+                            Visibility="{Binding Config.IsDirectModeSelected, Converter={dxmvvm:BooleanToVisibilityConverter Inverse=true}}">
+            <dxlc:LayoutItem Label="{Localize 'Service address'}">
+              <dxe:TextEdit EditValue="{Binding Config.ServiceAddress, UpdateSourceTrigger=PropertyChanged}"/>
+            </dxlc:LayoutItem>
+          </dxlc:LayoutGroup>
+        </dxlc:LayoutGroup>
+      </dxlc:LayoutControl>
+      <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+        <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</mvx:MvxWpfView>

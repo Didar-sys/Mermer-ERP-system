@@ -1,0 +1,62 @@
+<mvx:MvxWpfView x:Class="Payhas.Binyat.Ui.Pc.Views.StockManagement.StockMergerDialogView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+                xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
+                xmlns:vm="clr-namespace:Payhas.Binyat.Ui.Core.ViewModels.StockManagement;assembly=Payhas.Binyat.Ui.Core"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+                xmlns:ctrl="clr-namespace:Payhas.Binyat.Ui.Pc.Controls">
+  <DockPanel>
+    <Grid DockPanel.Dock="Bottom" dx:ThemeManager.ThemeName="Office2013DarkGray;Touch">
+      <Button HorizontalAlignment="Left" Content="{Localize 'Delete Selected'}"
+              Command="{Binding SelectedItemsDeleteCommand}"/>
+      <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+        <Button Content="{Localize Merge}" Command="{Binding MergeCommand}"/>
+        <Button Margin="10,0,0,0" Content="{Localize Cancel}" Command="{Binding CloseCommand}"/>
+      </StackPanel>
+    </Grid>
+    <dxlc:LayoutControl Orientation="Vertical" IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
+      <dxlc:LayoutGroup VerticalAlignment="Top">
+        <dxlc:LayoutItem MaxWidth="730" Label="{Localize Add}">
+          <dxlc:LayoutGroup>
+            <ctrl:StockLookupEdit x:Name="FirstFocus" DataContext="{Binding StockSearcher}">
+              <dxmvvm:Interaction.Behaviors>
+                <dxmvvm:FocusBehavior EventName="Loaded"/>
+              </dxmvvm:Interaction.Behaviors>
+            </ctrl:StockLookupEdit>
+          </dxlc:LayoutGroup>
+        </dxlc:LayoutItem>
+        <dxe:CheckEdit HorizontalAlignment="Right" VerticalAlignment="Top"
+                       EditValue="{Binding DisableMergedItems, UpdateSourceTrigger=PropertyChanged}"
+                       Content="{Localize 'Disable Merged Items'}"/>
+      </dxlc:LayoutGroup>
+      <dxg:GridControl SelectionMode="MultipleRow" MinHeight="300" ItemsSource="{Binding List}"
+                       ShowLoadingPanel="{Binding IsBusy}">
+        <dxg:DataControlBase.SelectedItems>
+          <Binding>            <!-- constructor argument:
+                 SelectedItems
+            -->
+
+          </Binding>
+        </dxg:DataControlBase.SelectedItems>
+        <dxg:GridColumn FieldName="IsMain" Width="50" Header="{Localize Main}"/>
+        <dxg:GridColumn FieldName="Code" AllowEditing="False" Width="100" Header="{Localize Code}"/>
+        <dxg:GridColumn FieldName="Name" AllowEditing="False" Width="700" Header="{Localize Name}"/>
+        <dxg:GridColumn FieldName="Unit" AllowEditing="False" Width="50" Header="{Localize Unit}"/>
+        <dxg:GridColumn FieldName="Price" AllowEditing="False" Width="80" Header="{Localize Price}"/>
+        <dxg:GridColumn FieldName="Currency" AllowEditing="False" Width="50" Header="{Localize Currency}"/>
+        <dxg:GridControl.View>
+          <dxg:TableView AutoWidth="true" ShowGroupPanel="false" NewItemRowPosition="None" AllowPerPixelScrolling="true"
+                         EnableImmediatePosting="true" ShowCheckBoxSelectorColumn="true"
+                         ShowCheckBoxSelectorInGroupRow="true" RetainSelectionOnClickOutsideCheckBoxSelector="true"/>
+        </dxg:GridControl.View>
+      </dxg:GridControl>
+    </dxlc:LayoutControl>
+  </DockPanel>
+</mvx:MvxWpfView>

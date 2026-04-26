@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Project was exported from assembly: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Payhas.dll-->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{22CB2030-A2B9-450B-AD30-5876EE159A4B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Payhas</AssemblyName>
+    <ApplicationVersion>1.0.0.0</ApplicationVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto">
+      <HintPath>lib\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.Core">
+      <HintPath>lib\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="FluentValidation">
+      <HintPath>lib\FluentValidation.dll</HintPath>
+    </Reference>
+    <Reference Include="LinqKit.Core">
+      <HintPath>lib\LinqKit.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections" />
+    <Reference Include="System.Diagnostics.Debug" />
+    <Reference Include="System.Globalization" />
+    <Reference Include="System.Linq" />
+    <Reference Include="System.Linq.Expressions" />
+    <Reference Include="System.ObjectModel" />
+    <Reference Include="System.Reflection" />
+    <Reference Include="System.Reflection.Extensions" />
+    <Reference Include="System.Reflection.TypeExtensions">
+      <HintPath>lib\System.Reflection.TypeExtensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Runtime.Extensions" />
+    <Reference Include="System.Text.Encoding" />
+    <Reference Include="System.Text.Encoding.Extensions" />
+    <Reference Include="System.Threading" />
+    <Reference Include="System.Threading.Tasks" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="System\DateTimeExtender.cs" />
+    <Compile Include="System\IntegerExtenders.cs" />
+    <Compile Include="System\StringExtender.cs" />
+    <Compile Include="System\TypeExtender.cs" />
+    <Compile Include="System\Collections\Generic\ArrayExtender.cs" />
+    <Compile Include="System\Collections\Generic\EnumerableExtender.cs" />
+    <Compile Include="FluentValidation\ValidatorExtender.cs" />
+    <Compile Include="Payhas\CanBeNullAttribute.cs" />
+    <Compile Include="Payhas\NotNullAttribute.cs" />
+    <Compile Include="Payhas\ItemNotNullAttribute.cs" />
+    <Compile Include="Payhas\ItemCanBeNullAttribute.cs" />
+    <Compile Include="Payhas\StringFormatMethodAttribute.cs" />
+    <Compile Include="Payhas\ValueProviderAttribute.cs" />
+    <Compile Include="Payhas\InvokerParameterNameAttribute.cs" />
+    <Compile Include="Payhas\NotifyPropertyChangedInvocatorAttribute.cs" />
+    <Compile Include="Payhas\ContractAnnotationAttribute.cs" />
+    <Compile Include="Payhas\LocalizationRequiredAttribute.cs" />
+    <Compile Include="Payhas\CannotApplyEqualityOperatorAttribute.cs" />
+    <Compile Include="Payhas\BaseTypeRequiredAttribute.cs" />
+    <Compile Include="Payhas\UsedImplicitlyAttribute.cs" />
+    <Compile Include="Payhas\MeansImplicitUseAttribute.cs" />
+    <Compile Include="Payhas\ImplicitUseKindFlags.cs" />
+    <Compile Include="Payhas\ImplicitUseTargetFlags.cs" />
+    <Compile Include="Payhas\PublicAPIAttribute.cs" />
+    <Compile Include="Payhas\InstantHandleAttribute.cs" />
+    <Compile Include="Payhas\PureAttribute.cs" />
+    <Compile Include="Payhas\MustUseReturnValueAttribute.cs" />
+    <Compile Include="Payhas\ProvidesContextAttribute.cs" />
+    <Compile Include="Payhas\PathReferenceAttribute.cs" />
+    <Compile Include="Payhas\SourceTemplateAttribute.cs" />
+    <Compile Include="Payhas\MacroAttribute.cs" />
+    <Compile Include="Payhas\AspMvcAreaMasterLocationFormatAttribute.cs" />
+    <Compile Include="Payhas\AspMvcAreaPartialViewLocationFormatAttribute.cs" />
+    <Compile Include="Payhas\AspMvcAreaViewLocationFormatAttribute.cs" />
+    <Compile Include="Payhas\AspMvcMasterLocationFormatAttribute.cs" />
+    <Compile Include="Payhas\AspMvcPartialViewLocationFormatAttribute.cs" />
+    <Compile Include="Payhas\AspMvcViewLocationFormatAttribute.cs" />
+    <Compile Include="Payhas\AspMvcActionAttribute.cs" />
+    <Compile Include="Payhas\AspMvcAreaAttribute.cs" />
+    <Compile Include="Payhas\AspMvcControllerAttribute.cs" />
+    <Compile Include="Payhas\AspMvcMasterAttribute.cs" />
+    <Compile Include="Payhas\AspMvcModelTypeAttribute.cs" />
+    <Compile Include="Payhas\AspMvcPartialViewAttribute.cs" />
+    <Compile Include="Payhas\AspMvcSuppressViewErrorAttribute.cs" />
+    <Compile Include="Payhas\AspMvcDisplayTemplateAttribute.cs" />
+    <Compile Include="Payhas\AspMvcEditorTemplateAttribute.cs" />
+    <Compile Include="Payhas\AspMvcTemplateAttribute.cs" />
+    <Compile Include="Payhas\AspMvcViewAttribute.cs" />
+    <Compile Include="Payhas\AspMvcViewComponentAttribute.cs" />
+    <Compile Include="Payhas\AspMvcViewComponentViewAttribute.cs" />
+    <Compile Include="Payhas\AspMvcActionSelectorAttribute.cs" />
+    <Compile Include="Payhas\HtmlElementAttributesAttribute.cs" />
+    <Compile Include="Payhas\HtmlAttributeValueAttribute.cs" />
+    <Compile Include="Payhas\RazorSectionAttribute.cs" />
+    <Compile Include="Payhas\CollectionAccessAttribute.cs" />
+    <Compile Include="Payhas\CollectionAccessType.cs" />
+    <Compile Include="Payhas\AssertionMethodAttribute.cs" />
+    <Compile Include="Payhas\AssertionConditionAttribute.cs" />
+    <Compile Include="Payhas\AssertionConditionType.cs" />
+    <Compile Include="Payhas\TerminatesProgramAttribute.cs" />
+    <Compile Include="Payhas\LinqTunnelAttribute.cs" />
+    <Compile Include="Payhas\NoEnumerationAttribute.cs" />
+    <Compile Include="Payhas\RegexPatternAttribute.cs" />
+    <Compile Include="Payhas\NoReorderAttribute.cs" />
+    <Compile Include="Payhas\XamlItemsControlAttribute.cs" />
+    <Compile Include="Payhas\XamlItemBindingOfItemsControlAttribute.cs" />
+    <Compile Include="Payhas\AspChildControlTypeAttribute.cs" />
+    <Compile Include="Payhas\AspDataFieldAttribute.cs" />
+    <Compile Include="Payhas\AspDataFieldsAttribute.cs" />
+    <Compile Include="Payhas\AspMethodPropertyAttribute.cs" />
+    <Compile Include="Payhas\AspRequiredAttributeAttribute.cs" />
+    <Compile Include="Payhas\AspTypePropertyAttribute.cs" />
+    <Compile Include="Payhas\RazorImportNamespaceAttribute.cs" />
+    <Compile Include="Payhas\RazorInjectionAttribute.cs" />
+    <Compile Include="Payhas\RazorDirectiveAttribute.cs" />
+    <Compile Include="Payhas\RazorHelperCommonAttribute.cs" />
+    <Compile Include="Payhas\RazorLayoutAttribute.cs" />
+    <Compile Include="Payhas\RazorWriteLiteralMethodAttribute.cs" />
+    <Compile Include="Payhas\RazorWriteMethodAttribute.cs" />
+    <Compile Include="Payhas\RazorWriteMethodParameterAttribute.cs" />
+    <Compile Include="Payhas\Services\IConfigurator.cs" />
+    <Compile Include="Payhas\Data\INotifyDictionaryChanged`2.cs" />
+    <Compile Include="Payhas\Data\ValueChangedEventHandler`2.cs" />
+    <Compile Include="Payhas\Data\ValueChangedEventArgs`2.cs" />
+    <Compile Include="Payhas\Data\WatchedDictionary`2.cs" />
+    <Compile Include="Payhas\Data\IWatchedObservableCollection.cs" />
+    <Compile Include="Payhas\Data\WatchedObservableCollection`1.cs" />
+    <Compile Include="Payhas\Data\Tools\AutoNotifyPropertyChanged.cs" />
+    <Compile Include="Payhas\Data\Tools\AutoNotifyPropertyChangedInterceptor.cs" />
+    <Compile Include="Payhas\Data\Tools\NotDirtyEffectiveAttribute.cs" />
+    <Compile Include="Payhas\Data\Tools\DirtynessController.cs" />
+    <Compile Include="Payhas\Data\Tools\IObservableCollectionWatcher.cs" />
+    <Compile Include="Payhas\Data\Tools\ObservableCollectionWatcher`1.cs" />
+    <Compile Include="Payhas\Data\Tools\ItemsChangedEventHandler.cs" />
+    <Compile Include="Payhas\Data\Tools\ItemPropertyChangedEventHandler.cs" />
+    <Compile Include="Payhas\Data\Tools\Expressions\ExpressionExtender.cs" />
+    <Compile Include="Payhas\Data\Tools\Expressions\Predicate.cs" />
+    <Compile Include="Payhas\Data\Tools\Expressions\PredicateBuilder`1.cs" />
+    <Compile Include="Payhas\Data\Tools\Expressions\SafeExpressionVisitor.cs" />
+    <Compile Include="Payhas\Data\Tools\Expressions\SafePredicateBuilder`1.cs" />
+    <Compile Include="Payhas\Data\Tools\Barcode\Symbology.cs" />
+    <Compile Include="Payhas\Data\Storage\IInitialDataCreator.cs" />
+    <Compile Include="Payhas\Data\Storage\IInitialSchemaCreator.cs" />
+    <Compile Include="Payhas\Data\Storage\IReadOnlyRepository`1.cs" />
+    <Compile Include="Payhas\Data\Storage\IRepository`1.cs" />
+    <Compile Include="Payhas\Data\Storage\IRepositoryWithFacets`1.cs" />
+    <Compile Include="Payhas\Data\Models\BindableObject.cs" />
+    <Compile Include="Payhas\Data\Models\IModel.cs" />
+    <Compile Include="Payhas\Data\Extenders\MvxPropertyNameExtensionMethods.cs" />
+    <Compile Include="Payhas\Data\Extenders\ObservableCollectionExtender.cs" />
+    <Compile Include="Payhas\Data\Extenders\StringExtenderTranslit.cs" />
+    <Compile Include="Payhas\Data\Authorizers\DefaultAuthorizer.cs" />
+    <Compile Include="Payhas\Data\Authorizers\DefaultListAuthorizer`1.cs" />
+    <Compile Include="Payhas\Data\Authorizers\DefaultReadOnlyListAuthorizer`1.cs" />
+    <Compile Include="Payhas\Data\Authorizers\IAuthorizer.cs" />
+    <Compile Include="Payhas\Data\Authorizers\IListAuthorizer`1.cs" />
+    <Compile Include="Payhas\Data\Authorizers\IReadOnlyListAuthorizer`1.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,89 @@
+<mvx:MvxWpfView x:Class="Payhas.Binyat.Ui.Pc.Views.FundsManagement.CurrencyDetailsView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+                xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui"
+                xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
+                xmlns:menu="clr-namespace:Payhas.Binyat.Ui.Pc.Controls.MenuItems"
+                xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+                xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                xmlns:vm="clr-namespace:Payhas.Binyat.Ui.Core.ViewModels.FundsManagement;assembly=Payhas.Binyat.Ui.Core">
+  <DockPanel>
+    <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
+      <menu:DetailsSave/>
+      <menu:DetailsSaveAndNew/>
+      <menu:DetailsSaveAndClose/>
+      <dxwui:AppBarSeparator Visibility="{Binding HasSaveAccess, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
+      <menu:CommonReload/>
+      <menu:CommonClose/>
+    </dxwui:AppBar>
+    <Grid FocusManager.FocusedElement="{Binding ElementName=FirstFocus}">
+      <dxlc:LayoutControl Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center"
+                          IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
+        <dxlc:LayoutGroup Width="500" Orientation="Vertical" HorizontalAlignment="Left">
+          <dxlc:LayoutGroup>
+            <dxlc:LayoutGroup Orientation="Vertical" Width="400">
+              <dxlc:LayoutItem Label="{Localize Name}">
+                <dxe:TextEdit x:Name="FirstFocus" EditValue="{Binding Details.Name, UpdateSourceTrigger=PropertyChanged}"
+                              IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"/>
+              </dxlc:LayoutItem>
+              <dxlc:LayoutItem Label="{Localize Decimals}">
+                <dxe:SpinEdit MinValue="0" MaxValue="2" IsFloatValue="false" EditValueType="{x:Type sys:Int32}"
+                              EditValue="{Binding Details.Decimals, UpdateSourceTrigger=PropertyChanged}"
+                              IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"/>
+              </dxlc:LayoutItem>
+              <dxlc:LayoutItem Label="{Localize IsDefault}">
+                <dxe:CheckEdit EditValue="{Binding Details.IsDefault, UpdateSourceTrigger=PropertyChanged}"
+                               IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"/>
+              </dxlc:LayoutItem>
+              <dxlc:LayoutItem Label="{Localize Status}">
+                <dxlc:LayoutGroup>
+                  <dxe:CheckEdit Content="{Localize Deleted}"
+                                 EditValue="{Binding Details.IsDisabled, UpdateSourceTrigger=PropertyChanged}"
+                                 IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"/>
+                </dxlc:LayoutGroup>
+              </dxlc:LayoutItem>
+            </dxlc:LayoutGroup>
+          </dxlc:LayoutGroup>
+          <dxlc:LayoutItem Height="20"/>
+          <dxlc:LayoutGroup View="Tabs" Height="250">
+            <dxlc:LayoutGroup Header="{Localize Rates}">
+              <dxg:GridControl ItemsSource="{Binding Details.Rates}">
+                <dxg:GridControl.Columns>
+                  <dxg:GridColumn FieldName="ValidFrom" Header="{Localize RateValidFrom}"/>
+                  <dxg:GridColumn FieldName="Multiplier" Header="{Localize Multiplier}">
+                    <dxg:ColumnBase.EditSettings>
+                      <dxe:SpinEditSettings MinValue="0"/>
+                    </dxg:ColumnBase.EditSettings>
+                  </dxg:GridColumn>
+                  <dxg:GridColumn FieldName="Divider" Header="{Localize Divider}">
+                    <dxg:ColumnBase.EditSettings>
+                      <dxe:SpinEditSettings MinValue="0"/>
+                    </dxg:ColumnBase.EditSettings>
+                  </dxg:GridColumn>
+                </dxg:GridControl.Columns>
+                <dxg:GridControl.View>
+                  <dxg:TableView NewItemRowPosition="Bottom" ShowGroupPanel="false" ShowSearchPanelMode="Never" AutoWidth="true"/>
+                </dxg:GridControl.View>
+              </dxg:GridControl>
+            </dxlc:LayoutGroup>
+            <dxlc:LayoutGroup Header="{Localize Description}">
+              <dxe:TextEdit TextWrapping="Wrap" VerticalContentAlignment="Top" AcceptsReturn="true" AcceptsTab="true"
+                            VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                            EditValue="{Binding Details.Description, UpdateSourceTrigger=PropertyChanged}"
+                            IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"/>
+            </dxlc:LayoutGroup>
+          </dxlc:LayoutGroup>
+        </dxlc:LayoutGroup>
+      </dxlc:LayoutControl>
+      <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+        <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</mvx:MvxWpfView>

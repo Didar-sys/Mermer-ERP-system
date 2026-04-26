@@ -1,0 +1,8 @@
+﻿{
+    "views": {
+        "facets": {
+            "map": "transaction-facets-map.js",
+            "reduce": "common-facets-reduce.js"
+        }
+    }
+}
