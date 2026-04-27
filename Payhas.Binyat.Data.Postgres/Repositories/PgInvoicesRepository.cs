@@ -313,7 +313,6 @@ public class PgInvoicesRepository : IInvoicesRepository
             entity.Discounts.Add(MapDiscountToEntity(d, guid));
 
         entity.Payments.Clear();
-        entity.Payments.Clear();
         foreach (var pay in model.Payments ?? Enumerable.Empty<InvoicePayment>())
             entity.Payments.Add(MapPaymentToEntity(pay, guid, "Payment"));
         foreach (var chg in model.Changes ?? Enumerable.Empty<InvoicePayment>())
@@ -428,10 +427,11 @@ public class PgInvoicesRepository : IInvoicesRepository
     {
         return new InvoiceDiscountEntity
         {
-            Id        = Guid.TryParse(d.Id, out var did) ? did : Guid.NewGuid(),
-            InvoiceId = invoiceId,
-            Amount    = d.ActionAmount,
-            IsPercent = d.Type == InvoiceDiscountType.Percentage
+            Id           = Guid.TryParse(d.Id, out var did) ? did : Guid.NewGuid(),
+            InvoiceId    = invoiceId,
+            DiscountType = d.Type == InvoiceDiscountType.Percentage ? "Percentage" : "Flat",
+            Amount       = d.ActionAmount,
+            IsPercent    = d.Type == InvoiceDiscountType.Percentage
         };
     }
 

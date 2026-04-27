@@ -137,14 +137,13 @@ public class PgStockBalancesRepository : IStockBalancesRepository
         if (!Guid.TryParse(warehouseId, out var warehouseGuid))
             return Enumerable.Empty<StockBalance>();
 
-        // Unnest date-per-stock into a VALUES table for a single query
-        var results = new List<StockBalance>();
-
-        // Batch into one query using unnest
         var stockIds = stockBalanceDates
             .Select(s => Guid.TryParse(s.stockId, out var g) ? g : Guid.Empty)
             .Where(g => g != Guid.Empty)
             .ToArray();
+
+        if (stockIds.Length == 0)
+            return Enumerable.Empty<StockBalance>();
 
         const string sql = """
             SELECT
@@ -166,12 +165,10 @@ public class PgStockBalancesRepository : IStockBalancesRepository
         string[] warehouseIds,
         (string stockId, DateTime? balanceDate)[] stockBalanceDates)
     {
-        var warehouseGuids = ParseGuids(warehouseIds);
         var stockIds = stockBalanceDates
             .Select(s => s.stockId)
             .ToArray();
 
-        // Delegate to multi-warehouse multi-stock overload
         return GetAsync(warehouseIds, stockIds);
     }
 
@@ -284,7 +281,7 @@ public class PgStockBalancesRepository : IStockBalancesRepository
         await using var conn = new NpgsqlConnection(_connectionString);
         var rows = await conn.QueryAsync(sql, new
         {
-            stockId,
+            stockId      = stockGuid,
             dateFrom,
             dateTill,
             warehouseIds = warehouseGuids.Length > 0 ? warehouseGuids : null
