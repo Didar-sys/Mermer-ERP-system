@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using Npgsql;
+using Payhas.Binyat.Data.Postgres.Abstractions;
 
 namespace Payhas.Binyat.Data.Postgres.Repositories;
 
@@ -21,7 +22,7 @@ namespace Payhas.Binyat.Data.Postgres.Repositories;
 /// All combined into one query with JOINs, targeting < 100ms response.
 /// Uses Dapper for raw SQL performance (no EF Core overhead for search).
 /// </summary>
-public class PgStockSearchService : IPgStockSearchService
+public class PgStockSearchService : IStockSearchService
 {
     private readonly string _connectionString;
 
@@ -30,7 +31,7 @@ public class PgStockSearchService : IPgStockSearchService
         _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
     }
 
-    public async Task<IEnumerable<PgStockSearchResult>> SearchAsync(
+    public async Task<IReadOnlyList<PgStockSearchResult>> SearchAsync(
         string searchText,
         string? warehouseId = null,
         string? priceGroup = null,
@@ -39,7 +40,7 @@ public class PgStockSearchService : IPgStockSearchService
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(searchText))
-            return Enumerable.Empty<PgStockSearchResult>();
+            return Array.Empty<PgStockSearchResult>();
 
         var normalizedSearch = searchText.Trim().ToLowerInvariant();
 
@@ -64,13 +65,21 @@ public class PgStockSearchService : IPgStockSearchService
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
 
-        // Set pg_trgm similarity threshold for the session
-        // Using GUC parameter instead of deprecated set_limit() (removed in PG 15)
+        // Wrap in a transaction so SET LOCAL is scoped to this query only.
+        // Plain `SET pg_trgm.similarity_threshold = ...` would leak across the
+        // pooled connection's lifetime and corrupt subsequent searches.
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken);
+
         await connection.ExecuteAsync(
-            $"SET pg_trgm.similarity_threshold = {minSimilarity.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+            new CommandDefinition(
+                $"SET LOCAL pg_trgm.similarity_threshold = {minSimilarity.ToString(System.Globalization.CultureInfo.InvariantCulture)}",
+                transaction: tx,
+                cancellationToken: cancellationToken));
 
         var results = await connection.QueryAsync<PgStockSearchResult>(
-            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
+            new CommandDefinition(sql, parameters, transaction: tx, cancellationToken: cancellationToken));
+
+        await tx.CommitAsync(cancellationToken);
 
         // Apply highlight formatting to match old behavior
         var resultList = results.ToList();

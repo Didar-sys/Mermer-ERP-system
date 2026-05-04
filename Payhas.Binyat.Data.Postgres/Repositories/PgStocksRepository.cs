@@ -1,22 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Payhas.Binyat.StockManagement.Models;
-using Payhas.Binyat.StockManagement.Services;
+using Payhas.Binyat.Data.Postgres.Abstractions;
 using Payhas.Binyat.Data.Postgres.Entities;
-using Payhas.Data.Storage;
+using Payhas.Binyat.Data.Postgres.Models;
 
 namespace Payhas.Binyat.Data.Postgres.Repositories;
 
 /// <summary>
-/// PostgreSQL implementation of IStocksRepository.
-/// Replaces Couchbase StocksRepository: eliminates View queries and bucket round-trips.
-/// All IDs are bridged: domain models use string IDs, PostgreSQL uses UUID.
+/// PostgreSQL implementation of <see cref="IStocksRepository"/>.
+///
+/// Replaces the Couchbase StocksRepository. Domain IDs are <c>string</c>
+/// (legacy contract); on the wire we always parse them to <c>Guid</c>.
 /// </summary>
 public class PgStocksRepository : IStocksRepository
 {
@@ -29,9 +29,7 @@ public class PgStocksRepository : IStocksRepository
         _connectionString = connectionString;
     }
 
-    // ─── IReadOnlyRepository<Stock> ──────────────────────────────────────────
-
-    public async Task<Stock> GetAsync(string id)
+    public async Task<Stock?> GetAsync(string id, CancellationToken ct = default)
     {
         if (!Guid.TryParse(id, out var guid))
             return null;
@@ -40,52 +38,45 @@ public class PgStocksRepository : IStocksRepository
             .Include(s => s.Units)
             .Include(s => s.Prices)
             .Include(s => s.AdditionalPrices)
-            .FirstOrDefaultAsync(s => s.Id == guid);
+            .FirstOrDefaultAsync(s => s.Id == guid, ct);
 
         return entity == null ? null : MapToModel(entity);
     }
 
-    public async Task<IEnumerable<Stock>> GetAsync(
-        params Expression<Func<Stock, bool>>[] filters)
+    public async Task<IReadOnlyList<Stock>> GetAllAsync(CancellationToken ct = default)
     {
-        // For full list — load all stocks and filter in memory
-        // (filters are LINQ expressions on domain model, not EF entities)
         var entities = await _db.Stocks
             .Include(s => s.Units)
             .Include(s => s.Prices)
             .Include(s => s.AdditionalPrices)
             .Where(s => !s.IsDisabled)
             .OrderBy(s => s.Name)
-            .ToListAsync();
+            .ToListAsync(ct);
 
-        var stocks = entities.Select(MapToModel);
-
-        foreach (var filter in filters)
-            stocks = stocks.AsQueryable().Where(filter.Compile());
-
-        return stocks;
+        return entities.Select(MapToModel).ToList();
     }
 
-    // ─── IStocksRepository ───────────────────────────────────────────────────
-
-    public async Task<IEnumerable<Stock>> GetListAsync(params string[] stockIds)
+    public async Task<IReadOnlyList<Stock>> GetListAsync(string[] stockIds, CancellationToken ct = default)
     {
-        var guids = stockIds
-            .Select(id => Guid.TryParse(id, out var g) ? g : Guid.Empty)
-            .Where(g => g != Guid.Empty)
-            .ToArray();
+        var guids = ParseGuids(stockIds);
+        if (guids.Length == 0)
+            return Array.Empty<Stock>();
 
         var entities = await _db.Stocks
             .Include(s => s.Units)
             .Include(s => s.Prices)
             .Include(s => s.AdditionalPrices)
             .Where(s => guids.Contains(s.Id))
-            .ToListAsync();
+            .ToListAsync(ct);
 
-        return entities.Select(MapToModel);
+        var byId = entities.ToDictionary(e => e.Id);
+        return guids
+            .Where(byId.ContainsKey)
+            .Select(g => MapToModel(byId[g]))
+            .ToList();
     }
 
-    public async Task<IEnumerable<StockInfo>> GetInfoAsync(params string[] stockIds)
+    public async Task<IReadOnlyList<StockInfo>> GetInfoAsync(string[]? stockIds = null, CancellationToken ct = default)
     {
         const string sql = """
             SELECT
@@ -94,7 +85,7 @@ public class PgStocksRepository : IStocksRepository
                 s.name,
                 s.short_name,
                 s.type,
-                s.group_name AS "group",
+                s.group_name,
                 s.tags,
                 s.barcodes,
                 s.is_disabled,
@@ -110,7 +101,7 @@ public class PgStocksRepository : IStocksRepository
             ) u ON true
             LEFT JOIN LATERAL (
                 SELECT price, currency_id FROM stock_prices
-                WHERE stock_id = s.id
+                WHERE stock_id = s.id AND price_group IS NULL
                 ORDER BY valid_from DESC
                 LIMIT 1
             ) p ON true
@@ -118,44 +109,40 @@ public class PgStocksRepository : IStocksRepository
             ORDER BY s.name
             """;
 
+        var guids = stockIds is { Length: > 0 } ? ParseGuids(stockIds) : null;
+        Guid[]? param = guids is { Length: > 0 } ? guids : null;
+
         await using var conn = new NpgsqlConnection(_connectionString);
-
-        Guid[]? guidIds = stockIds.Length > 0
-            ? stockIds.Select(id => Guid.TryParse(id, out var g) ? g : Guid.Empty)
-                      .Where(g => g != Guid.Empty).ToArray()
-            : null;
-
-        var rows = await conn.QueryAsync(sql, new { ids = guidIds });
+        var rows = await conn.QueryAsync(new CommandDefinition(sql, new { ids = param }, cancellationToken: ct));
 
         return rows.Select(r => new StockInfo
         {
-            Id           = r.id.ToString(),
-            Code         = r.code,
-            Name         = r.name,
-            ShortName    = r.short_name,
-            Unit         = r.unit,
-            Price        = r.price ?? 0m,
-            CurrencyId   = r.currency_id?.ToString(),
-            Type         = r.type,
-            Group        = r.group,
-            Tags         = ((string[])r.tags)?.ToList(),
-            Barcodes     = ((string[])r.barcodes)?.ToList(),
-            IsDisabled   = r.is_disabled
-        });
+            Id           = ((Guid)r.id).ToString(),
+            Code         = (string?)r.code,
+            Name         = (string)r.name,
+            ShortName    = (string?)r.short_name,
+            Unit         = (string?)r.unit,
+            Price        = (decimal?)r.price ?? 0m,
+            CurrencyId   = ((Guid?)r.currency_id)?.ToString(),
+            Type         = (string?)r.type,
+            Group        = (string?)r.group_name,
+            Tags         = ((string[]?)r.tags)?.ToList(),
+            Barcodes     = ((string[]?)r.barcodes)?.ToList(),
+            IsDisabled   = (bool)r.is_disabled
+        }).ToList();
     }
 
-    public async Task<IEnumerable<StockInfo>> GetInfoAsync(
-        string additionalPriceCurrencyId,
-        string additionalPriceGroup)
+    public async Task<IReadOnlyList<StockInfo>> GetInfoAsync(
+        string? additionalPriceCurrencyId,
+        string? additionalPriceGroup,
+        CancellationToken ct = default)
     {
-        // Load base info
-        var infos = (await GetInfoAsync(Array.Empty<string>())).ToList();
+        var infos = (await GetInfoAsync(stockIds: null, ct)).ToList();
 
         if (string.IsNullOrEmpty(additionalPriceCurrencyId) &&
             string.IsNullOrEmpty(additionalPriceGroup))
             return infos;
 
-        // Load additional prices per stock for the requested group
         const string sql = """
             SELECT
                 ap.stock_id,
@@ -166,101 +153,47 @@ public class PgStocksRepository : IStocksRepository
             """;
 
         await using var conn = new NpgsqlConnection(_connectionString);
-        var additionalPrices = (await conn.QueryAsync(sql,
-                new { group = string.IsNullOrEmpty(additionalPriceGroup) ? null : additionalPriceGroup }))
-            .ToDictionary(r => ((Guid)r.stock_id).ToString());
+        var apRows = await conn.QueryAsync(new CommandDefinition(sql,
+            new { group = string.IsNullOrEmpty(additionalPriceGroup) ? null : additionalPriceGroup },
+            cancellationToken: ct));
+
+        var byStock = apRows.ToDictionary(r => ((Guid)r.stock_id).ToString());
 
         foreach (var info in infos)
         {
-            if (additionalPrices.TryGetValue(info.Id, out var ap))
+            if (info.Id != null && byStock.TryGetValue(info.Id, out var ap))
             {
-                info.AdditionalPrice           = ap.price ?? 0m;
-                info.AdditionalPriceCurrencyId = ap.currency_id?.ToString();
+                info.AdditionalPrice           = (decimal?)ap.price ?? 0m;
+                info.AdditionalPriceCurrencyId = ((Guid?)ap.currency_id)?.ToString();
             }
         }
 
         return infos;
     }
 
-    public async Task MergeAsync(string mainStockId, string[] mergeStockIds, bool disableMergedItems)
-    {
-        if (!Guid.TryParse(mainStockId, out var mainGuid))
-            throw new ArgumentException("Invalid mainStockId", nameof(mainStockId));
-
-        var mergeGuids = mergeStockIds
-            .Select(id => Guid.TryParse(id, out var g) ? g : Guid.Empty)
-            .Where(g => g != Guid.Empty)
-            .ToArray();
-
-        await using var transaction = await _db.Database.BeginTransactionAsync();
-        try
-        {
-            // Update all invoice lines referencing merged stocks
-            await _db.Database.ExecuteSqlRawAsync("""
-                UPDATE invoice_lines
-                SET stock_id = {0}
-                WHERE stock_id = ANY({1})
-                """, mainGuid, mergeGuids);
-
-            if (disableMergedItems)
-            {
-                // Collect barcodes from merged stocks
-                var mergedStocks = await _db.Stocks
-                    .Where(s => mergeGuids.Contains(s.Id))
-                    .ToListAsync();
-
-                var mainStock = await _db.Stocks.FindAsync(mainGuid);
-                if (mainStock != null)
-                {
-                    var allBarcodes = (mainStock.Barcodes?.ToList() ?? new List<string>());
-                    foreach (var s in mergedStocks)
-                    {
-                        allBarcodes.Add(s.Code ?? s.Id.ToString());
-                        if (s.Barcodes != null) allBarcodes.AddRange(s.Barcodes);
-                        s.IsDisabled = true;
-                        s.UpdatedAt  = DateTimeOffset.UtcNow;
-                    }
-                    mainStock.Barcodes  = allBarcodes.Distinct().ToArray();
-                    mainStock.UpdatedAt = DateTimeOffset.UtcNow;
-                }
-            }
-
-            await _db.SaveChangesAsync();
-            await transaction.CommitAsync();
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
-    }
-
-    // ─── IRepository<Stock> ──────────────────────────────────────────────────
-
-    public async Task<Stock> CreateAsync(Stock model)
+    public async Task<Stock> CreateAsync(Stock model, CancellationToken ct = default)
     {
         model.Id ??= Guid.NewGuid().ToString();
         var entity = MapToEntity(model);
         entity.CreatedAt = DateTimeOffset.UtcNow;
         entity.UpdatedAt = DateTimeOffset.UtcNow;
         _db.Stocks.Add(entity);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
         return model;
     }
 
-    public async Task<Stock> UpdateAsync(Stock model)
+    public async Task<Stock> UpdateAsync(Stock model, CancellationToken ct = default)
     {
         if (!Guid.TryParse(model.Id, out var guid))
-            throw new ArgumentException("Invalid stock ID");
+            throw new ArgumentException("Invalid stock ID", nameof(model));
 
         var entity = await _db.Stocks
             .Include(s => s.Units)
             .Include(s => s.Prices)
             .Include(s => s.AdditionalPrices)
-            .FirstOrDefaultAsync(s => s.Id == guid)
+            .FirstOrDefaultAsync(s => s.Id == guid, ct)
             ?? throw new InvalidOperationException($"Stock {guid} not found");
 
-        // Apply domain changes to entity
         entity.Code        = model.Code;
         entity.Name        = model.Name;
         entity.ShortName   = model.ShortName;
@@ -274,63 +207,103 @@ public class PgStocksRepository : IStocksRepository
         entity.IsDisabled  = model.IsDisabled;
         entity.UpdatedAt   = DateTimeOffset.UtcNow;
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
         return model;
     }
 
-    public async Task DeleteAsync(string id)
+    public async Task DeleteAsync(string id, CancellationToken ct = default)
     {
         if (!Guid.TryParse(id, out var guid))
             return;
-        var entity = await _db.Stocks.FindAsync(guid);
+        var entity = await _db.Stocks.FindAsync(new object[] { guid }, ct);
         if (entity != null)
         {
-            // Soft delete
             entity.IsDisabled = true;
             entity.UpdatedAt  = DateTimeOffset.UtcNow;
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(ct);
         }
     }
 
-    public async Task ValidateAsync(Stock model)
+    public async Task MergeAsync(string mainStockId, string[] mergeStockIds, bool disableMergedItems, CancellationToken ct = default)
     {
-        // Validate unique code
-        if (!string.IsNullOrEmpty(model.Code))
+        if (!Guid.TryParse(mainStockId, out var mainGuid))
+            throw new ArgumentException("Invalid mainStockId", nameof(mainStockId));
+
+        var mergeGuids = ParseGuids(mergeStockIds);
+        if (mergeGuids.Length == 0)
+            return;
+
+        await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+        try
         {
-            Guid.TryParse(model.Id, out var selfGuid);
-            var exists = await _db.Stocks
-                .AnyAsync(s => s.Code == model.Code && s.Id != selfGuid);
-            if (exists)
-                throw new InvalidOperationException(
-                    $"Stock with code '{model.Code}' already exists.");
+            await _db.Database.ExecuteSqlRawAsync(
+                "UPDATE invoice_lines SET stock_id = {0} WHERE stock_id = ANY({1})",
+                new object[] { mainGuid, mergeGuids }, ct);
+
+            if (disableMergedItems)
+            {
+                var mergedStocks = await _db.Stocks
+                    .Where(s => mergeGuids.Contains(s.Id))
+                    .ToListAsync(ct);
+
+                var mainStock = await _db.Stocks.FindAsync(new object[] { mainGuid }, ct);
+                if (mainStock != null)
+                {
+                    var allBarcodes = mainStock.Barcodes?.ToList() ?? new List<string>();
+                    foreach (var s in mergedStocks)
+                    {
+                        allBarcodes.Add(s.Code ?? s.Id.ToString());
+                        if (s.Barcodes != null) allBarcodes.AddRange(s.Barcodes);
+                        s.IsDisabled = true;
+                        s.UpdatedAt  = DateTimeOffset.UtcNow;
+                    }
+                    mainStock.Barcodes  = allBarcodes.Distinct().ToArray();
+                    mainStock.UpdatedAt = DateTimeOffset.UtcNow;
+                }
+            }
+
+            await _db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(ct);
+            throw;
         }
     }
 
-    public async Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
+    public async Task<IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>>> GetFacetsAsync(
+        string[] fields, CancellationToken ct = default)
     {
-        // Returns group/type/tags facets for filter UI
-        var result = new Dictionary<string, Dictionary<string, int>>();
+        var result = new Dictionary<string, IReadOnlyDictionary<string, int>>();
 
         if (fields.Contains("group", StringComparer.OrdinalIgnoreCase))
         {
-            result["group"] = await _db.Stocks
+            var groups = await _db.Stocks
                 .Where(s => s.Group != null && !s.IsDisabled)
                 .GroupBy(s => s.Group!)
-                .ToDictionaryAsync(g => g.Key, g => g.Count());
+                .Select(g => new { Key = g.Key, Count = g.Count() })
+                .ToListAsync(ct);
+            result["group"] = groups.ToDictionary(x => x.Key, x => x.Count);
         }
 
         if (fields.Contains("type", StringComparer.OrdinalIgnoreCase))
         {
-            result["type"] = await _db.Stocks
+            var types = await _db.Stocks
                 .Where(s => s.Type != null && !s.IsDisabled)
                 .GroupBy(s => s.Type!)
-                .ToDictionaryAsync(g => g.Key, g => g.Count());
+                .Select(g => new { Key = g.Key, Count = g.Count() })
+                .ToListAsync(ct);
+            result["type"] = types.ToDictionary(x => x.Key, x => x.Count);
         }
 
         return result;
     }
 
-    // ─── Mapping helpers ─────────────────────────────────────────────────────
+    private static Guid[] ParseGuids(string[]? ids) =>
+        ids?.Select(id => Guid.TryParse(id, out var g) ? g : Guid.Empty)
+            .Where(g => g != Guid.Empty)
+            .ToArray() ?? Array.Empty<Guid>();
 
     private static Stock MapToModel(StockEntity e)
     {
@@ -342,8 +315,8 @@ public class PgStocksRepository : IStocksRepository
             ShortName   = e.ShortName,
             Type        = e.Type,
             Group       = e.Group,
-            Tags        = e.Tags?.ToList<string>(),
-            Barcodes    = e.Barcodes?.ToList<string>(),
+            Tags        = e.Tags?.ToList(),
+            Barcodes    = e.Barcodes?.ToList(),
             LimitMin    = e.LimitMin,
             LimitMax    = e.LimitMax,
             Description = e.Description,
@@ -352,15 +325,38 @@ public class PgStocksRepository : IStocksRepository
 
         if (e.Units?.Any() == true)
         {
-            stock.Units = new System.Collections.ObjectModel.ObservableCollection<StockUnit>(
-                e.Units.Select(u => new StockUnit
-                {
-                    Id         = u.Id.ToString(),
-                    Name       = u.Name,
-                    IsDefault  = u.IsDefault,
-                    Multiplier = u.Multiplier,
-                    Divider    = u.Divider
-                }));
+            stock.Units = e.Units.Select(u => new StockUnit
+            {
+                Id         = u.Id.ToString(),
+                Name       = u.Name,
+                IsDefault  = u.IsDefault,
+                Multiplier = u.Multiplier,
+                Divider    = u.Divider
+            }).ToList();
+        }
+
+        if (e.Prices?.Any() == true)
+        {
+            stock.Prices = e.Prices.Select(p => new StockPrice
+            {
+                Id         = p.Id.ToString(),
+                Price      = p.Price,
+                CurrencyId = p.CurrencyId?.ToString(),
+                PriceGroup = p.PriceGroup,
+                ValidFrom  = p.ValidFrom
+            }).ToList();
+        }
+
+        if (e.AdditionalPrices?.Any() == true)
+        {
+            stock.AdditionalPrices = e.AdditionalPrices.Select(p => new StockAdditionalPrice
+            {
+                Id         = p.Id.ToString(),
+                Price      = p.Price,
+                CurrencyId = p.CurrencyId?.ToString(),
+                PriceGroup = p.PriceGroup,
+                ValidFrom  = p.ValidFrom
+            }).ToList();
         }
 
         return stock;

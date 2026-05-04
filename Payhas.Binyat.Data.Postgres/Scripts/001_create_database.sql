@@ -118,7 +118,7 @@ CREATE TABLE partners (
     name            VARCHAR(500) NOT NULL,
     phone           VARCHAR(100),
     address         TEXT,
-    "group"         VARCHAR(200),
+    group_name      VARCHAR(200),
     credit_limit    NUMERIC(18,4),
     tags            TEXT[],
     description     TEXT,
@@ -142,8 +142,8 @@ CREATE TABLE stocks (
     code            VARCHAR(50),
     name            VARCHAR(500) NOT NULL,
     short_name      VARCHAR(200),
-    "type"          VARCHAR(100),
-    "group"         VARCHAR(200),
+    type            VARCHAR(100),
+    group_name      VARCHAR(200),
     tags            TEXT[],
     barcodes        TEXT[],
     limit_min       NUMERIC(18,4),
@@ -152,16 +152,8 @@ CREATE TABLE stocks (
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    -- Generated full-text search vector for ts_query based search
-    search_vector   TSVECTOR GENERATED ALWAYS AS (
-        to_tsvector('simple',
-            COALESCE(code, '') || ' ' ||
-            COALESCE(name, '') || ' ' ||
-            COALESCE(short_name, '') || ' ' ||
-            COALESCE(array_to_string(barcodes, ' '), '')
-        )
-    ) STORED
+    -- Full-text search vector (maintained by trigger below)
+    search_vector   TSVECTOR
 );
 
 CREATE UNIQUE INDEX idx_stocks_code ON stocks(code) WHERE code IS NOT NULL;
@@ -170,6 +162,24 @@ CREATE INDEX idx_stocks_name_trgm ON stocks USING GIN (name gin_trgm_ops);
 CREATE INDEX idx_stocks_code_trgm ON stocks USING GIN (code gin_trgm_ops) WHERE code IS NOT NULL;
 CREATE INDEX idx_stocks_barcodes ON stocks USING GIN (barcodes);
 CREATE INDEX idx_stocks_is_disabled ON stocks(is_disabled) WHERE NOT is_disabled;
+
+-- Trigger to maintain search_vector on insert/update
+CREATE OR REPLACE FUNCTION fn_stocks_search_vector()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.search_vector := to_tsvector('simple'::regconfig,
+        COALESCE(NEW.code, '') || ' ' ||
+        COALESCE(NEW.name, '') || ' ' ||
+        COALESCE(NEW.short_name, '') || ' ' ||
+        COALESCE(array_to_string(NEW.barcodes, ' '), '')
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_stocks_search_vector
+    BEFORE INSERT OR UPDATE ON stocks
+    FOR EACH ROW EXECUTE FUNCTION fn_stocks_search_vector();
 
 -- Stock Units (e.g., pcs, kg, box — with conversion multiplier/divider)
 CREATE TABLE stock_units (
@@ -233,7 +243,7 @@ CREATE TABLE invoices (
     debit_credit_left_amount BOOLEAN NOT NULL DEFAULT FALSE,
     is_completed            BOOLEAN NOT NULL DEFAULT FALSE,
     is_disabled             BOOLEAN NOT NULL DEFAULT FALSE,
-    "group"                 VARCHAR(200),
+    group_name              VARCHAR(200),
     tags                    TEXT[],
     description             TEXT,
     created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -261,6 +271,9 @@ CREATE TABLE invoice_lines (
 
 CREATE INDEX idx_invoice_lines_invoice_id ON invoice_lines(invoice_id);
 CREATE INDEX idx_invoice_lines_stock_id ON invoice_lines(stock_id);
+-- source_id chains a return line to its origin sale line. Required by the
+-- Revenue Report cost-basis CTE (sales-return reuses original cost).
+CREATE INDEX idx_invoice_lines_source_id ON invoice_lines(source_id) WHERE source_id IS NOT NULL;
 
 -- Invoice Currency Convertions (snapshot of exchange rates at invoice time)
 CREATE TABLE invoice_currency_convertions (
@@ -343,6 +356,7 @@ CREATE TABLE stock_balances (
 );
 
 CREATE INDEX idx_stock_balances_stock_id ON stock_balances(stock_id);
+CREATE INDEX idx_stock_balances_warehouse_id ON stock_balances(warehouse_id);
 
 -- ============================================================================
 -- FUNDS MANAGEMENT
@@ -362,7 +376,7 @@ CREATE TABLE funds_slips (
     display_currency_id UUID REFERENCES currencies(id),
     is_completed    BOOLEAN NOT NULL DEFAULT FALSE,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
-    "group"         VARCHAR(200),
+    group_name      VARCHAR(200),
     tags            TEXT[],
     description     TEXT,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -392,7 +406,7 @@ CREATE TABLE funds_transfers (
     display_currency_id UUID REFERENCES currencies(id),
     is_completed    BOOLEAN NOT NULL DEFAULT FALSE,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
-    "group"         VARCHAR(200),
+    group_name      VARCHAR(200),
     tags            TEXT[],
     description     TEXT,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -413,6 +427,21 @@ CREATE INDEX idx_funds_transfer_lines_transfer_id ON funds_transfer_lines(funds_
 -- ============================================================================
 -- MATERIALIZED VIEW: Stock Search (replaces 3 Couchbase round-trips with 1 query)
 -- ============================================================================
+
+-- Partner actions (debit/credit ledger)
+CREATE TABLE IF NOT EXISTS partner_actions (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    partner_id      UUID NOT NULL REFERENCES partners(id) ON DELETE CASCADE,
+    office_id       UUID REFERENCES offices(id),
+    action_type     VARCHAR(20) NOT NULL CHECK (action_type IN ('Debit','Credit')),
+    amount          NUMERIC(18,4) NOT NULL DEFAULT 0,
+    currency_id     UUID REFERENCES currencies(id),
+    description     TEXT,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_partner_actions_partner_id ON partner_actions(partner_id);
+CREATE INDEX idx_partner_actions_office_id  ON partner_actions(office_id);
 
 CREATE MATERIALIZED VIEW mv_stock_search AS
 SELECT

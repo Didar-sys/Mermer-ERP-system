@@ -128,7 +128,7 @@ public class PayhasDbContext : DbContext
             e.Property(x => x.Name).HasColumnName("name").HasMaxLength(500).IsRequired();
             e.Property(x => x.Phone).HasColumnName("phone").HasMaxLength(100);
             e.Property(x => x.Address).HasColumnName("address");
-            e.Property(x => x.Group).HasColumnName("group").HasMaxLength(200);
+            e.Property(x => x.Group).HasColumnName("group_name").HasMaxLength(200);
             e.Property(x => x.CreditLimit).HasColumnName("credit_limit").HasColumnType("numeric(18,4)");
             e.Property(x => x.Tags).HasColumnName("tags");
             e.Property(x => x.Description).HasColumnName("description");
@@ -150,7 +150,7 @@ public class PayhasDbContext : DbContext
             e.Property(x => x.Name).HasColumnName("name").HasMaxLength(500).IsRequired();
             e.Property(x => x.ShortName).HasColumnName("short_name").HasMaxLength(200);
             e.Property(x => x.Type).HasColumnName("type").HasMaxLength(100);
-            e.Property(x => x.Group).HasColumnName("group").HasMaxLength(200);
+            e.Property(x => x.Group).HasColumnName("group_name").HasMaxLength(200);
             e.Property(x => x.Tags).HasColumnName("tags");
             e.Property(x => x.Barcodes).HasColumnName("barcodes");
             e.Property(x => x.LimitMin).HasColumnName("limit_min").HasColumnType("numeric(18,4)");
@@ -246,7 +246,7 @@ public class PayhasDbContext : DbContext
             e.Property(x => x.DebitCreditLeftAmount).HasColumnName("debit_credit_left_amount");
             e.Property(x => x.IsCompleted).HasColumnName("is_completed");
             e.Property(x => x.IsDisabled).HasColumnName("is_disabled");
-            e.Property(x => x.Group).HasColumnName("group").HasMaxLength(200);
+            e.Property(x => x.Group).HasColumnName("group_name").HasMaxLength(200);
             e.Property(x => x.Tags).HasColumnName("tags");
             e.Property(x => x.Description).HasColumnName("description");
             e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");

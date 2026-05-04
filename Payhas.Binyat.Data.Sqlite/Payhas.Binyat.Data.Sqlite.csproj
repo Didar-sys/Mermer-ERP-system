@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Payhas.Binyat.Data.Sqlite</RootNamespace>
+    <AssemblyName>Payhas.Binyat.Data.Sqlite</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Payhas.Binyat.Data.Postgres\Payhas.Binyat.Data.Postgres.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embed the schema script so SqliteSchemaManager can find it without a side file. -->
+    <EmbeddedResource Include="Scripts\001_create_database.sql" />
+    <None Update="Scripts\001_create_database.sql" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.*" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.*" />
+    <PackageReference Include="Dapper" Version="2.1.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.*" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.*" />
+  </ItemGroup>
+
+</Project>
