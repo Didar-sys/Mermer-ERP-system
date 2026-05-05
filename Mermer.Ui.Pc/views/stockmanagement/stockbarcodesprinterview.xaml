@@ -1,0 +1,42 @@
+﻿<mvx:MvxWpfView x:Class="Mermer.Ui.Pc.Views.StockManagement.StockBarcodesPrinterView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+                xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
+                xmlns:vm="clr-namespace:Mermer.Ui.Core.ViewModels.StockManagement;assembly=Mermer.Ui.Core"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+                xmlns:ctrl="clr-namespace:Mermer.Ui.Pc.Controls">
+  <DockPanel>
+    <Grid DockPanel.Dock="Bottom" dx:ThemeManager.ThemeName="Office2013DarkGray;Touch">
+      <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+        <Button Content="{Localize Print}" Command="{Binding PrintCommand}"/>
+        <Button Margin="10,0,0,0" Content="{Localize Cancel}" Command="{Binding CloseCommand}"/>
+      </StackPanel>
+    </Grid>
+    <dxlc:LayoutControl Orientation="Vertical" Width="300"
+                        IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
+      <dxlc:LayoutGroup VerticalAlignment="Top" Orientation="Vertical">
+        <dxlc:LayoutItem Label="{Localize Name}">
+          <dxe:TextEdit TextWrapping="Wrap" EditValue="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
+        </dxlc:LayoutItem>
+        <dxlc:LayoutItem Label="{Localize Price}">
+          <dxe:TextEdit EditValue="{Binding Price, UpdateSourceTrigger=PropertyChanged}"/>
+        </dxlc:LayoutItem>
+      </dxlc:LayoutGroup>
+      <dxg:GridControl MinHeight="200" ItemsSource="{Binding Lines}" ShowLoadingPanel="{Binding IsBusy}">
+        <dxg:GridColumn FieldName="Barcode" Width="100" Header="{Localize Barcode}"/>
+        <dxg:GridColumn FieldName="CopiesCount" Width="50" Header="{Localize CopiesCount}"/>
+        <dxg:GridControl.View>
+          <dxg:TableView AutoWidth="true" ShowGroupPanel="false" NewItemRowPosition="Bottom" AllowPerPixelScrolling="true"
+                         EnableImmediatePosting="true"/>
+        </dxg:GridControl.View>
+      </dxg:GridControl>
+    </dxlc:LayoutControl>
+  </DockPanel>
+</mvx:MvxWpfView>

@@ -1,5 +1,5 @@
 ﻿-- =============================================================================
--- Payhas Binyat ERP — local SQLite cache schema
+-- Mermer ERP ERP — local SQLite cache schema
 -- =============================================================================
 -- Mirrors Mermer.Data.Postgres/Scripts/001_create_database.sql, with
 -- the following SQLite-specific adaptations:

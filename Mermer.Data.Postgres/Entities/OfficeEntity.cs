@@ -5,7 +5,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Office entity — represents a branch/office location.
-/// Maps to: Payhas.Binyat.Enterprise.Models.Office
+/// Maps to: Mermer.Enterprise.Models.Office
 /// </summary>
 public class OfficeEntity
 {

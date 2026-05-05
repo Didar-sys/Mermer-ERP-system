@@ -15,15 +15,15 @@ namespace Mermer.Data.Postgres;
 public static class PostgresServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers <see cref="PayhasDbContext"/> and all PostgreSQL services.
+    /// Registers <see cref="MermerDbContext"/> and all PostgreSQL services.
     /// Call once at application startup:
-    /// <code>services.AddPayhasPostgres(connectionString);</code>
+    /// <code>services.AddMermerPostgres(connectionString);</code>
     /// </summary>
-    public static IServiceCollection AddPayhasPostgres(
+    public static IServiceCollection AddMermerPostgres(
         this IServiceCollection services,
         string connectionString)
     {
-        services.AddDbContext<PayhasDbContext>(options =>
+        services.AddDbContext<MermerDbContext>(options =>
         {
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
@@ -42,10 +42,10 @@ public static class PostgresServiceCollectionExtensions
 
         // Stage 2 — domain repository adapters
         services.AddScoped<IStocksRepository>(sp =>
-            new PgStocksRepository(sp.GetRequiredService<PayhasDbContext>(), connectionString));
+            new PgStocksRepository(sp.GetRequiredService<MermerDbContext>(), connectionString));
 
         services.AddScoped<IInvoicesRepository>(sp =>
-            new PgInvoicesRepository(sp.GetRequiredService<PayhasDbContext>(), connectionString));
+            new PgInvoicesRepository(sp.GetRequiredService<MermerDbContext>(), connectionString));
 
         services.AddScoped<IStockBalancesRepository>(
             _ => new PgStockBalancesRepository(connectionString));

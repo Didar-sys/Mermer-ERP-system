@@ -5,7 +5,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Warehouse entity — physical storage location.
-/// Maps to: Payhas.Binyat.Enterprise.Models.Warehouse
+/// Maps to: Mermer.Enterprise.Models.Warehouse
 /// </summary>
 public class WarehouseEntity
 {

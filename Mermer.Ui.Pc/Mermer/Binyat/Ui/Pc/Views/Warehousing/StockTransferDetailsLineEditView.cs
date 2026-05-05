@@ -1,0 +1,64 @@
+﻿// Decompiled with JetBrains decompiler
+// Type: Mermer.Ui.Pc.Views.Warehousing.StockTransferDetailsLineEditView
+// Assembly: Mermer.Ui.Pc, Version=1.4.4.0, Culture=neutral, PublicKeyToken=null
+// MVID: D54C0BF8-E817-4120-9485-68C30ADFDFE4
+// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Pc.exe
+
+using DevExpress.Xpf.Editors;
+using MvvmCross.Wpf.Views;
+using System;
+using System.CodeDom.Compiler;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Markup;
+
+#nullable disable
+namespace Mermer.Ui.Pc.Views.Warehousing;
+
+public class StockTransferDetailsLineEditView : MvxWpfView, IComponentConnector
+{
+  internal SpinEdit FirstFocus;
+  internal SpinEdit ReceivedEdit;
+  private bool _contentLoaded;
+
+  public StockTransferDetailsLineEditView() => this.InitializeComponent();
+
+  private void FirstFocus_KeyDown(object sender, KeyEventArgs e)
+  {
+    if (e.Key != Key.Return)
+      return;
+    this.ReceivedEdit.Focus();
+    e.Handled = true;
+  }
+
+  [DebuggerNonUserCode]
+  [GeneratedCode("PresentationBuildTasks", "4.0.0.0")]
+  public void InitializeComponent()
+  {
+    if (this._contentLoaded)
+      return;
+    this._contentLoaded = true;
+    Application.LoadComponent((object) this, new Uri("/Mermer.Ui.Pc;component/views/warehousing/stocktransferdetailslineeditview.xaml", UriKind.Relative));
+  }
+
+  [DebuggerNonUserCode]
+  [GeneratedCode("PresentationBuildTasks", "4.0.0.0")]
+  [EditorBrowsable(EditorBrowsableState.Never)]
+  void IComponentConnector.Connect(int connectionId, object target)
+  {
+    if (connectionId != 1)
+    {
+      if (connectionId == 2)
+        this.ReceivedEdit = (SpinEdit) target;
+      else
+        this._contentLoaded = true;
+    }
+    else
+    {
+      this.FirstFocus = (SpinEdit) target;
+      this.FirstFocus.KeyDown += new KeyEventHandler(this.FirstFocus_KeyDown);
+    }
+  }
+}

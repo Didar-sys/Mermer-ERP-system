@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Currency Rate entity — historical exchange rate entry.
-/// Maps to: Payhas.Binyat.FundsManagement.Models.CurrencyRate
+/// Maps to: Mermer.FundsManagement.Models.CurrencyRate
 /// </summary>
 public class CurrencyRateEntity
 {

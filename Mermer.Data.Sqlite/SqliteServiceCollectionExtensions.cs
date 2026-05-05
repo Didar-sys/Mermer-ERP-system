@@ -24,7 +24,7 @@ namespace Mermer.Data.Sqlite;
 /// </summary>
 public static class SqliteServiceCollectionExtensions
 {
-    public static IServiceCollection AddPayhasHybridStorage(
+    public static IServiceCollection AddMermerHybridStorage(
         this IServiceCollection services,
         string sqliteConnectionString,
         string postgresConnectionString,
@@ -37,11 +37,11 @@ public static class SqliteServiceCollectionExtensions
         services.AddSingleton<IConnectivityProbe>(_ => new NpgsqlConnectivityProbe(postgresConnectionString));
 
         // PostgreSQL data layer (DbContext + Pg* repositories).
-        services.AddPayhasPostgres(postgresConnectionString);
+        services.AddMermerPostgres(postgresConnectionString);
 
         // We need both Pg* (online) and Sqlite* (local) implementations available.
         // The Pg* are already registered as IStocksRepository/IInvoicesRepository
-        // by AddPayhasPostgres. We replace them with the Hybrid wrappers and
+        // by AddMermerPostgres. We replace them with the Hybrid wrappers and
         // resolve the Pg implementations via dedicated factory keys.
 
         // Local SQLite repositories.
@@ -51,7 +51,7 @@ public static class SqliteServiceCollectionExtensions
 
         // Replace IStocksRepository / IInvoicesRepository with hybrid wrappers.
         // The hybrid wrappers depend on PgStocksRepository / PgInvoicesRepository
-        // directly (which AddPayhasPostgres already registered as scoped services).
+        // directly (which AddMermerPostgres already registered as scoped services).
         services.Replace(ServiceDescriptor.Scoped<IStocksRepository>(sp =>
             new HybridStocksRepository(
                 sp.GetRequiredService<PgStocksRepository>(),
@@ -65,12 +65,12 @@ public static class SqliteServiceCollectionExtensions
                 sp.GetRequiredService<IConnectivityProbe>())));
 
         // PgStocksRepository / PgInvoicesRepository need to be resolvable
-        // by their concrete type (the AddPayhasPostgres registration only
+        // by their concrete type (the AddMermerPostgres registration only
         // exposes the interface). Add the missing concrete registrations.
         services.AddScoped(sp => new PgStocksRepository(
-            sp.GetRequiredService<PayhasDbContext>(), postgresConnectionString));
+            sp.GetRequiredService<MermerDbContext>(), postgresConnectionString));
         services.AddScoped(sp => new PgInvoicesRepository(
-            sp.GetRequiredService<PayhasDbContext>(), postgresConnectionString));
+            sp.GetRequiredService<MermerDbContext>(), postgresConnectionString));
 
         // Background sync.
         var options = new SyncOptions();

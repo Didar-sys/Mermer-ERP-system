@@ -20,10 +20,10 @@ namespace Mermer.Data.Postgres.Repositories;
 /// </summary>
 public class PgStocksRepository : IStocksRepository
 {
-    private readonly PayhasDbContext _db;
+    private readonly MermerDbContext _db;
     private readonly string _connectionString;
 
-    public PgStocksRepository(PayhasDbContext db, string connectionString)
+    public PgStocksRepository(MermerDbContext db, string connectionString)
     {
         _db = db;
         _connectionString = connectionString;

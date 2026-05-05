@@ -1,0 +1,31 @@
+﻿<mvx:MvxWpfView x:Class="Mermer.Ui.Pc.Views.Warehousing.StockTransferPrintTypeDialogView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                xmlns:dxnav="http://schemas.devexpress.com/winfx/2008/xaml/navigation"
+                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
+                xmlns:vm="clr-namespace:Mermer.Ui.Core.ViewModels.Warehousing;assembly=Mermer.Ui.Core"
+                xmlns:srv="clr-namespace:Mermer.Ui.Core.Services;assembly=Mermer.Ui.Core">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal"
+                dx:ThemeManager.ThemeName="Office2013DarkGray;Touch">
+      <Button IsCancel="true" Margin="10,0,0,0" Content="{Localize Cancel}" Command="{Binding CloseCommand}"/>
+    </StackPanel>
+    <Grid FocusManager.FocusedElement="{Binding ElementName=FirstFocus}">
+      <dxnav:TileBar HorizontalAlignment="Center">
+        <dxnav:TileBarItem CommandParameter="{x:Static srv:StockTransferPrintingType.Both}" Content="{Localize 'Both Sides'}"
+                           Command="{Binding SelectPrintingTypeCommand}"/>
+        <dxnav:TileBarItem CommandParameter="{x:Static srv:StockTransferPrintingType.SentOnly}"
+                           Content="{Localize 'Sent Sides'}" Command="{Binding SelectPrintingTypeCommand}"/>
+        <dxnav:TileBarItem CommandParameter="{x:Static srv:StockTransferPrintingType.ReceivedOnly}"
+                           Content="{Localize 'Received Sides'}" Command="{Binding SelectPrintingTypeCommand}"/>
+      </dxnav:TileBar>
+      <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+        <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</mvx:MvxWpfView>

@@ -5,7 +5,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Invoice entity — sales/purchase invoice.
-/// Maps to: Payhas.Binyat.Commerce.Models.Invoice (inherits StockTransaction → Transaction → TransactionModel)
+/// Maps to: Mermer.Commerce.Models.Invoice (inherits StockTransaction → Transaction → TransactionModel)
 /// </summary>
 public class InvoiceEntity
 {

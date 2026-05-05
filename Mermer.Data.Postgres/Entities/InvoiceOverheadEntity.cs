@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Invoice Overhead entity — additional costs (shipping, customs, etc.).
-/// Maps to: Payhas.Binyat.Transactions.Models.StockTransactionOverhead
+/// Maps to: Mermer.Transactions.Models.StockTransactionOverhead
 /// </summary>
 public class InvoiceOverheadEntity
 {

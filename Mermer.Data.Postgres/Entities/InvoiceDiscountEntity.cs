@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Invoice Discount entity.
-/// Maps to: Payhas.Binyat.Commerce.Models.InvoiceDiscount
+/// Maps to: Mermer.Commerce.Models.InvoiceDiscount
 /// </summary>
 public class InvoiceDiscountEntity
 {

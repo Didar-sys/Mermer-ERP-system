@@ -28,10 +28,10 @@ namespace Mermer.Data.Postgres.Repositories;
 /// </summary>
 public class PgInvoicesRepository : IInvoicesRepository
 {
-    private readonly PayhasDbContext _db;
+    private readonly MermerDbContext _db;
     private readonly string _connectionString;
 
-    public PgInvoicesRepository(PayhasDbContext db, string connectionString)
+    public PgInvoicesRepository(MermerDbContext db, string connectionString)
     {
         _db              = db;
         _connectionString = connectionString;

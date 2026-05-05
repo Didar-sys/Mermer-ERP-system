@@ -1,0 +1,41 @@
+﻿// Decompiled with JetBrains decompiler
+// Type: Mermer.Ui.Pc.Reports.Models.Mappers.StockTransactionReportMapper`4
+// Assembly: Mermer.Ui.Pc, Version=1.4.4.0, Culture=neutral, PublicKeyToken=null
+// MVID: D54C0BF8-E817-4120-9485-68C30ADFDFE4
+// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Pc.exe
+
+using Mermer.Transactions.Models;
+using Mermer.Ui.Pc.Reports.Helpers;
+using System.Threading.Tasks;
+
+#nullable disable
+namespace Mermer.Ui.Pc.Reports.Models.Mappers;
+
+public abstract class StockTransactionReportMapper<T, TLine, TReport, TReportLine> : 
+  TransactionReportMapper<T, TLine, TReport, TReportLine>
+  where T : StockTransaction<TLine>
+  where TLine : StockTransactionLine
+  where TReport : StockTransactionReport<TReportLine>
+  where TReportLine : StockTransactionReportLine
+{
+  protected readonly NameHelper NameHelper;
+
+  public StockTransactionReportMapper(
+    NameHelper nameHelper,
+    TransactionReportLineMapper<TLine, TReportLine> lineMapper)
+    : base(lineMapper)
+  {
+    this.NameHelper = nameHelper;
+  }
+
+  public override async Task<TReport> Map(T source, string localizedType)
+  {
+    TReport destination = await base.Map(source, localizedType);
+    TReport report = destination;
+    report.Warehouse = await this.NameHelper.GetWarehouseName(source.WarehouseId);
+    report = default (TReport);
+    TReport report1 = destination;
+    destination = default (TReport);
+    return report1;
+  }
+}

@@ -5,7 +5,7 @@ namespace Mermer.Data.Postgres.Models;
 
 /// <summary>
 /// Invoice (sale / purchase document) — POCO mirror of the legacy
-/// <c>Payhas.Binyat.Commerce.Models.Invoice</c>. All money fields are
+/// <c>Mermer.Commerce.Models.Invoice</c>. All money fields are
 /// <see cref="decimal"/>; no float/double anywhere.
 ///
 /// Computed fields (subtotal, grand total, paid, left, …) are NOT stored

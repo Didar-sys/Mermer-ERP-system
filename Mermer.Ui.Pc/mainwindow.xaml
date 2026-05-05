@@ -1,0 +1,12 @@
+﻿<dx:DXTabbedWindow x:Class="Mermer.Ui.Pc.MainWindow"
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                   Title="Binyat | Mermer" Height="700" Width="1100" SnapsToDevicePixels="true"
+                   UseLayoutRounding="true" dx:ThemeManager.ThemeName="Office2016Black;Touch"
+                   TabbedWindowMode="Compact" ShowTitle="false" ShowIcon="false" WindowStartupLocation="CenterScreen"
+                   WindowState="Maximized"
+                   Icon="pack://application:,,,/Mermer.Ui.Pc;component/Resources/binyat_icon_003_d85_icon.ico">
+  <ContentControl x:Name="ViewsRoot" Margin="-6,0,-6,-6" Focusable="false"
+                  dx:ThemeManager.ThemeName="Office2013DarkGray;Touch"/>
+</dx:DXTabbedWindow>

@@ -5,7 +5,7 @@ namespace Mermer.Data.Postgres.Models;
 
 /// <summary>
 /// Stock (product / item) — POCO model decoupled from the legacy WPF MVVM
-/// <c>Payhas.Binyat.StockManagement.Models.Stock</c>. The PG repository layer
+/// <c>Mermer.StockManagement.Models.Stock</c>. The PG repository layer
 /// works with these POCOs; an adapter on the WPF side will project them back
 /// into the MVVM model when the UI is integrated.
 /// </summary>

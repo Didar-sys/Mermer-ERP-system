@@ -5,7 +5,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Currency entity.
-/// Maps to: Payhas.Binyat.FundsManagement.Models.Currency
+/// Maps to: Mermer.FundsManagement.Models.Currency
 /// </summary>
 public class CurrencyEntity
 {

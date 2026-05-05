@@ -1,4 +1,4 @@
-﻿# Payhas Binyat API
+﻿# Mermer Binyat API
 
 HTTP API над PostgreSQL слоем (`Mermer.Data.Postgres`).
 Тонкая обёртка для подключения существующего WPF клиента (через адаптер

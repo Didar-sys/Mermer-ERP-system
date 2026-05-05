@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Invoice Currency Convertion entity — snapshot of exchange rate at invoice time.
-/// Maps to: Payhas.Binyat.Transactions.Models.CurrencyConvertion
+/// Maps to: Mermer.Transactions.Models.CurrencyConvertion
 /// </summary>
 public class InvoiceCurrencyConvertionEntity
 {

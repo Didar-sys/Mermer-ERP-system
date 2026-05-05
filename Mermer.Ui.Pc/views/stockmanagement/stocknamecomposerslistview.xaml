@@ -1,0 +1,32 @@
+﻿<mvx:MvxWpfView x:Class="Mermer.Ui.Pc.Views.StockManagement.StockNameComposersListView"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+                xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui"
+                xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
+                xmlns:ctrl="clr-namespace:Mermer.Ui.Pc.Controls"
+                xmlns:menu="clr-namespace:Mermer.Ui.Pc.Controls.MenuItems">
+  <DockPanel>
+    <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
+      <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
+      <menu:ListCreateNew/>
+      <menu:ListViewDetails/>
+      <dxwui:AppBarSeparator/>
+      <menu:CommonReload/>
+      <menu:ListPrint x:Name="PrintButton"/>
+      <menu:ListFilter x:Name="FilterButton"/>
+      <menu:CommonClose/>
+    </dxwui:AppBar>
+    <ctrl:StyledGridControl x:Name="GridControl" PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
+                            FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
+                            SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}">
+      <dxg:GridControl.Columns>
+        <dxg:GridColumn FieldName="Order" SortOrder="Ascending" Width="30" Header="{Localize Order}"/>
+        <dxg:GridColumn FieldName="Name" SortOrder="Ascending" Header="{Localize Name}"/>
+        <dxg:GridColumn FieldName="Description" Width="200" Header="{Localize Description}"/>
+      </dxg:GridControl.Columns>
+    </ctrl:StyledGridControl>
+  </DockPanel>
+</mvx:MvxWpfView>

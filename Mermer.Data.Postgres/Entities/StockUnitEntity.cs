@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Stock Unit entity — unit of measurement for a product (e.g., pcs, kg, box).
-/// Maps to: Payhas.Binyat.StockManagement.Models.StockUnit
+/// Maps to: Mermer.StockManagement.Models.StockUnit
 /// </summary>
 public class StockUnitEntity
 {

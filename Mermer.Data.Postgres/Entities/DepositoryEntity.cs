@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Depository entity — cash register or fund storage.
-/// Maps to: Payhas.Binyat.Enterprise.Models.Depository
+/// Maps to: Mermer.Enterprise.Models.Depository
 /// </summary>
 public class DepositoryEntity
 {

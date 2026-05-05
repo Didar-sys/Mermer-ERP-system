@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Stock Price entity — historical price entry for a product.
-/// Maps to: Payhas.Binyat.StockManagement.Models.StockPrice
+/// Maps to: Mermer.StockManagement.Models.StockPrice
 /// </summary>
 public class StockPriceEntity
 {

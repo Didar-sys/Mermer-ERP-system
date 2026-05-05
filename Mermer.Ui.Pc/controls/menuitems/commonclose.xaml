@@ -1,0 +1,11 @@
+﻿<dxwui:AppBarButton x:Class="Mermer.Ui.Pc.Controls.MenuItems.CommonClose"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                    xmlns:hlp="clr-namespace:Mermer.Ui.Pc.Helpers"
+                    xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui"
+                    HorizontalAlignment="Right" hlp:ShortcutExtender.Shortcut="Ctrl+Q"
+                    Style="{StaticResource AppBarButtonBaseStyle}" Label="{Localize Close}"
+                    Command="{Binding CloseCommand}" Glyph="{dx:DXImageGrayscale Image=Close_32x32.png}"/>

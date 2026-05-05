@@ -2,7 +2,7 @@
 
 /// <summary>
 /// Type of an invoice — direction of stock and funds movement.
-/// Mirrors the legacy <c>Payhas.Binyat.Commerce.Models.InvoiceType</c> exactly.
+/// Mirrors the legacy <c>Mermer.Commerce.Models.InvoiceType</c> exactly.
 /// </summary>
 public enum InvoiceType
 {

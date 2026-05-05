@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Invoice Payment entity.
-/// Maps to: Payhas.Binyat.Commerce.Models.InvoicePayment
+/// Maps to: Mermer.Commerce.Models.InvoicePayment
 /// </summary>
 public class InvoicePaymentEntity
 {

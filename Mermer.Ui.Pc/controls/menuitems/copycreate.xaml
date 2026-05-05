@@ -1,0 +1,32 @@
+﻿<dxwui:AppBarButton x:Class="Mermer.Ui.Pc.Controls.MenuItems.CopyCreate"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                    xmlns:hlp="clr-namespace:Mermer.Ui.Pc.Helpers"
+                    xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui"
+                    xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+                    xmlns:common="clr-namespace:Mermer.Ui.Core.ViewModels.Common;assembly=Mermer.Ui.Core"
+                    x:Name="This" HorizontalAlignment="Right" hlp:ShortcutExtender.Shortcut="Ctrl+N"
+                    Style="{StaticResource AppBarButtonBaseStyle}" Label="{Localize ToNew}"
+                    Glyph="{dx:DXImageGrayscale Image=Copy_32x32.png}">
+  <dxwui:AppBarButtonBase.Flyout>
+    <dxwui:MenuFlyout ShowIndicator="true">
+      <dxwui:MenuFlyoutItem CommandParameter="{x:Static common:CopyCreateType.Invoice}" Content="{Localize Invoice}"
+                            Command="{Binding CopyCreate.ToNew}"
+                            Visibility="{Binding ElementName=This, Path=OrderOnly, Converter={dxmvvm:BooleanToVisibilityConverter Inverse=true}}"/>
+      <dxwui:MenuFlyoutItem CommandParameter="{x:Static common:CopyCreateType.StockSlip}" Content="{Localize StockSlip}"
+                            Command="{Binding CopyCreate.ToNew}"
+                            Visibility="{Binding ElementName=This, Path=OrderOnly, Converter={dxmvvm:BooleanToVisibilityConverter Inverse=true}}"/>
+      <dxwui:MenuFlyoutItem CommandParameter="{x:Static common:CopyCreateType.StockTransfer}"
+                            Content="{Localize StockTransfer}" Command="{Binding CopyCreate.ToNew}"
+                            Visibility="{Binding ElementName=This, Path=OrderOnly, Converter={dxmvvm:BooleanToVisibilityConverter Inverse=true}}"/>
+      <dxwui:MenuFlyoutSeparator Visibility="{Binding ElementName=This, Path=OrderOnly, Converter={dxmvvm:BooleanToVisibilityConverter Inverse=true}}"/>
+      <dxwui:MenuFlyoutItem CommandParameter="{x:Static common:CopyCreateType.StockOrder}" Content="{Localize StockOrder}"
+                            Command="{Binding CopyCreate.ToNew}"/>
+      <dxwui:MenuFlyoutItem CommandParameter="{x:Static common:CopyCreateType.StockOrderTemplate}"
+                            Content="{Localize StockOrderTemplate}" Command="{Binding CopyCreate.ToNew}"/>
+    </dxwui:MenuFlyout>
+  </dxwui:AppBarButtonBase.Flyout>
+</dxwui:AppBarButton>

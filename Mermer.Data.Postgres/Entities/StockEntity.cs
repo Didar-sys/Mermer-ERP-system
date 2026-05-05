@@ -6,7 +6,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Stock entity — product/item in inventory.
-/// Maps to: Payhas.Binyat.StockManagement.Models.Stock
+/// Maps to: Mermer.StockManagement.Models.Stock
 /// </summary>
 public class StockEntity
 {

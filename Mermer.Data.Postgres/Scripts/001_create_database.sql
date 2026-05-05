@@ -1,5 +1,5 @@
--- ============================================================================
--- Payhas Binyat ERP — PostgreSQL Database Schema
+﻿-- ============================================================================
+-- Mermer ERP ERP — PostgreSQL Database Schema
 -- Migration from Couchbase (NoSQL) to PostgreSQL (Relational)
 -- Version: 1.0.0 | Stage 1
 -- ============================================================================

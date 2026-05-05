@@ -11,7 +11,7 @@ var connectionString =
         "Set it in appsettings.json or via environment variable " +
         "ConnectionStrings__Postgres.");
 
-builder.Services.AddPayhasPostgres(connectionString);
+builder.Services.AddMermerPostgres(connectionString);
 
 builder.Services.AddCors(options =>
 {
@@ -37,12 +37,12 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Payhas Binyat ERP API",
+        Title = "Mermer Binyat ERP API",
         Version = "v1",
         Description =
             "HTTP API over the new PostgreSQL data layer. " +
             "Replaces the legacy Couchbase access for the WPF client.",
-        Contact = new OpenApiContact { Name = "Payhas Binyat" }
+        Contact = new OpenApiContact { Name = "Mermer Binyat" }
     });
 });
 
@@ -59,7 +59,7 @@ app.UseCors();
 app.UseSwagger();
 app.UseSwaggerUI(o =>
 {
-    o.SwaggerEndpoint("/swagger/v1/swagger.json", "Payhas Binyat API v1");
+    o.SwaggerEndpoint("/swagger/v1/swagger.json", "Mermer Binyat API v1");
     o.RoutePrefix = "swagger";
 });
 

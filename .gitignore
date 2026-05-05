@@ -53,3 +53,11 @@ nlog-*.log
 *.env
 appsettings.Local.json
 appsettings.local.json
+
+# Dev-only docs — not for repo
+PROJECT_STATUS.md
+STAGE1_REPORT.md
+ОТЧЁТ_ДЛЯ_КЛИЕНТА.md
+
+# Build output
+publish/

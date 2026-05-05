@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Stock Balance entity — aggregated balance per warehouse/stock.
-/// Maps to: Payhas.Binyat.StockManagement.Models.StockBalance
+/// Maps to: Mermer.StockManagement.Models.StockBalance
 /// </summary>
 public class StockBalanceEntity
 {

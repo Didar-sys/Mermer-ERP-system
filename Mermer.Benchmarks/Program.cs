@@ -5,7 +5,7 @@ using Mermer.Data.Sqlite;
 using Mermer.Data.Sqlite.Repositories;
 
 // =============================================================================
-// Payhas Binyat — load benchmark
+// Mermer Binyat — load benchmark
 // =============================================================================
 // Generates 100 000 invoices with synthetic lines/discounts/payments/overheads,
 // inserts them into a fresh SQLite database, and measures the time of the

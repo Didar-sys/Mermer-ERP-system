@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Partner entity — customer or supplier.
-/// Maps to: Payhas.Binyat.CRM.Models.Partner
+/// Maps to: Mermer.CRM.Models.Partner
 /// </summary>
 public class PartnerEntity
 {

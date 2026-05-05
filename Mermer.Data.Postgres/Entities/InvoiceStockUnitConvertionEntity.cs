@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Entities;
 
 /// <summary>
 /// Invoice Stock Unit Convertion entity — snapshot of unit conversion at invoice time.
-/// Maps to: Payhas.Binyat.Transactions.Models.StockUnitConvertion
+/// Maps to: Mermer.Transactions.Models.StockUnitConvertion
 /// </summary>
 public class InvoiceStockUnitConvertionEntity
 {

@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Project was exported from assembly: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Data.Synchronizer.Core.dll-->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{92DA966F-39CD-43AB-AA53-5A96BBC62534}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Mermer.Data.Synchronizer.Core</AssemblyName>
+    <ApplicationVersion>1.0.0.0</ApplicationVersion>
+    <RootNamespace>Mermer.Data.Synchronizer.Core</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
+      <HintPath>lib\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>lib\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="netstandard">
+      <HintPath>lib\netstandard.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Tools\IChangeHelper.cs" />
+    <Compile Include="Tools\ChangeHelper.cs" />
+    <Compile Include="Tools\IChangesIndexHelper.cs" />
+    <Compile Include="Tools\ChangesIndexHelper.cs" />
+    <Compile Include="Services\IAuthenticationService.cs" />
+    <Compile Include="Services\IChangesRepositoryService`1.cs" />
+    <Compile Include="Services\IInitializer.cs" />
+    <Compile Include="Services\ILocalChangesRepositoryService`1.cs" />
+    <Compile Include="Services\IRemoteChangesRepositoryService`1.cs" />
+    <Compile Include="Services\RemoteHostChangesRepositoryService`1.cs" />
+    <Compile Include="Services\IUsersRepositoryService.cs" />
+    <Compile Include="Models\IChange.cs" />
+    <Compile Include="Models\Change`1.cs" />
+    <Compile Include="Models\IChangeDocument.cs" />
+    <Compile Include="Models\ChangeDocument`1.cs" />
+    <Compile Include="Models\ChangeIdsRange.cs" />
+    <Compile Include="Models\ChangeIndex.cs" />
+    <Compile Include="Models\User.cs" />
+    <Compile Include="Models\AuthenticationRequest.cs" />
+    <Compile Include="Models\AuthenticatedUser.cs" />
+    <Compile Include="Models\AuthorizedUserSession.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

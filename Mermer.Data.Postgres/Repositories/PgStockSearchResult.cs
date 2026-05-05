@@ -4,7 +4,7 @@ namespace Mermer.Data.Postgres.Repositories;
 
 /// <summary>
 /// DTO for stock search results returned by pg_trgm fuzzy search.
-/// Maps 1:1 to StockSearchResult from Payhas.Binyat.StockManagement.Services
+/// Maps 1:1 to StockSearchResult from Mermer.StockManagement.Services
 /// but lives in the PostgreSQL data layer. AutoMapper or manual mapping
 /// is used to convert to the domain DTO.
 /// </summary>
