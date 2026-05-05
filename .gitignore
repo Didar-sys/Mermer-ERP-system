@@ -47,3 +47,9 @@ Desktop.ini
 # Logs
 *.log
 nlog-*.log
+
+# Runtime secrets — never commit
+.env
+*.env
+appsettings.Local.json
+appsettings.local.json
