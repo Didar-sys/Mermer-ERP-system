@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Mermer.Benchmarks</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mermer.Data.Postgres\Mermer.Data.Postgres.csproj" />
+    <ProjectReference Include="..\Mermer.Data.Sqlite\Mermer.Data.Sqlite.csproj" />
+  </ItemGroup>
+
+</Project>

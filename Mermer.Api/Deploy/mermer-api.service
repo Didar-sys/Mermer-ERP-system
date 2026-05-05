@@ -1,0 +1,25 @@
+[Unit]
+Description=Mermer ERP API
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=notify
+WorkingDirectory=/opt/mermer-api
+ExecStart=/opt/mermer-api/Mermer.Api
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+SyslogIdentifier=mermer-api
+User=ubuntu
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5050
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+Environment=DOTNET_NOLOGO=true
+
+# Connection string — override here when moving to a new server.
+# Format: Host=<ip>;Port=5432;Database=<db>;Username=<user>;Password=<pass>
+EnvironmentFile=-/opt/mermer-api/.env
+
+[Install]
+WantedBy=multi-user.target
