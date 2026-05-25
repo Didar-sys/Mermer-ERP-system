@@ -32,7 +32,7 @@ public class WatchedDictionary<TKey, TValue> :
 
   public event ValueChangedEventHandler<TKey, TValue> ValueChanged;
 
-  public void OnValueChanged(TKey key, TValue newValue = null, TValue oldValue = null)
+  public void OnValueChanged(TKey key, TValue newValue = default, TValue oldValue = default)
   {
     if (this.ValueChanged == null)
       return;

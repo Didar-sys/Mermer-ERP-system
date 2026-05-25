@@ -12,9 +12,10 @@ using System.Reflection;
 #nullable disable
 namespace Mermer.Data.Tools.Expressions;
 
-public class SafeExpressionVisitor : LinqKit.ExpressionVisitor
+public class SafeExpressionVisitor : System.Linq.Expressions.ExpressionVisitor
 {
-  protected override Expression VisitMemberAccess(MemberExpression m)
+    // Changed name of the method "VisitMember"
+    protected override Expression VisitMember(MemberExpression m)
   {
     Expression expression = this.Visit(m.Expression);
     switch (expression)

@@ -20,7 +20,7 @@ public static class ValidatorExtender
     this IRuleBuilderOptions<T, TProperty> rule,
     string key)
   {
-    return rule.Configure((Action<PropertyRule>) (config => config.CurrentValidator.ErrorMessageSource = (IStringSource) new LanguageStringSource(key)));
+    return rule.Configure((Action<PropertyRule>) (config => config.CurrentValidator.Options.ErrorMessageSource = (IStringSource) new LanguageStringSource(key)));
   }
 
   public static void AssertValid<T>(this IValidator<T> validator, T instance)
