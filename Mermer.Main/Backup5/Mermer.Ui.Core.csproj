@@ -1,0 +1,234 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Project was exported from assembly: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll-->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{57ABA07E-EB31-4997-BAB8-AE3859C5E8A0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Mermer.Ui.Core</AssemblyName>
+    <ApplicationVersion>1.0.0.0</ApplicationVersion>
+    <RootNamespace>Mermer.Ui.Core</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AutoMapper">
+      <HintPath>lib\AutoMapper.dll</HintPath>
+    </Reference>
+    <Reference Include="Autofac">
+      <HintPath>lib\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Couchbase.Linq">
+      <HintPath>lib\Couchbase.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="Couchbase.NetClient">
+      <HintPath>lib\Couchbase.NetClient.dll</HintPath>
+    </Reference>
+    <Reference Include="Humanizer">
+      <HintPath>lib\Humanizer.dll</HintPath>
+    </Reference>
+    <Reference Include="Lorem.NET">
+      <HintPath>lib\Lorem.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="MvvmCross.Core">
+      <HintPath>lib\MvvmCross.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="MvvmCross.Localization">
+      <HintPath>lib\MvvmCross.Localization.dll</HintPath>
+    </Reference>
+    <Reference Include="MvvmCross.Platform">
+      <HintPath>lib\MvvmCross.Platform.dll</HintPath>
+    </Reference>
+    <Reference Include="MvvmCross.Plugins.Messenger">
+      <HintPath>lib\MvvmCross.Plugins.Messenger.dll</HintPath>
+    </Reference>
+    <Reference Include="Mermer">
+      <HintPath>lib\Mermer.dll</HintPath>
+    </Reference>
+    <Reference Include="Mermer">
+      <HintPath>lib\Mermer.dll</HintPath>
+    </Reference>
+    <Reference Include="Mermer.Core.Couch">
+      <HintPath>lib\Mermer.Core.Couch.dll</HintPath>
+    </Reference>
+    <Reference Include="Mermer.Mvvm">
+      <HintPath>lib\Mermer.Mvvm.dll</HintPath>
+    </Reference>
+    <Reference Include="netstandard">
+      <HintPath>lib\netstandard.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App.cs" />
+    <Compile Include="CoreUiModule.cs" />
+    <Compile Include="Services\IExcelReaderService.cs" />
+    <Compile Include="Services\InMemoryStockSearchService.cs" />
+    <Compile Include="Services\IPrintingService.cs" />
+    <Compile Include="Services\PrintKind.cs" />
+    <Compile Include="Services\StockTransferPrintingType.cs" />
+    <Compile Include="Services\LocalizationService.cs" />
+    <Compile Include="ViewModels\AboutViewModel.cs" />
+    <Compile Include="ViewModels\LoginViewModel.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\StockSlipDetailsLineEditViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\StockSlipDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\StockSlipsListViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\StockTransferDetailsLineEditViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\StockTransferDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\StockTransferPrintTypeDialogViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\StockTransfersListViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Revisioning\StockRevisionDetailsLineEditViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Revisioning\StockRevisionDetailsReportViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Revisioning\StockRevisionDetailsUncountedViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Revisioning\StockRevisionDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Revisioning\StockRevisionsListNewRevisionViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Revisioning\StockRevisionsListViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Ordering\AggregatedStockOrderDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Ordering\AggregatedStockOrdersListViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Ordering\NewStockTransferDialogViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Ordering\StockOrderDetailsLineEditViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Ordering\StockOrderDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Ordering\StockOrdersListViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Ordering\StockOrderTemplateDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Warehousing\Ordering\StockOrderTemplatesListViewModel.cs" />
+    <Compile Include="ViewModels\Transactions\FundsTransactionDetailsViewModel`3.cs" />
+    <Compile Include="ViewModels\Transactions\FundsTransactionDetailsViewModel`2.cs" />
+    <Compile Include="ViewModels\Transactions\FundsTransactionsListViewModel`2.cs" />
+    <Compile Include="ViewModels\Transactions\StockTransactionDetailsLineEditViewModel.cs" />
+    <Compile Include="ViewModels\Transactions\StockTransactionDetailsViewModel`3.cs" />
+    <Compile Include="ViewModels\Transactions\StockTransactionDetailsViewModel`2.cs" />
+    <Compile Include="ViewModels\Transactions\StockTransactionsListViewModel`2.cs" />
+    <Compile Include="ViewModels\Transactions\TransactionDetailsViewModel`2.cs" />
+    <Compile Include="ViewModels\Transactions\TransactionLineEditViewModel`2.cs" />
+    <Compile Include="ViewModels\StockManagement\SelectStockAlternativeViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockActionsFilter.cs" />
+    <Compile Include="ViewModels\StockManagement\StockActionsListViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockAlternativeDetailsViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockBalancesByDateAndWarehousesListViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockBalancesByStatusesListViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockBalancesListViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockBarcodesPrinterParams.cs" />
+    <Compile Include="ViewModels\StockManagement\StockBarcodesPrinterLine.cs" />
+    <Compile Include="ViewModels\StockManagement\StockBarcodesPrinterViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockDetailsViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockMergerDialogViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockMerge.cs" />
+    <Compile Include="ViewModels\StockManagement\SncParams.cs" />
+    <Compile Include="ViewModels\StockManagement\StockNameComposerDialogViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockNameComposerDetailsViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockRepriceDialogViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockRepriceRequest.cs" />
+    <Compile Include="ViewModels\StockManagement\StockReprice.cs" />
+    <Compile Include="ViewModels\StockManagement\StockRepriceEffectsListViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StocksListViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StockTurnoverDataListViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\StokTrackingsListViewModel.cs" />
+    <Compile Include="ViewModels\StockManagement\Mappers\StockMergeMapper.cs" />
+    <Compile Include="ViewModels\Settings\ActivationViewModel.cs" />
+    <Compile Include="ViewModels\Settings\ApplicationSettingsViewModel.cs" />
+    <Compile Include="ViewModels\Settings\BarcodeSettingsViewModel.cs" />
+    <Compile Include="ViewModels\Settings\ConnectionSettingsViewModel.cs" />
+    <Compile Include="ViewModels\Settings\CouchDataCopierViewModel.cs" />
+    <Compile Include="ViewModels\Settings\MockObjectsViewModel.cs" />
+    <Compile Include="ViewModels\Settings\PrinterSettingsViewModel.cs" />
+    <Compile Include="ViewModels\Settings\SyncDataFixerViewModel.cs" />
+    <Compile Include="ViewModels\Reporting\AggregatedReportViewModel.cs" />
+    <Compile Include="ViewModels\Reporting\RevenueReportViewModel.cs" />
+    <Compile Include="ViewModels\FundsManagement\CurrencyDetailsViewModel.cs" />
+    <Compile Include="ViewModels\FundsManagement\FundsActionsFilter.cs" />
+    <Compile Include="ViewModels\FundsManagement\FundsActionsListViewModel.cs" />
+    <Compile Include="ViewModels\FundsManagement\FundsBalancesListViewModel.cs" />
+    <Compile Include="ViewModels\Finance\FundsSlipDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Finance\FundsSlipsListViewModel.cs" />
+    <Compile Include="ViewModels\Finance\FundsTransferDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Finance\FundsTransfersListViewModel.cs" />
+    <Compile Include="ViewModels\Finance\Spending\ExpenseActionsListViewModel.cs" />
+    <Compile Include="ViewModels\Finance\Spending\ExpenseDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Finance\Spending\ExpenseSlipDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Finance\Spending\ExpenseSlipsListViewModel.cs" />
+    <Compile Include="ViewModels\Finance\Spending\ExpensesListViewModel.cs" />
+    <Compile Include="ViewModels\Finance\DailyRegistery\DailyFundsRegisteriesListViewModel.cs" />
+    <Compile Include="ViewModels\Finance\DailyRegistery\DailyFundsRegisteryDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Enterprise\DepositoriesListViewModel.cs" />
+    <Compile Include="ViewModels\Enterprise\DepositoryDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Enterprise\OfficeDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Enterprise\WarehouseDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Enterprise\WarehousesListViewModel.cs" />
+    <Compile Include="ViewModels\CRM\PartnerActionsFilter.cs" />
+    <Compile Include="ViewModels\CRM\PartnerActionsListViewModel.cs" />
+    <Compile Include="ViewModels\CRM\PartnerBalancesListViewModel.cs" />
+    <Compile Include="ViewModels\CRM\PartnerDetailsViewModel.cs" />
+    <Compile Include="ViewModels\CRM\PartnerMergerDialogViewModel.cs" />
+    <Compile Include="ViewModels\CRM\PartnerMerge.cs" />
+    <Compile Include="ViewModels\CRM\PartnerSlipDetailsViewModel.cs" />
+    <Compile Include="ViewModels\CRM\PartnerSlipsListViewModel.cs" />
+    <Compile Include="ViewModels\CRM\PartnersListViewModel.cs" />
+    <Compile Include="ViewModels\CRM\PartnerTransferDetailsViewModel.cs" />
+    <Compile Include="ViewModels\CRM\PartnerTransfersListViewModel.cs" />
+    <Compile Include="ViewModels\Common\CopyCreate.cs" />
+    <Compile Include="ViewModels\Common\CopyCreateLine.cs" />
+    <Compile Include="ViewModels\Common\CopyCreateType.cs" />
+    <Compile Include="ViewModels\Common\DataImportViewModel`1.cs" />
+    <Compile Include="ViewModels\Common\DataImportViewModel.cs" />
+    <Compile Include="ViewModels\Common\ListViewModelBaseWithFilter`1.cs" />
+    <Compile Include="ViewModels\Common\ListViewModelBaseWithFilter`2.cs" />
+    <Compile Include="ViewModels\Common\ListViewModelBaseWithFilterDate`1.cs" />
+    <Compile Include="ViewModels\Common\ListViewModelBaseWithFilterDate`2.cs" />
+    <Compile Include="ViewModels\Common\PrintingPreferences.cs" />
+    <Compile Include="ViewModels\Common\PrintingPreferencesRequest.cs" />
+    <Compile Include="ViewModels\Common\PrintingPreferencesResult.cs" />
+    <Compile Include="ViewModels\Common\PrintKindDialogViewModel.cs" />
+    <Compile Include="ViewModels\Common\TransactionDetailsViewModel`1.cs" />
+    <Compile Include="ViewModels\Common\TransactionsListViewModel`1.cs" />
+    <Compile Include="ViewModels\Commerce\BillDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Commerce\BillsListViewModel.cs" />
+    <Compile Include="ViewModels\Commerce\InvoiceDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Commerce\IpdParams.cs" />
+    <Compile Include="ViewModels\Commerce\InvoicePaymentDialogViewModel.cs" />
+    <Compile Include="ViewModels\Commerce\InvoicesListViewModel.cs" />
+    <Compile Include="ViewModels\Commerce\InvoicesWithPaymentInfoListViewModel.cs" />
+    <Compile Include="ViewModels\Commerce\SelectSourceInvoiceViewModel.cs" />
+    <Compile Include="ViewModels\Authorization\ChangePasswordViewModel.cs" />
+    <Compile Include="ViewModels\Authorization\RoleDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Authorization\RoleAction.cs" />
+    <Compile Include="ViewModels\Authorization\RoleOption.cs" />
+    <Compile Include="ViewModels\Authorization\UserDetailsViewModel.cs" />
+    <Compile Include="ViewModels\Authorization\AccountAssignment.cs" />
+    <Compile Include="ViewModels\Authorization\RoleAssignment.cs" />
+    <Compile Include="Helpers\ColumnDescription.cs" />
+    <Compile Include="Helpers\BandDescription.cs" />
+    <Compile Include="Helpers\ListFilter.cs" />
+    <Compile Include="Helpers\ListFilterByDate.cs" />
+    <Compile Include="Helpers\ListHelper`1.cs" />
+    <Compile Include="Helpers\ListHelper`2.cs" />
+    <Compile Include="Helpers\LocalizedTransactionTypes.cs" />
+    <Compile Include="Helpers\MvxDocumentChangedNotifier.cs" />
+    <Compile Include="Helpers\Reference`1.cs" />
+    <Compile Include="Helpers\StockSearcher.cs" />
+    <Compile Include="Helpers\SearchResultSelected.cs" />
+    <Compile Include="Converters\BooleanNegateConverter.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localizations\default.json" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

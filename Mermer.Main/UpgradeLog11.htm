@@ -1,0 +1,422 @@
+﻿<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+ <html xmlns:msxsl="urn:schemas-microsoft-com:xslt"><head><meta content="en-us" http-equiv="Content-Language" /><meta content="text/html; charset=utf-16" http-equiv="Content-Type" /><title _locID="ConversionReport0">
+          Отчет о переносе
+        </title><style> 
+                    /* Body style, for the entire document */
+                    body
+                    {
+                        background: #F3F3F4;
+                        color: #1E1E1F;
+                        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                        padding: 0;
+                        margin: 0;
+                    }
+
+                    /* Header1 style, used for the main title */
+                    h1
+                    {
+                        padding: 10px 0px 10px 10px;
+                        font-size: 21pt;
+                        background-color: #E2E2E2;
+                        border-bottom: 1px #C1C1C2 solid; 
+                        color: #201F20;
+                        margin: 0;
+                        font-weight: normal;
+                    }
+
+                    /* Header2 style, used for "Overview" and other sections */
+                    h2
+                    {
+                        font-size: 18pt;
+                        font-weight: normal;
+                        padding: 15px 0 5px 0;
+                        margin: 0;
+                    }
+
+                    /* Header3 style, used for sub-sections, such as project name */
+                    h3
+                    {
+                        font-weight: normal;
+                        font-size: 15pt;
+                        margin: 0;
+                        padding: 15px 0 5px 0;
+                        background-color: transparent;
+                    }
+
+                    /* Color all hyperlinks one color */
+                    a
+                    {
+                        color: #1382CE;
+                    }
+
+                    /* Table styles */ 
+                    table
+                    {
+                        border-spacing: 0 0;
+                        border-collapse: collapse;
+                        font-size: 10pt;
+                    }
+
+                    table th
+                    {
+                        background: #E7E7E8;
+                        text-align: left;
+                        text-decoration: none;
+                        font-weight: normal;
+                        padding: 3px 6px 3px 6px;
+                    }
+
+                    table td
+                    {
+                        vertical-align: top;
+                        padding: 3px 6px 5px 5px;
+                        margin: 0px;
+                        border: 1px solid #E7E7E8;
+                        background: #F7F7F8;
+                    }
+
+                    /* Local link is a style for hyperlinks that link to file:/// content, there are lots so color them as 'normal' text until the user mouse overs */
+                    .localLink
+                    {
+                        color: #1E1E1F;
+                        background: #EEEEED;
+                        text-decoration: none;
+                    }
+
+                    .localLink:hover
+                    {
+                        color: #1382CE;
+                        background: #FFFF99;
+                        text-decoration: none;
+                    }
+
+                    /* Center text, used in the over views cells that contain message level counts */ 
+                    .textCentered
+                    {
+                        text-align: center;
+                    }
+
+                    /* The message cells in message tables should take up all avaliable space */
+                    .messageCell
+                    {
+                        width: 100%;
+                    }
+
+                    /* Padding around the content after the h1 */ 
+                    #content 
+                    {
+	                    padding: 0px 12px 12px 12px; 
+                    }
+
+                    /* The overview table expands to width, with a max width of 97% */ 
+                    #overview table
+                    {
+                        width: auto;
+                        max-width: 75%; 
+                    }
+
+                    /* The messages tables are always 97% width */
+                    #messages table
+                    {
+                        width: 97%;
+                    }
+
+                    /* All Icons */
+                    .IconSuccessEncoded, .IconInfoEncoded, .IconWarningEncoded, .IconErrorEncoded
+                    {
+                        min-width:18px;
+                        min-height:18px; 
+                        background-repeat:no-repeat;
+                        background-position:center;
+                    }
+
+                    /* Success icon encoded */
+                    .IconSuccessEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconSuccess#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABcElEQVR4Xq2TsUsCURzHv15g8ZJcBWlyiYYgCIWcb9DFRRwMW5TA2c0/QEFwFkxxUQdxVlBwCYWOi6IhWgQhBLHJUCkhLr/BW8S7gvrAg+N+v8/v+x68Z8MGy+XSCyABQAXgBgHGALoASkIIDWSLeLBetdHryMjd5IxQPWT4rn1c/P7+xxp72Cs9m5SZ0Bq2vPnbPFafK2zDvmNHypdC0BPkLlQhxJsCAhQoZwdZU5mwxh720qGo8MzTxTTKZDPCx2HoVzp6lz0Q9tKhyx0kGs8Ny+TkWRKk8lCROwEduhyg9l/6lunOPSfmH3NUH6uQ0KHLAe7JYvJjevm+DAMGJHToKtigE+vwvIidxLamb8IBY9e+C5LiXREkfho3TSd06HJA13/oh6T51MTsfQbHrsMynQ5dDihFjiK8JJAU9AKIWTp76dCVN7HWHrajmUEGvyF9nkbAE6gLIS7kTUyuf2gscLoJrElZo/Mvj+nPz/kLTmfnEwP3tB0AAAAASUVORK5CYII=);
+                    }
+
+                    /* Information icon encoded */
+                    .IconInfoEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconInformation#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABHElEQVR4Xs2TsUoDQRRF7wwoziokjZUKadInhdhukR9YP8DMX1hYW+QvdsXa/QHBbcXC7W0CamWTQnclFutceIQJwwaWNLlwm5k5d94M76mmaeCrrmsLYOocY12FcxZFUeozCqKqqgYA8uevv1H6VuPxcwlfk5N92KHBxfFeCSAxxswlYAW/Xr989x/mv9gkhtyMDhcAxgzRsp7flj8B/HF1RsMXq+NZMkopaHe7lbKxQUEIGbKsYNoGn969060hZBkQex/W8oRQwsQaW2o3Ago2SVcJUzAgY3N0lTCZZm+zPS8HB51gMmS1DEYyOz9acKO1D8JWTlafKIMxdhvlfdyT94Vv5h7P8Ky7nQzACmhvKq3zk3PjW9asz9D/1oigecsioooAAAAASUVORK5CYII=);
+                    }
+
+                    /* Warning icon encoded */
+                    .IconWarningEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconWarning#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAx0lEQVR4XpWSMQ7CMAxFf4xAyBMLCxMrO8dhaBcuwdCJS3RJBw7SA/QGTCxdWJgiQYWKXJWKIXHIlyw5lqr34tQgEOdcBsCOx5yZK3hCCKdYXneQkh4pEfqzLfu+wVDSyyzFoJjfz9NB+pAF+eizx2Vruts0k15mPgvS6GYvpVtQhB61IB/dk6AF6fS4Ben0uIX5odtFe8Q/eW1KvFeH4e8khT6+gm5B+t3juyDt7n0jpe+CANTd+oTUjN/U3yVaABnSUjFz/gFq44JaVSCXeQAAAABJRU5ErkJggg==);
+                    }
+
+                    /* Error icon encoded */
+                    .IconErrorEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconError#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABQElEQVR4XqWTvUoEQRCE6wYPZUA80AfwAQz23uCMjA7MDRQEIzPBVEyNTQUFIw00vcQTTMzuAh/AxEQQT8HF/3G/oGGnEUGuoNnd6qoZuqltyKEsyzVJq5I6rnUp6SjGeGhESikzzlc1eL7opfuVbrqbU1Zw9NCgtQMaZpY0eNnaaL2fHusvTK5vKu7sjSS1Y4y3QUA6K3e3Mau5UFDyMP7tYF9o8cAHZv68vipoIJg971PZIZ5HiwdvYGGvFVFHmGmZ2MxwmQYPXubPl9Up0tfoMQGetXd6mRbvhBw+boZ6WF7Mbv1+GsHRk0fQmPAH1GfmZirbCfDJ61tw3Px8/8pZsPAG4jlVhcPgZ7adwNWBB68lkRQWFiTgFlbnLY3DGGM7izIJIyT/jjIvEJw6fdJTc6krDzh6aMwMP9bvDH4ADSsa9uSWVJkAAAAASUVORK5CYII=);
+                    }
+                 </style><script type="text/javascript" language="javascript"> 
+          
+            // Startup 
+            // Hook up the the loaded event for the document/window, to linkify the document content
+            var startupFunction = function() { linkifyElement("messages"); };
+            
+            if(window.attachEvent)
+            {
+              window.attachEvent('onload', startupFunction);
+            }
+            else if (window.addEventListener) 
+            {
+              window.addEventListener('load', startupFunction, false);
+            }
+            else 
+            {
+              document.addEventListener('load', startupFunction, false);
+            } 
+            
+            // Toggles the visibility of table rows with the specified name 
+            function toggleTableRowsByName(name)
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  if(!!currentName && currentName.indexOf(name) == 0)
+                  {
+                      var isVisible = allRows[i].style.display == ''; 
+                      isVisible ? allRows[i].style.display = 'none' : allRows[i].style.display = '';
+                  }
+               }
+            }
+            
+            function scrollToFirstVisibleRow(name) 
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  var isVisible = allRows[i].style.display == ''; 
+                  if(!!currentName && currentName.indexOf(name) == 0 && isVisible)
+                  {
+                     allRows[i].scrollIntoView(true); 
+                     return true; 
+                  }
+               }
+               
+               return false;
+            }
+            
+            // Linkifies the specified text content, replaces candidate links with html links 
+            function linkify(text)
+            {
+                 if(!text || 0 === text.length)
+                 {
+                     return text; 
+                 }
+
+                 // Find http, https and ftp links and replace them with hyper links 
+                 var urlLink = /(http|https|ftp)\:\/\/[a-zA-Z0-9\-\.]+(:[a-zA-Z0-9]*)?\/?([a-zA-Z0-9\-\._\?\,\/\\\+&%\$#\=~;\{\}])*/gi;
+                 
+                 return text.replace(urlLink, '<a href="$&">$&</a>') ;
+            }
+            
+            // Linkifies the specified element by ID
+            function linkifyElement(id)
+            {
+                var element = document.getElementById(id);
+                if(!!element)
+                {
+                  element.innerHTML = linkify(element.innerHTML); 
+                }
+            }
+            
+            function ToggleMessageVisibility(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              toggleTableRowsByName("MessageRowClass" + projectName);
+              toggleTableRowsByName('MessageRowHeaderShow' + projectName);
+              toggleTableRowsByName('MessageRowHeaderHide' + projectName); 
+            }
+            
+            function ScrollToFirstVisibleMessage(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              // First try the 'Show messages' row
+              if(!scrollToFirstVisibleRow('MessageRowHeaderShow' + projectName))
+              {
+                // Failed to find a visible row for 'Show messages', try an actual message row 
+                scrollToFirstVisibleRow('MessageRowClass' + projectName); 
+              }
+            }
+           </script></head><body><h1 _locID="ConversionReport">
+          Отчет о миграции - </h1><div id="content"><h2 _locID="OverviewTitle">Обзор</h2><div id="overview"><table><tr><th></th><th _locID="ProjectTableHeader">Проект</th><th _locID="PathTableHeader">Путь</th><th _locID="ErrorsTableHeader">Ошибки</th><th _locID="WarningsTableHeader">Предупреждения</th><th _locID="MessagesTableHeader">Сообщения</th></tr><tr><td class="IconSuccessEncoded" /><td><strong><a href="#Mermer.Ui.Core">Mermer.Ui.Core</a></strong></td><td>..\Mermer.Ui.Core\Mermer.Ui.Core.csproj</td><td class="textCentered"><a>0</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#" onclick="ScrollToFirstVisibleMessage('Mermer.Ui.Core'); return false;">151</a></td></tr></table></div><h2 _locID="SolutionAndProjectsTitle">Решение и проекты</h2><div id="messages"><a name="Mermer.Ui.Core" /><h3>Mermer.Ui.Core</h3><table><tr id="Mermer.Ui.CoreHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Сообщение</th></tr><tr name="MessageRowHeaderShowMermer.Ui.Core"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="ShowAdditionalMessages" href="#" name="Mermer.Ui.CoreMessage" onclick="ToggleMessageVisibility('Mermer.Ui.Core'); return false;">
+          Показать 151 дополнительные сообщения
+        </a></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Mermer.Ui.Core.csproj:
+        </strong><span>Успешно создана резервная копия файла проекта: C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Mermer.Ui.Core.csproj</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\App.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\App.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\CoreUiModule.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\CoreUiModule.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Services\IExcelReaderService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Services\IExcelReaderService.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Services\InMemoryStockSearchService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Services\InMemoryStockSearchService.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Services\IPrintingService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Services\IPrintingService.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Services\PrintKind.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Services\PrintKind.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Services\StockTransferPrintingType.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Services\StockTransferPrintingType.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Services\LocalizationService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Services\LocalizationService.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\AboutViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\AboutViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\LoginViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\LoginViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\MainViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\MainViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\StockSlipDetailsLineEditViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\StockSlipDetailsLineEditViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\StockSlipDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\StockSlipDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\StockSlipsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\StockSlipsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\StockTransferDetailsLineEditViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\StockTransferDetailsLineEditViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\StockTransferDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\StockTransferDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\StockTransferPrintTypeDialogViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\StockTransferPrintTypeDialogViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\StockTransfersListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\StockTransfersListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Revisioning\StockRevisionDetailsLineEditViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Revisioning\StockRevisionDetailsLineEditViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Revisioning\StockRevisionDetailsReportViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Revisioning\StockRevisionDetailsReportViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Revisioning\StockRevisionDetailsUncountedViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Revisioning\StockRevisionDetailsUncountedViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Revisioning\StockRevisionDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Revisioning\StockRevisionDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Revisioning\StockRevisionsListNewRevisionViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Revisioning\StockRevisionsListNewRevisionViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Revisioning\StockRevisionsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Revisioning\StockRevisionsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Ordering\AggregatedStockOrderDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Ordering\AggregatedStockOrderDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Ordering\AggregatedStockOrdersListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Ordering\AggregatedStockOrdersListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Ordering\NewStockTransferDialogViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Ordering\NewStockTransferDialogViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Ordering\StockOrderDetailsLineEditViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Ordering\StockOrderDetailsLineEditViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Ordering\StockOrderDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Ordering\StockOrderDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Ordering\StockOrdersListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Ordering\StockOrdersListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Ordering\StockOrderTemplateDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Ordering\StockOrderTemplateDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Warehousing\Ordering\StockOrderTemplatesListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Warehousing\Ordering\StockOrderTemplatesListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Transactions\FundsTransactionDetailsViewModel`3.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Transactions\FundsTransactionDetailsViewModel`3.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Transactions\FundsTransactionDetailsViewModel`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Transactions\FundsTransactionDetailsViewModel`2.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Transactions\FundsTransactionsListViewModel`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Transactions\FundsTransactionsListViewModel`2.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Transactions\StockTransactionDetailsLineEditViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Transactions\StockTransactionDetailsLineEditViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Transactions\StockTransactionDetailsViewModel`3.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Transactions\StockTransactionDetailsViewModel`3.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Transactions\StockTransactionDetailsViewModel`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Transactions\StockTransactionDetailsViewModel`2.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Transactions\StockTransactionsListViewModel`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Transactions\StockTransactionsListViewModel`2.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Transactions\TransactionDetailsViewModel`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Transactions\TransactionDetailsViewModel`2.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Transactions\TransactionLineEditViewModel`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Transactions\TransactionLineEditViewModel`2.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\SelectStockAlternativeViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\SelectStockAlternativeViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockActionsFilter.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockActionsFilter.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockActionsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockActionsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockAlternativeDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockAlternativeDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockBalancesByDateAndWarehousesListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockBalancesByDateAndWarehousesListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockBalancesByStatusesListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockBalancesByStatusesListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockBalancesListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockBalancesListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockBarcodesPrinterParams.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockBarcodesPrinterParams.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockBarcodesPrinterLine.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockBarcodesPrinterLine.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockBarcodesPrinterViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockBarcodesPrinterViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockMergerDialogViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockMergerDialogViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockMerge.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockMerge.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\SncParams.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\SncParams.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockNameComposerDialogViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockNameComposerDialogViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockNameComposerDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockNameComposerDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockRepriceDialogViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockRepriceDialogViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockRepriceRequest.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockRepriceRequest.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockReprice.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockReprice.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockRepriceEffectsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockRepriceEffectsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StocksListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StocksListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StockTurnoverDataListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StockTurnoverDataListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\StokTrackingsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\StokTrackingsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\StockManagement\Mappers\StockMergeMapper.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\StockManagement\Mappers\StockMergeMapper.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Settings\ActivationViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Settings\ActivationViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Settings\ApplicationSettingsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Settings\ApplicationSettingsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Settings\BarcodeSettingsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Settings\BarcodeSettingsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Settings\ConnectionSettingsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Settings\ConnectionSettingsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Settings\CouchDataCopierViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Settings\CouchDataCopierViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Settings\MockObjectsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Settings\MockObjectsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Settings\PrinterSettingsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Settings\PrinterSettingsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Settings\SyncDataFixerViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Settings\SyncDataFixerViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Reporting\AggregatedReportViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Reporting\AggregatedReportViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Reporting\RevenueReportViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Reporting\RevenueReportViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\FundsManagement\CurrencyDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\FundsManagement\CurrencyDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\FundsManagement\FundsActionsFilter.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\FundsManagement\FundsActionsFilter.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\FundsManagement\FundsActionsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\FundsManagement\FundsActionsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\FundsManagement\FundsBalancesListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\FundsManagement\FundsBalancesListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Finance\FundsSlipDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Finance\FundsSlipDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Finance\FundsSlipsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Finance\FundsSlipsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Finance\FundsTransferDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Finance\FundsTransferDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Finance\FundsTransfersListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Finance\FundsTransfersListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Finance\Spending\ExpenseActionsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Finance\Spending\ExpenseActionsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Finance\Spending\ExpenseDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Finance\Spending\ExpenseDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Finance\Spending\ExpenseSlipDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Finance\Spending\ExpenseSlipDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Finance\Spending\ExpenseSlipsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Finance\Spending\ExpenseSlipsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Finance\Spending\ExpensesListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Finance\Spending\ExpensesListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Finance\DailyRegistery\DailyFundsRegisteriesListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Finance\DailyRegistery\DailyFundsRegisteriesListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Finance\DailyRegistery\DailyFundsRegisteryDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Finance\DailyRegistery\DailyFundsRegisteryDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Enterprise\DepositoriesListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Enterprise\DepositoriesListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Enterprise\DepositoryDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Enterprise\DepositoryDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Enterprise\OfficeDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Enterprise\OfficeDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Enterprise\WarehouseDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Enterprise\WarehouseDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Enterprise\WarehousesListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Enterprise\WarehousesListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\CRM\PartnerActionsFilter.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\CRM\PartnerActionsFilter.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\CRM\PartnerActionsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\CRM\PartnerActionsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\CRM\PartnerBalancesListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\CRM\PartnerBalancesListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\CRM\PartnerDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\CRM\PartnerDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\CRM\PartnerMergerDialogViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\CRM\PartnerMergerDialogViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\CRM\PartnerMerge.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\CRM\PartnerMerge.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\CRM\PartnerSlipDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\CRM\PartnerSlipDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\CRM\PartnerSlipsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\CRM\PartnerSlipsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\CRM\PartnersListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\CRM\PartnersListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\CRM\PartnerTransferDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\CRM\PartnerTransferDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\CRM\PartnerTransfersListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\CRM\PartnerTransfersListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\CopyCreate.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\CopyCreate.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\CopyCreateLine.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\CopyCreateLine.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\CopyCreateType.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\CopyCreateType.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\DataImportViewModel`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\DataImportViewModel`1.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\DataImportViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\DataImportViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\ListViewModelBaseWithFilter`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\ListViewModelBaseWithFilter`1.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\ListViewModelBaseWithFilter`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\ListViewModelBaseWithFilter`2.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\ListViewModelBaseWithFilterDate`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\ListViewModelBaseWithFilterDate`1.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\ListViewModelBaseWithFilterDate`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\ListViewModelBaseWithFilterDate`2.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\PrintingPreferences.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\PrintingPreferences.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\PrintingPreferencesRequest.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\PrintingPreferencesRequest.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\PrintingPreferencesResult.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\PrintingPreferencesResult.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\PrintKindDialogViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\PrintKindDialogViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\TransactionDetailsViewModel`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\TransactionDetailsViewModel`1.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Common\TransactionsListViewModel`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Common\TransactionsListViewModel`1.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Commerce\BillDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Commerce\BillDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Commerce\BillsListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Commerce\BillsListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Commerce\InvoiceDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Commerce\InvoiceDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Commerce\IpdParams.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Commerce\IpdParams.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Commerce\InvoicePaymentDialogViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Commerce\InvoicePaymentDialogViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Commerce\InvoicesListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Commerce\InvoicesListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Commerce\InvoicesWithPaymentInfoListViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Commerce\InvoicesWithPaymentInfoListViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Commerce\SelectSourceInvoiceViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Commerce\SelectSourceInvoiceViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Authorization\ChangePasswordViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Authorization\ChangePasswordViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Authorization\RoleDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Authorization\RoleDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Authorization\RoleAction.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Authorization\RoleAction.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Authorization\RoleOption.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Authorization\RoleOption.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Authorization\UserDetailsViewModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Authorization\UserDetailsViewModel.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Authorization\AccountAssignment.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Authorization\AccountAssignment.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\ViewModels\Authorization\RoleAssignment.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\ViewModels\Authorization\RoleAssignment.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Helpers\ColumnDescription.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Helpers\ColumnDescription.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Helpers\BandDescription.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Helpers\BandDescription.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Helpers\ListFilter.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Helpers\ListFilter.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Helpers\ListFilterByDate.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Helpers\ListFilterByDate.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Helpers\ListHelper`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Helpers\ListHelper`1.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Helpers\ListHelper`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Helpers\ListHelper`2.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Helpers\LocalizedTransactionTypes.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Helpers\LocalizedTransactionTypes.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Helpers\MvxDocumentChangedNotifier.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Helpers\MvxDocumentChangedNotifier.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Helpers\Reference`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Helpers\Reference`1.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Helpers\StockSearcher.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Helpers\StockSearcher.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Helpers\SearchResultSelected.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Helpers\SearchResultSelected.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Converters\BooleanNegateConverter.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Converters\BooleanNegateConverter.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\AssemblyInfo.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\AssemblyInfo.cs</span></td></tr><tr name="MessageRowClassMermer.Ui.Core" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Ui.CoreMessage" /></td><td class="messageCell"><strong>..\Mermer.Ui.Core\Localizations\default.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup10\Localizations\default.json</span></td></tr><tr style="display: none" name="MessageRowHeaderHideMermer.Ui.Core"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="HideAdditionalMessages" href="#" name="Mermer.Ui.CoreMessage" onclick="ToggleMessageVisibility('Mermer.Ui.Core'); return false;">
+          Скрыть 151 дополнительные сообщения
+        </a></td></tr></table></div></div></body></html>

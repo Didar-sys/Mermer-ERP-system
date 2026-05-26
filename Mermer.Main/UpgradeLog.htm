@@ -1,0 +1,390 @@
+﻿<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+ <html xmlns:msxsl="urn:schemas-microsoft-com:xslt"><head><meta content="en-us" http-equiv="Content-Language" /><meta content="text/html; charset=utf-16" http-equiv="Content-Type" /><title _locID="ConversionReport0">
+          Отчет о переносе
+        </title><style> 
+                    /* Body style, for the entire document */
+                    body
+                    {
+                        background: #F3F3F4;
+                        color: #1E1E1F;
+                        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                        padding: 0;
+                        margin: 0;
+                    }
+
+                    /* Header1 style, used for the main title */
+                    h1
+                    {
+                        padding: 10px 0px 10px 10px;
+                        font-size: 21pt;
+                        background-color: #E2E2E2;
+                        border-bottom: 1px #C1C1C2 solid; 
+                        color: #201F20;
+                        margin: 0;
+                        font-weight: normal;
+                    }
+
+                    /* Header2 style, used for "Overview" and other sections */
+                    h2
+                    {
+                        font-size: 18pt;
+                        font-weight: normal;
+                        padding: 15px 0 5px 0;
+                        margin: 0;
+                    }
+
+                    /* Header3 style, used for sub-sections, such as project name */
+                    h3
+                    {
+                        font-weight: normal;
+                        font-size: 15pt;
+                        margin: 0;
+                        padding: 15px 0 5px 0;
+                        background-color: transparent;
+                    }
+
+                    /* Color all hyperlinks one color */
+                    a
+                    {
+                        color: #1382CE;
+                    }
+
+                    /* Table styles */ 
+                    table
+                    {
+                        border-spacing: 0 0;
+                        border-collapse: collapse;
+                        font-size: 10pt;
+                    }
+
+                    table th
+                    {
+                        background: #E7E7E8;
+                        text-align: left;
+                        text-decoration: none;
+                        font-weight: normal;
+                        padding: 3px 6px 3px 6px;
+                    }
+
+                    table td
+                    {
+                        vertical-align: top;
+                        padding: 3px 6px 5px 5px;
+                        margin: 0px;
+                        border: 1px solid #E7E7E8;
+                        background: #F7F7F8;
+                    }
+
+                    /* Local link is a style for hyperlinks that link to file:/// content, there are lots so color them as 'normal' text until the user mouse overs */
+                    .localLink
+                    {
+                        color: #1E1E1F;
+                        background: #EEEEED;
+                        text-decoration: none;
+                    }
+
+                    .localLink:hover
+                    {
+                        color: #1382CE;
+                        background: #FFFF99;
+                        text-decoration: none;
+                    }
+
+                    /* Center text, used in the over views cells that contain message level counts */ 
+                    .textCentered
+                    {
+                        text-align: center;
+                    }
+
+                    /* The message cells in message tables should take up all avaliable space */
+                    .messageCell
+                    {
+                        width: 100%;
+                    }
+
+                    /* Padding around the content after the h1 */ 
+                    #content 
+                    {
+	                    padding: 0px 12px 12px 12px; 
+                    }
+
+                    /* The overview table expands to width, with a max width of 97% */ 
+                    #overview table
+                    {
+                        width: auto;
+                        max-width: 75%; 
+                    }
+
+                    /* The messages tables are always 97% width */
+                    #messages table
+                    {
+                        width: 97%;
+                    }
+
+                    /* All Icons */
+                    .IconSuccessEncoded, .IconInfoEncoded, .IconWarningEncoded, .IconErrorEncoded
+                    {
+                        min-width:18px;
+                        min-height:18px; 
+                        background-repeat:no-repeat;
+                        background-position:center;
+                    }
+
+                    /* Success icon encoded */
+                    .IconSuccessEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconSuccess#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABcElEQVR4Xq2TsUsCURzHv15g8ZJcBWlyiYYgCIWcb9DFRRwMW5TA2c0/QEFwFkxxUQdxVlBwCYWOi6IhWgQhBLHJUCkhLr/BW8S7gvrAg+N+v8/v+x68Z8MGy+XSCyABQAXgBgHGALoASkIIDWSLeLBetdHryMjd5IxQPWT4rn1c/P7+xxp72Cs9m5SZ0Bq2vPnbPFafK2zDvmNHypdC0BPkLlQhxJsCAhQoZwdZU5mwxh720qGo8MzTxTTKZDPCx2HoVzp6lz0Q9tKhyx0kGs8Ny+TkWRKk8lCROwEduhyg9l/6lunOPSfmH3NUH6uQ0KHLAe7JYvJjevm+DAMGJHToKtigE+vwvIidxLamb8IBY9e+C5LiXREkfho3TSd06HJA13/oh6T51MTsfQbHrsMynQ5dDihFjiK8JJAU9AKIWTp76dCVN7HWHrajmUEGvyF9nkbAE6gLIS7kTUyuf2gscLoJrElZo/Mvj+nPz/kLTmfnEwP3tB0AAAAASUVORK5CYII=);
+                    }
+
+                    /* Information icon encoded */
+                    .IconInfoEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconInformation#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABHElEQVR4Xs2TsUoDQRRF7wwoziokjZUKadInhdhukR9YP8DMX1hYW+QvdsXa/QHBbcXC7W0CamWTQnclFutceIQJwwaWNLlwm5k5d94M76mmaeCrrmsLYOocY12FcxZFUeozCqKqqgYA8uevv1H6VuPxcwlfk5N92KHBxfFeCSAxxswlYAW/Xr989x/mv9gkhtyMDhcAxgzRsp7flj8B/HF1RsMXq+NZMkopaHe7lbKxQUEIGbKsYNoGn969060hZBkQex/W8oRQwsQaW2o3Ago2SVcJUzAgY3N0lTCZZm+zPS8HB51gMmS1DEYyOz9acKO1D8JWTlafKIMxdhvlfdyT94Vv5h7P8Ky7nQzACmhvKq3zk3PjW9asz9D/1oigecsioooAAAAASUVORK5CYII=);
+                    }
+
+                    /* Warning icon encoded */
+                    .IconWarningEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconWarning#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAx0lEQVR4XpWSMQ7CMAxFf4xAyBMLCxMrO8dhaBcuwdCJS3RJBw7SA/QGTCxdWJgiQYWKXJWKIXHIlyw5lqr34tQgEOdcBsCOx5yZK3hCCKdYXneQkh4pEfqzLfu+wVDSyyzFoJjfz9NB+pAF+eizx2Vruts0k15mPgvS6GYvpVtQhB61IB/dk6AF6fS4Ben0uIX5odtFe8Q/eW1KvFeH4e8khT6+gm5B+t3juyDt7n0jpe+CANTd+oTUjN/U3yVaABnSUjFz/gFq44JaVSCXeQAAAABJRU5ErkJggg==);
+                    }
+
+                    /* Error icon encoded */
+                    .IconErrorEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconError#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABQElEQVR4XqWTvUoEQRCE6wYPZUA80AfwAQz23uCMjA7MDRQEIzPBVEyNTQUFIw00vcQTTMzuAh/AxEQQT8HF/3G/oGGnEUGuoNnd6qoZuqltyKEsyzVJq5I6rnUp6SjGeGhESikzzlc1eL7opfuVbrqbU1Zw9NCgtQMaZpY0eNnaaL2fHusvTK5vKu7sjSS1Y4y3QUA6K3e3Mau5UFDyMP7tYF9o8cAHZv68vipoIJg971PZIZ5HiwdvYGGvFVFHmGmZ2MxwmQYPXubPl9Up0tfoMQGetXd6mRbvhBw+boZ6WF7Mbv1+GsHRk0fQmPAH1GfmZirbCfDJ61tw3Px8/8pZsPAG4jlVhcPgZ7adwNWBB68lkRQWFiTgFlbnLY3DGGM7izIJIyT/jjIvEJw6fdJTc6krDzh6aMwMP9bvDH4ADSsa9uSWVJkAAAAASUVORK5CYII=);
+                    }
+                 </style><script type="text/javascript" language="javascript"> 
+          
+            // Startup 
+            // Hook up the the loaded event for the document/window, to linkify the document content
+            var startupFunction = function() { linkifyElement("messages"); };
+            
+            if(window.attachEvent)
+            {
+              window.attachEvent('onload', startupFunction);
+            }
+            else if (window.addEventListener) 
+            {
+              window.addEventListener('load', startupFunction, false);
+            }
+            else 
+            {
+              document.addEventListener('load', startupFunction, false);
+            } 
+            
+            // Toggles the visibility of table rows with the specified name 
+            function toggleTableRowsByName(name)
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  if(!!currentName && currentName.indexOf(name) == 0)
+                  {
+                      var isVisible = allRows[i].style.display == ''; 
+                      isVisible ? allRows[i].style.display = 'none' : allRows[i].style.display = '';
+                  }
+               }
+            }
+            
+            function scrollToFirstVisibleRow(name) 
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  var isVisible = allRows[i].style.display == ''; 
+                  if(!!currentName && currentName.indexOf(name) == 0 && isVisible)
+                  {
+                     allRows[i].scrollIntoView(true); 
+                     return true; 
+                  }
+               }
+               
+               return false;
+            }
+            
+            // Linkifies the specified text content, replaces candidate links with html links 
+            function linkify(text)
+            {
+                 if(!text || 0 === text.length)
+                 {
+                     return text; 
+                 }
+
+                 // Find http, https and ftp links and replace them with hyper links 
+                 var urlLink = /(http|https|ftp)\:\/\/[a-zA-Z0-9\-\.]+(:[a-zA-Z0-9]*)?\/?([a-zA-Z0-9\-\._\?\,\/\\\+&%\$#\=~;\{\}])*/gi;
+                 
+                 return text.replace(urlLink, '<a href="$&">$&</a>') ;
+            }
+            
+            // Linkifies the specified element by ID
+            function linkifyElement(id)
+            {
+                var element = document.getElementById(id);
+                if(!!element)
+                {
+                  element.innerHTML = linkify(element.innerHTML); 
+                }
+            }
+            
+            function ToggleMessageVisibility(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              toggleTableRowsByName("MessageRowClass" + projectName);
+              toggleTableRowsByName('MessageRowHeaderShow' + projectName);
+              toggleTableRowsByName('MessageRowHeaderHide' + projectName); 
+            }
+            
+            function ScrollToFirstVisibleMessage(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              // First try the 'Show messages' row
+              if(!scrollToFirstVisibleRow('MessageRowHeaderShow' + projectName))
+              {
+                // Failed to find a visible row for 'Show messages', try an actual message row 
+                scrollToFirstVisibleRow('MessageRowClass' + projectName); 
+              }
+            }
+           </script></head><body><h1 _locID="ConversionReport">
+          Отчет о миграции - </h1><div id="content"><h2 _locID="OverviewTitle">Обзор</h2><div id="overview"><table><tr><th></th><th _locID="ProjectTableHeader">Проект</th><th _locID="PathTableHeader">Путь</th><th _locID="ErrorsTableHeader">Ошибки</th><th _locID="WarningsTableHeader">Предупреждения</th><th _locID="MessagesTableHeader">Сообщения</th></tr><tr><td class="IconSuccessEncoded" /><td><strong><a href="#Mermer">Mermer</a></strong></td><td>..\Mermer.Base\Mermer.csproj</td><td class="textCentered"><a>0</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#" onclick="ScrollToFirstVisibleMessage('Mermer'); return false;">119</a></td></tr></table></div><h2 _locID="SolutionAndProjectsTitle">Решение и проекты</h2><div id="messages"><a name="Mermer" /><h3>Mermer</h3><table><tr id="MermerHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Сообщение</th></tr><tr name="MessageRowHeaderShowMermer"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="ShowAdditionalMessages" href="#" name="MermerMessage" onclick="ToggleMessageVisibility('Mermer'); return false;">
+          Показать 119 дополнительные сообщения
+        </a></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer.csproj:
+        </strong><span>Успешно создана резервная копия файла проекта: C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer.csproj</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\System\DateTimeExtender.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\System\DateTimeExtender.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\System\IntegerExtenders.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\System\IntegerExtenders.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\System\StringExtender.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\System\StringExtender.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\System\TypeExtender.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\System\TypeExtender.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\System\Collections\Generic\ArrayExtender.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\System\Collections\Generic\ArrayExtender.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\System\Collections\Generic\EnumerableExtender.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\System\Collections\Generic\EnumerableExtender.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\FluentValidation\ValidatorExtender.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\FluentValidation\ValidatorExtender.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\CanBeNullAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\CanBeNullAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\NotNullAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\NotNullAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\ItemNotNullAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\ItemNotNullAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\ItemCanBeNullAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\ItemCanBeNullAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\StringFormatMethodAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\StringFormatMethodAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\ValueProviderAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\ValueProviderAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\InvokerParameterNameAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\InvokerParameterNameAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\NotifyPropertyChangedInvocatorAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\NotifyPropertyChangedInvocatorAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\ContractAnnotationAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\ContractAnnotationAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\LocalizationRequiredAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\LocalizationRequiredAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\CannotApplyEqualityOperatorAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\CannotApplyEqualityOperatorAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\BaseTypeRequiredAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\BaseTypeRequiredAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\UsedImplicitlyAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\UsedImplicitlyAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\MeansImplicitUseAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\MeansImplicitUseAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\ImplicitUseKindFlags.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\ImplicitUseKindFlags.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\ImplicitUseTargetFlags.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\ImplicitUseTargetFlags.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\PublicAPIAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\PublicAPIAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\InstantHandleAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\InstantHandleAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\PureAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\PureAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\MustUseReturnValueAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\MustUseReturnValueAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\ProvidesContextAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\ProvidesContextAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\PathReferenceAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\PathReferenceAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\SourceTemplateAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\SourceTemplateAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\MacroAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\MacroAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcAreaMasterLocationFormatAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcAreaMasterLocationFormatAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcAreaPartialViewLocationFormatAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcAreaPartialViewLocationFormatAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcAreaViewLocationFormatAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcAreaViewLocationFormatAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcMasterLocationFormatAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcMasterLocationFormatAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcPartialViewLocationFormatAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcPartialViewLocationFormatAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcViewLocationFormatAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcViewLocationFormatAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcActionAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcActionAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcAreaAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcAreaAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcControllerAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcControllerAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcMasterAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcMasterAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcModelTypeAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcModelTypeAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcPartialViewAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcPartialViewAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcSuppressViewErrorAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcSuppressViewErrorAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcDisplayTemplateAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcDisplayTemplateAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcEditorTemplateAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcEditorTemplateAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcTemplateAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcTemplateAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcViewAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcViewAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcViewComponentAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcViewComponentAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcViewComponentViewAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcViewComponentViewAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMvcActionSelectorAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMvcActionSelectorAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\HtmlElementAttributesAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\HtmlElementAttributesAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\HtmlAttributeValueAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\HtmlAttributeValueAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\RazorSectionAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\RazorSectionAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\CollectionAccessAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\CollectionAccessAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\CollectionAccessType.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\CollectionAccessType.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AssertionMethodAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AssertionMethodAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AssertionConditionAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AssertionConditionAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AssertionConditionType.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AssertionConditionType.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\TerminatesProgramAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\TerminatesProgramAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\LinqTunnelAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\LinqTunnelAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\NoEnumerationAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\NoEnumerationAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\RegexPatternAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\RegexPatternAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\NoReorderAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\NoReorderAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\XamlItemsControlAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\XamlItemsControlAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\XamlItemBindingOfItemsControlAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\XamlItemBindingOfItemsControlAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspChildControlTypeAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspChildControlTypeAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspDataFieldAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspDataFieldAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspDataFieldsAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspDataFieldsAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspMethodPropertyAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspMethodPropertyAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspRequiredAttributeAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspRequiredAttributeAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\AspTypePropertyAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\AspTypePropertyAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\RazorImportNamespaceAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\RazorImportNamespaceAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\RazorInjectionAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\RazorInjectionAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\RazorDirectiveAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\RazorDirectiveAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\RazorHelperCommonAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\RazorHelperCommonAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\RazorLayoutAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\RazorLayoutAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\RazorWriteLiteralMethodAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\RazorWriteLiteralMethodAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\RazorWriteMethodAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\RazorWriteMethodAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\RazorWriteMethodParameterAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\RazorWriteMethodParameterAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Services\IConfigurator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Services\IConfigurator.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\INotifyDictionaryChanged`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\INotifyDictionaryChanged`2.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\ValueChangedEventHandler`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\ValueChangedEventHandler`2.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\ValueChangedEventArgs`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\ValueChangedEventArgs`2.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\WatchedDictionary`2.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\WatchedDictionary`2.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\IWatchedObservableCollection.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\IWatchedObservableCollection.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\WatchedObservableCollection`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\WatchedObservableCollection`1.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\AutoNotifyPropertyChanged.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\AutoNotifyPropertyChanged.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\AutoNotifyPropertyChangedInterceptor.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\AutoNotifyPropertyChangedInterceptor.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\NotDirtyEffectiveAttribute.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\NotDirtyEffectiveAttribute.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\DirtynessController.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\DirtynessController.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\IObservableCollectionWatcher.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\IObservableCollectionWatcher.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\ObservableCollectionWatcher`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\ObservableCollectionWatcher`1.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\ItemsChangedEventHandler.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\ItemsChangedEventHandler.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\ItemPropertyChangedEventHandler.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\ItemPropertyChangedEventHandler.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\Expressions\ExpressionExtender.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\Expressions\ExpressionExtender.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\Expressions\Predicate.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\Expressions\Predicate.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\Expressions\PredicateBuilder`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\Expressions\PredicateBuilder`1.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\Expressions\SafeExpressionVisitor.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\Expressions\SafeExpressionVisitor.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\Expressions\SafePredicateBuilder`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\Expressions\SafePredicateBuilder`1.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Tools\Barcode\Symbology.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Tools\Barcode\Symbology.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Storage\IInitialDataCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Storage\IInitialDataCreator.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Storage\IInitialSchemaCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Storage\IInitialSchemaCreator.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Storage\IReadOnlyRepository`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Storage\IReadOnlyRepository`1.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Storage\IRepository`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Storage\IRepository`1.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Storage\IRepositoryWithFacets`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Storage\IRepositoryWithFacets`1.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Models\BindableObject.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Models\BindableObject.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Models\IModel.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Models\IModel.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Extenders\MvxPropertyNameExtensionMethods.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Extenders\MvxPropertyNameExtensionMethods.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Extenders\ObservableCollectionExtender.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Extenders\ObservableCollectionExtender.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Extenders\StringExtenderTranslit.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Extenders\StringExtenderTranslit.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Authorizers\DefaultAuthorizer.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Authorizers\DefaultAuthorizer.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Authorizers\DefaultListAuthorizer`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Authorizers\DefaultListAuthorizer`1.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Authorizers\DefaultReadOnlyListAuthorizer`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Authorizers\DefaultReadOnlyListAuthorizer`1.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Authorizers\IAuthorizer.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Authorizers\IAuthorizer.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Authorizers\IListAuthorizer`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Authorizers\IListAuthorizer`1.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\Mermer\Data\Authorizers\IReadOnlyListAuthorizer`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\Mermer\Data\Authorizers\IReadOnlyListAuthorizer`1.cs</span></td></tr><tr name="MessageRowClassMermer" style="display: none"><td class="IconInfoEncoded"><a name="MermerMessage" /></td><td class="messageCell"><strong>..\Mermer.Base\AssemblyInfo.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup\AssemblyInfo.cs</span></td></tr><tr style="display: none" name="MessageRowHeaderHideMermer"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="HideAdditionalMessages" href="#" name="MermerMessage" onclick="ToggleMessageVisibility('Mermer'); return false;">
+          Скрыть 119 дополнительные сообщения
+        </a></td></tr></table></div></div></body></html>

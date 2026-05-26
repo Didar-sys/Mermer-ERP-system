@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Project was exported from assembly: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.dll-->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{22CB2030-A2B9-450B-AD30-5876EE159A4B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Mermer</AssemblyName>
+    <ApplicationVersion>1.0.0.0</ApplicationVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto">
+      <HintPath>lib\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.Core">
+      <HintPath>lib\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="FluentValidation">
+      <HintPath>lib\FluentValidation.dll</HintPath>
+    </Reference>
+    <Reference Include="LinqKit.Core">
+      <HintPath>lib\LinqKit.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections" />
+    <Reference Include="System.Diagnostics.Debug" />
+    <Reference Include="System.Globalization" />
+    <Reference Include="System.Linq" />
+    <Reference Include="System.Linq.Expressions" />
+    <Reference Include="System.ObjectModel" />
+    <Reference Include="System.Reflection" />
+    <Reference Include="System.Reflection.Extensions" />
+    <Reference Include="System.Reflection.TypeExtensions">
+      <HintPath>lib\System.Reflection.TypeExtensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Runtime.Extensions" />
+    <Reference Include="System.Text.Encoding" />
+    <Reference Include="System.Text.Encoding.Extensions" />
+    <Reference Include="System.Threading" />
+    <Reference Include="System.Threading.Tasks" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="System\DateTimeExtender.cs" />
+    <Compile Include="System\IntegerExtenders.cs" />
+    <Compile Include="System\StringExtender.cs" />
+    <Compile Include="System\TypeExtender.cs" />
+    <Compile Include="System\Collections\Generic\ArrayExtender.cs" />
+    <Compile Include="System\Collections\Generic\EnumerableExtender.cs" />
+    <Compile Include="FluentValidation\ValidatorExtender.cs" />
+    <Compile Include="Mermer\CanBeNullAttribute.cs" />
+    <Compile Include="Mermer\NotNullAttribute.cs" />
+    <Compile Include="Mermer\ItemNotNullAttribute.cs" />
+    <Compile Include="Mermer\ItemCanBeNullAttribute.cs" />
+    <Compile Include="Mermer\StringFormatMethodAttribute.cs" />
+    <Compile Include="Mermer\ValueProviderAttribute.cs" />
+    <Compile Include="Mermer\InvokerParameterNameAttribute.cs" />
+    <Compile Include="Mermer\NotifyPropertyChangedInvocatorAttribute.cs" />
+    <Compile Include="Mermer\ContractAnnotationAttribute.cs" />
+    <Compile Include="Mermer\LocalizationRequiredAttribute.cs" />
+    <Compile Include="Mermer\CannotApplyEqualityOperatorAttribute.cs" />
+    <Compile Include="Mermer\BaseTypeRequiredAttribute.cs" />
+    <Compile Include="Mermer\UsedImplicitlyAttribute.cs" />
+    <Compile Include="Mermer\MeansImplicitUseAttribute.cs" />
+    <Compile Include="Mermer\ImplicitUseKindFlags.cs" />
+    <Compile Include="Mermer\ImplicitUseTargetFlags.cs" />
+    <Compile Include="Mermer\PublicAPIAttribute.cs" />
+    <Compile Include="Mermer\InstantHandleAttribute.cs" />
+    <Compile Include="Mermer\PureAttribute.cs" />
+    <Compile Include="Mermer\MustUseReturnValueAttribute.cs" />
+    <Compile Include="Mermer\ProvidesContextAttribute.cs" />
+    <Compile Include="Mermer\PathReferenceAttribute.cs" />
+    <Compile Include="Mermer\SourceTemplateAttribute.cs" />
+    <Compile Include="Mermer\MacroAttribute.cs" />
+    <Compile Include="Mermer\AspMvcAreaMasterLocationFormatAttribute.cs" />
+    <Compile Include="Mermer\AspMvcAreaPartialViewLocationFormatAttribute.cs" />
+    <Compile Include="Mermer\AspMvcAreaViewLocationFormatAttribute.cs" />
+    <Compile Include="Mermer\AspMvcMasterLocationFormatAttribute.cs" />
+    <Compile Include="Mermer\AspMvcPartialViewLocationFormatAttribute.cs" />
+    <Compile Include="Mermer\AspMvcViewLocationFormatAttribute.cs" />
+    <Compile Include="Mermer\AspMvcActionAttribute.cs" />
+    <Compile Include="Mermer\AspMvcAreaAttribute.cs" />
+    <Compile Include="Mermer\AspMvcControllerAttribute.cs" />
+    <Compile Include="Mermer\AspMvcMasterAttribute.cs" />
+    <Compile Include="Mermer\AspMvcModelTypeAttribute.cs" />
+    <Compile Include="Mermer\AspMvcPartialViewAttribute.cs" />
+    <Compile Include="Mermer\AspMvcSuppressViewErrorAttribute.cs" />
+    <Compile Include="Mermer\AspMvcDisplayTemplateAttribute.cs" />
+    <Compile Include="Mermer\AspMvcEditorTemplateAttribute.cs" />
+    <Compile Include="Mermer\AspMvcTemplateAttribute.cs" />
+    <Compile Include="Mermer\AspMvcViewAttribute.cs" />
+    <Compile Include="Mermer\AspMvcViewComponentAttribute.cs" />
+    <Compile Include="Mermer\AspMvcViewComponentViewAttribute.cs" />
+    <Compile Include="Mermer\AspMvcActionSelectorAttribute.cs" />
+    <Compile Include="Mermer\HtmlElementAttributesAttribute.cs" />
+    <Compile Include="Mermer\HtmlAttributeValueAttribute.cs" />
+    <Compile Include="Mermer\RazorSectionAttribute.cs" />
+    <Compile Include="Mermer\CollectionAccessAttribute.cs" />
+    <Compile Include="Mermer\CollectionAccessType.cs" />
+    <Compile Include="Mermer\AssertionMethodAttribute.cs" />
+    <Compile Include="Mermer\AssertionConditionAttribute.cs" />
+    <Compile Include="Mermer\AssertionConditionType.cs" />
+    <Compile Include="Mermer\TerminatesProgramAttribute.cs" />
+    <Compile Include="Mermer\LinqTunnelAttribute.cs" />
+    <Compile Include="Mermer\NoEnumerationAttribute.cs" />
+    <Compile Include="Mermer\RegexPatternAttribute.cs" />
+    <Compile Include="Mermer\NoReorderAttribute.cs" />
+    <Compile Include="Mermer\XamlItemsControlAttribute.cs" />
+    <Compile Include="Mermer\XamlItemBindingOfItemsControlAttribute.cs" />
+    <Compile Include="Mermer\AspChildControlTypeAttribute.cs" />
+    <Compile Include="Mermer\AspDataFieldAttribute.cs" />
+    <Compile Include="Mermer\AspDataFieldsAttribute.cs" />
+    <Compile Include="Mermer\AspMethodPropertyAttribute.cs" />
+    <Compile Include="Mermer\AspRequiredAttributeAttribute.cs" />
+    <Compile Include="Mermer\AspTypePropertyAttribute.cs" />
+    <Compile Include="Mermer\RazorImportNamespaceAttribute.cs" />
+    <Compile Include="Mermer\RazorInjectionAttribute.cs" />
+    <Compile Include="Mermer\RazorDirectiveAttribute.cs" />
+    <Compile Include="Mermer\RazorHelperCommonAttribute.cs" />
+    <Compile Include="Mermer\RazorLayoutAttribute.cs" />
+    <Compile Include="Mermer\RazorWriteLiteralMethodAttribute.cs" />
+    <Compile Include="Mermer\RazorWriteMethodAttribute.cs" />
+    <Compile Include="Mermer\RazorWriteMethodParameterAttribute.cs" />
+    <Compile Include="Mermer\Services\IConfigurator.cs" />
+    <Compile Include="Mermer\Data\INotifyDictionaryChanged`2.cs" />
+    <Compile Include="Mermer\Data\ValueChangedEventHandler`2.cs" />
+    <Compile Include="Mermer\Data\ValueChangedEventArgs`2.cs" />
+    <Compile Include="Mermer\Data\WatchedDictionary`2.cs" />
+    <Compile Include="Mermer\Data\IWatchedObservableCollection.cs" />
+    <Compile Include="Mermer\Data\WatchedObservableCollection`1.cs" />
+    <Compile Include="Mermer\Data\Tools\AutoNotifyPropertyChanged.cs" />
+    <Compile Include="Mermer\Data\Tools\AutoNotifyPropertyChangedInterceptor.cs" />
+    <Compile Include="Mermer\Data\Tools\NotDirtyEffectiveAttribute.cs" />
+    <Compile Include="Mermer\Data\Tools\DirtynessController.cs" />
+    <Compile Include="Mermer\Data\Tools\IObservableCollectionWatcher.cs" />
+    <Compile Include="Mermer\Data\Tools\ObservableCollectionWatcher`1.cs" />
+    <Compile Include="Mermer\Data\Tools\ItemsChangedEventHandler.cs" />
+    <Compile Include="Mermer\Data\Tools\ItemPropertyChangedEventHandler.cs" />
+    <Compile Include="Mermer\Data\Tools\Expressions\ExpressionExtender.cs" />
+    <Compile Include="Mermer\Data\Tools\Expressions\Predicate.cs" />
+    <Compile Include="Mermer\Data\Tools\Expressions\PredicateBuilder`1.cs" />
+    <Compile Include="Mermer\Data\Tools\Expressions\SafeExpressionVisitor.cs" />
+    <Compile Include="Mermer\Data\Tools\Expressions\SafePredicateBuilder`1.cs" />
+    <Compile Include="Mermer\Data\Tools\Barcode\Symbology.cs" />
+    <Compile Include="Mermer\Data\Storage\IInitialDataCreator.cs" />
+    <Compile Include="Mermer\Data\Storage\IInitialSchemaCreator.cs" />
+    <Compile Include="Mermer\Data\Storage\IReadOnlyRepository`1.cs" />
+    <Compile Include="Mermer\Data\Storage\IRepository`1.cs" />
+    <Compile Include="Mermer\Data\Storage\IRepositoryWithFacets`1.cs" />
+    <Compile Include="Mermer\Data\Models\BindableObject.cs" />
+    <Compile Include="Mermer\Data\Models\IModel.cs" />
+    <Compile Include="Mermer\Data\Extenders\MvxPropertyNameExtensionMethods.cs" />
+    <Compile Include="Mermer\Data\Extenders\ObservableCollectionExtender.cs" />
+    <Compile Include="Mermer\Data\Extenders\StringExtenderTranslit.cs" />
+    <Compile Include="Mermer\Data\Authorizers\DefaultAuthorizer.cs" />
+    <Compile Include="Mermer\Data\Authorizers\DefaultListAuthorizer`1.cs" />
+    <Compile Include="Mermer\Data\Authorizers\DefaultReadOnlyListAuthorizer`1.cs" />
+    <Compile Include="Mermer\Data\Authorizers\IAuthorizer.cs" />
+    <Compile Include="Mermer\Data\Authorizers\IListAuthorizer`1.cs" />
+    <Compile Include="Mermer\Data\Authorizers\IReadOnlyListAuthorizer`1.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>
