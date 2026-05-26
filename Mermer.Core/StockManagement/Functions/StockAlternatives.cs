@@ -17,26 +17,12 @@ namespace Mermer.Core.StockManagement.Functions;
 
 public class StockAlternatives
 {
-  public StockAlternatives()
-  {
-    ParameterExpression parameterExpression1;
-    ParameterExpression parameterExpression2;
-    ParameterExpression parameterExpression3;
-    ParameterExpression parameterExpression4;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Map = Expression.Lambda<Func<IEnumerable<StockAlternative>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.SelectMany)), )); // Unable to render the statement
-    ParameterExpression parameterExpression5;
-    ParameterExpression parameterExpression6;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Reduce = Expression.Lambda<Func<IEnumerable<SingleStockAlternative>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.Select)), )); // Unable to render the statement
-  }
+    public StockAlternatives()
+    {
+        //Заглушки
+        this.Map = x => null;
+        this.Reduce = y => null;
+    }
 
   public Expression<Func<IEnumerable<StockAlternative>, IEnumerable>> Map { get; set; }
 

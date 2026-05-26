@@ -17,45 +17,12 @@ namespace Mermer.Core.CRM.Functions;
 
 public class PartnerBalanceByTypeByMonthToByYear
 {
-  public PartnerBalanceByTypeByMonthToByYear()
-  {
-    ParameterExpression parameterExpression1;
-    ParameterExpression parameterExpression2;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Map = Expression.Lambda<Func<IEnumerable<PartnerBalanceByTypeByMonth>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.Select)), )); // Unable to render the statement
-    ParameterExpression parameterExpression3;
-    ParameterExpression parameterExpression4;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Reduce = Expression.Lambda<Func<IEnumerable<PartnerBalanceByTypeByYear>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.Select)), )); // Unable to render the statement
-  }
+    public PartnerBalanceByTypeByMonthToByYear()
+    {
+        //Заглушки
+        this.Map = x => null;
+        this.Reduce = y => null;
+    }
 
   public Expression<Func<IEnumerable<PartnerBalanceByTypeByMonth>, IEnumerable>> Map { get; set; }
 

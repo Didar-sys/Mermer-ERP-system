@@ -1,295 +1,256 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Data.Patcher.Patcher
-// Assembly: Mermer.Data.Patcher, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 2AD11298-697F-4B7E-AC43-C662A1FFE782
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Data.Patcher.dll
-
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using TB.ComponentModel;
 
-#nullable disable
 namespace Mermer.Data.Patcher;
 
 public class Patcher : IPatcher
 {
-  public Patch CreatePatch<T>(T source, T target, string id = null) where T : class
-  {
-    if (string.IsNullOrEmpty(id))
+    public Patch CreatePatch<T>(T source, T target, string id = null) where T : class
     {
-      PropertyInfo property = typeof (T).GetProperty("Id");
-      if (property == (PropertyInfo) null)
-        throw new Exception("Source object must have 'Id' property, or value of 'Id' must be passed to the function!");
-      if ((object) source == null && (object) target == null)
-        throw new Exception("As source and target objects are null, value of 'Id' must be passed to the function!");
-      id = property.GetValue((object) (source ?? target)).ToString();
-      if (string.IsNullOrEmpty(id))
-        throw new Exception("As source and target objects don't have 'Id' value, value of 'Id' must be passed to the function!");
-    }
-    Patch patch = new Patch() { Id = id };
-    if ((object) source == null)
-    {
-      patch.Action = PatchAction.Delete;
-      return patch;
-    }
-    patch.Action = (object) target == null ? PatchAction.Create : PatchAction.Update;
-    foreach (PropertyInfo property in typeof (T).GetProperties(BindingFlags.Instance | BindingFlags.Public))
-    {
-      if (!(property.Name == "Id") && property.CanRead && property.CanWrite && !Attribute.IsDefined((MemberInfo) property, typeof (IgnorePatchAttribute)))
-      {
-        object obj1 = property.GetValue((object) source);
-        object obj2 = (object) target == null ? (object) null : property.GetValue((object) target);
-        if ((obj1 != null ? (obj1.Equals(obj2) ? 1 : 0) : (obj2 == null ? 1 : 0)) == 0)
+        if (string.IsNullOrEmpty(id))
         {
-          if (property.PropertyType.IsGenericType && !((IEnumerable<Type>) property.PropertyType.GenericTypeArguments).Any<Type>((Func<Type, bool>) (t => t.IsPrimitive || t == typeof (Decimal) || t == typeof (string))) && obj1 is IList)
-          {
-            Type[] genericTypeArguments = property.PropertyType.GenericTypeArguments;
-            List<Patch> source1 = (List<Patch>) this.GetType().GetMethod("CreateSubListPatches").MakeGenericMethod(genericTypeArguments).Invoke((object) this, new object[2]
-            {
-              obj1,
-              obj2
-            });
-            if (source1.Any<Patch>())
-            {
-              patch.SubListPatches = patch.SubListPatches ?? new Dictionary<string, List<Patch>>();
-              patch.SubListPatches.Add(property.Name, source1);
-            }
-          }
-          else
-          {
-            patch.PropertyPatches = patch.PropertyPatches ?? new Dictionary<string, object>();
-            patch.PropertyPatches.Add(property.Name, obj1);
-          }
+            PropertyInfo property = typeof(T).GetProperty("Id");
+            if (property == null)
+                throw new Exception("Source object must have 'Id' property, or value of 'Id' must be passed to the function!");
+            if (source == null && target == null)
+                throw new Exception("As source and target objects are null, value of 'Id' must be passed to the function!");
+            id = property.GetValue(source ?? target)?.ToString();
+            if (string.IsNullOrEmpty(id))
+                throw new Exception("As source and target objects don't have 'Id' value, value of 'Id' must be passed to the function!");
         }
-      }
-    }
-    return patch.Action == PatchAction.Update && (patch.PropertyPatches == null || !patch.PropertyPatches.Any<KeyValuePair<string, object>>()) && (patch.SubListPatches == null || !patch.SubListPatches.Any<KeyValuePair<string, List<Patch>>>()) ? (Patch) null : patch;
-  }
-
-  public List<Patch> CreateSubListPatches<T>(IEnumerable<T> sourceList, IEnumerable<T> targetList) where T : class
-  {
-    PropertyInfo property = typeof (T).GetProperty("Id");
-    if (property == (PropertyInfo) null)
-      throw new Exception("Sub list objects must have 'Id' property!");
-    List<Patch> source1 = new List<Patch>();
-    List<T> objList = (targetList != null ? targetList.ToList<T>() : (List<T>) null) ?? new List<T>();
-    foreach (T source2 in sourceList)
-    {
-      string id = property.GetValue((object) source2).ToString();
-      T target = default (T);
-      foreach (T obj1 in objList)
-      {
-        object obj2 = property.GetValue((object) obj1);
-        if (id.Equals(obj2))
+        Patch patch = new Patch() { Id = id };
+        if (source == null)
         {
-          target = obj1;
-          break;
+            patch.Action = PatchAction.Delete;
+            return patch;
         }
-      }
-      objList.Remove(target);
-      source1.Add(this.CreatePatch<T>(source2, target, id));
-    }
-    foreach (T target in objList)
-    {
-      string id = property.GetValue((object) target).ToString();
-      source1.Add(this.CreatePatch<T>(default (T), target, id));
-    }
-    return source1.Where<Patch>((Func<Patch, bool>) (x => x != null)).ToList<Patch>();
-  }
-
-  public T ApplyPatch<T>(Patch patch, T target) where T : class
-  {
-    if (patch == null)
-      throw new ArgumentNullException(nameof (patch));
-    switch (patch.Action)
-    {
-      case PatchAction.Create:
-        if ((object) target != null)
-          throw new Exception($"As this is '{patch.Action}' patch, target object must be null!");
-        PropertyInfo property = typeof (T).GetProperty("Id");
-        if (property == (PropertyInfo) null)
-          throw new Exception("Target object should have 'Id' property");
-        target = Activator.CreateInstance<T>();
-        property.SetValue((object) target, (object) patch.Id);
-        goto default;
-      case PatchAction.Update:
-        if ((object) target == null)
-          break;
-        goto default;
-      case PatchAction.Delete:
-        if ((object) target != null)
-          goto default;
-        break;
-      default:
-        if (patch.Action == PatchAction.Delete)
-          return default (T);
-        Dictionary<string, object> propertyPatches = patch.PropertyPatches;
-        if ((propertyPatches != null ? (propertyPatches.Any<KeyValuePair<string, object>>() ? 1 : 0) : 0) != 0)
+        patch.Action = target == null ? PatchAction.Create : PatchAction.Update;
+        foreach (PropertyInfo property in typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
-          foreach (KeyValuePair<string, object> propertyPatch in patch.PropertyPatches)
-          {
-            try
+            if (property.Name != "Id" && property.CanRead && property.CanWrite && !Attribute.IsDefined(property, typeof(IgnorePatchAttribute)))
             {
-              string propertyName = propertyPatch.Key;
-              PropertyInfo element = ((IEnumerable<PropertyInfo>) typeof (T).GetProperties()).SingleOrDefault<PropertyInfo>((Func<PropertyInfo, bool>) (x => x.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase)));
-              if (!(element == (PropertyInfo) null))
-              {
-                if (element.CanWrite)
+                object obj1 = property.GetValue(source);
+                object obj2 = target == null ? null : property.GetValue(target);
+
+                if (!Equals(obj1, obj2))
                 {
-                  if (!Attribute.IsDefined((MemberInfo) element, typeof (IgnorePatchAttribute)))
-                  {
-                    try
+                    if (property.PropertyType.IsGenericType && !property.PropertyType.GenericTypeArguments.Any(t => t.IsPrimitive || t == typeof(Decimal) || t == typeof(string)) && obj1 is IList)
                     {
-                      element.SetValue((object) target, propertyPatch.Value);
-                      continue;
+                        Type[] genericTypeArguments = property.PropertyType.GenericTypeArguments;
+                        List<Patch> source1 = (List<Patch>)this.GetType().GetMethod(nameof(CreateSubListPatches)).MakeGenericMethod(genericTypeArguments).Invoke(this, new object[] { obj1, obj2 });
+                        if (source1.Any())
+                        {
+                            patch.SubListPatches ??= new Dictionary<string, List<Patch>>();
+                            patch.SubListPatches.Add(property.Name, source1);
+                        }
                     }
-                    catch
+                    else
                     {
+                        patch.PropertyPatches ??= new Dictionary<string, object>();
+                        patch.PropertyPatches.Add(property.Name, obj1);
                     }
-                    try
-                    {
-                      element.SetValue((object) target, JsonConvert.DeserializeObject(JsonConvert.SerializeObject(propertyPatch.Value), element.PropertyType));
-                      continue;
-                    }
-                    catch
-                    {
-                    }
-                    element.SetValue((object) target, propertyPatch.Value.Convert(element.PropertyType));
-                  }
                 }
-              }
             }
-            catch (Exception ex)
-            {
-              Console.WriteLine((object) ex);
-              throw;
-            }
-          }
         }
-        Dictionary<string, List<Patch>> subListPatches = patch.SubListPatches;
-        if ((subListPatches != null ? (subListPatches.Any<KeyValuePair<string, List<Patch>>>() ? 1 : 0) : 0) != 0)
-        {
-          foreach (KeyValuePair<string, List<Patch>> subListPatch in patch.SubListPatches)
-          {
-            string subListName = subListPatch.Key;
-            PropertyInfo element = ((IEnumerable<PropertyInfo>) typeof (T).GetProperties()).SingleOrDefault<PropertyInfo>((Func<PropertyInfo, bool>) (x => x.Name.Equals(subListName, StringComparison.OrdinalIgnoreCase)));
-            if (!(element == (PropertyInfo) null) && element.CanWrite && !Attribute.IsDefined((MemberInfo) element, typeof (IgnorePatchAttribute)))
-            {
-              object obj1 = element.GetValue((object) target) ?? Activator.CreateInstance(element.PropertyType);
-              List<Type> list = ((IEnumerable<Type>) element.PropertyType.GenericTypeArguments).ToList<Type>();
-              list.Insert(0, element.PropertyType);
-              object obj2 = this.GetType().GetMethod("ApplySubListPatches").MakeGenericMethod(list.ToArray()).Invoke((object) this, new object[2]
-              {
-                (object) subListPatch.Value,
-                obj1
-              });
-              element.SetValue((object) target, obj2);
-            }
-          }
-        }
-        return target;
+        return patch.Action == PatchAction.Update && (patch.PropertyPatches == null || !patch.PropertyPatches.Any()) && (patch.SubListPatches == null || !patch.SubListPatches.Any()) ? null : patch;
     }
-    throw new ArgumentNullException(nameof (target), $"As this is '{patch.Action}' patch, target object can not be null!");
-  }
 
-  public TList ApplySubListPatches<TList, T>(List<Patch> patches, TList targetList)
-    where TList : IList<T>
-    where T : class
-  {
-    PropertyInfo property = typeof (T).GetProperty("Id");
-    if (property == (PropertyInfo) null)
-      throw new Exception("Sub list objects must have 'Id' property!");
-    foreach (Patch patch in patches)
+    public List<Patch> CreateSubListPatches<T>(IEnumerable<T> sourceList, IEnumerable<T> targetList) where T : class
     {
-      if (patch.Action == PatchAction.Create)
-      {
-        T obj = this.ApplyPatch<T>(patch, default (T));
-        targetList.Add(obj);
-      }
-      else
-      {
-        for (int index = 0; index < targetList.Count; ++index)
+        PropertyInfo property = typeof(T).GetProperty("Id");
+        if (property == null)
+            throw new Exception("Sub list objects must have 'Id' property!");
+        List<Patch> source1 = new List<Patch>();
+        List<T> objList = targetList?.ToList() ?? new List<T>();
+        foreach (T source2 in sourceList)
         {
-          T target = targetList[index];
-          object obj = property.GetValue((object) target);
-          if (patch.Id.Equals(obj))
-          {
-            if (patch.Action == PatchAction.Update)
-              targetList[index] = this.ApplyPatch<T>(patch, target);
-            if (patch.Action == PatchAction.Delete)
+            string id = property.GetValue(source2)?.ToString();
+            T target = default;
+            foreach (T obj1 in objList)
             {
-              targetList.RemoveAt(index);
-              break;
+                object obj2 = property.GetValue(obj1);
+                if (id.Equals(obj2))
+                {
+                    target = obj1;
+                    break;
+                }
             }
-            break;
-          }
+            objList.Remove(target);
+            source1.Add(this.CreatePatch(source2, target, id));
         }
-      }
+        foreach (T target in objList)
+        {
+            string id = property.GetValue(target)?.ToString();
+            source1.Add(this.CreatePatch(default(T), target, id));
+        }
+        return source1.Where(x => x != null).ToList();
     }
-    return targetList;
-  }
 
-  public Patch CreatePatchForLeftPatch(Patch patch, List<Patch> laterPatches)
-  {
-    if (patch == null)
-      throw new ArgumentNullException(nameof (patch));
-    if (laterPatches == null)
-      throw new ArgumentNullException(nameof (laterPatches));
-    if (patch.Action == PatchAction.Create)
-      throw new Exception("Create patch can not be a left behind patch (should be first)");
-    if (patch.Action == PatchAction.Delete)
-      return patch;
-    laterPatches = laterPatches.Where<Patch>((Func<Patch, bool>) (x => x.Id == patch.Id)).ToList<Patch>();
-    if (!laterPatches.Any<Patch>())
-      return patch;
-    if (laterPatches.Any<Patch>((Func<Patch, bool>) (x => x.Action == PatchAction.Delete)))
-      return (Patch) null;
-    Dictionary<string, object> propertyPatches1 = patch.PropertyPatches;
-    if ((propertyPatches1 != null ? (propertyPatches1.Any<KeyValuePair<string, object>>() ? 1 : 0) : 0) != 0)
+    public T ApplyPatch<T>(Patch patch, T target) where T : class
     {
-      foreach (string str in patch.PropertyPatches.Keys.ToList<string>())
-      {
-        string propertyName = str;
-        if (laterPatches.Where<Patch>((Func<Patch, bool>) (x => x.PropertyPatches != null)).Any<Patch>((Func<Patch, bool>) (x => x.PropertyPatches.Any<KeyValuePair<string, object>>((Func<KeyValuePair<string, object>, bool>) (later => later.Key.Equals(propertyName, StringComparison.OrdinalIgnoreCase))))))
-          patch.PropertyPatches.Remove(propertyName);
-      }
-      if (!patch.PropertyPatches.Any<KeyValuePair<string, object>>())
-        patch.PropertyPatches = (Dictionary<string, object>) null;
+        if (patch == null)
+            throw new ArgumentNullException(nameof(patch));
+        switch (patch.Action)
+        {
+            case PatchAction.Create:
+                if (target != null)
+                    throw new Exception($"As this is '{patch.Action}' patch, target object must be null!");
+                PropertyInfo property = typeof(T).GetProperty("Id");
+                if (property == null)
+                    throw new Exception("Target object should have 'Id' property");
+                target = Activator.CreateInstance<T>();
+                property.SetValue(target, patch.Id);
+                goto default;
+            case PatchAction.Update:
+                if (target == null)
+                    break;
+                goto default;
+            case PatchAction.Delete:
+                if (target != null)
+                    goto default;
+                break;
+            default:
+                if (patch.Action == PatchAction.Delete)
+                    return default;
+                if (patch.PropertyPatches?.Any() == true)
+                {
+                    foreach (KeyValuePair<string, object> propertyPatch in patch.PropertyPatches)
+                    {
+                        try
+                        {
+                            string propertyName = propertyPatch.Key;
+                            PropertyInfo element = typeof(T).GetProperties().SingleOrDefault(x => x.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase));
+                            if (element != null && element.CanWrite && !Attribute.IsDefined(element, typeof(IgnorePatchAttribute)))
+                            {
+                                try
+                                {
+                                    element.SetValue(target, propertyPatch.Value);
+                                    continue;
+                                }
+                                catch { }
+                                try
+                                {
+                                    element.SetValue(target, JsonConvert.DeserializeObject(JsonConvert.SerializeObject(propertyPatch.Value), element.PropertyType));
+                                    continue;
+                                }
+                                catch { }
+                                element.SetValue(target, Convert.ChangeType(propertyPatch.Value, element.PropertyType));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                            throw;
+                        }
+                    }
+                }
+                if (patch.SubListPatches?.Any() == true)
+                {
+                    foreach (KeyValuePair<string, List<Patch>> subListPatch in patch.SubListPatches)
+                    {
+                        string subListName = subListPatch.Key;
+                        PropertyInfo element = typeof(T).GetProperties().SingleOrDefault(x => x.Name.Equals(subListName, StringComparison.OrdinalIgnoreCase));
+                        if (element != null && element.CanWrite && !Attribute.IsDefined(element, typeof(IgnorePatchAttribute)))
+                        {
+                            object obj1 = element.GetValue(target) ?? Activator.CreateInstance(element.PropertyType);
+                            List<Type> list = element.PropertyType.GenericTypeArguments.ToList();
+                            list.Insert(0, element.PropertyType);
+                            object obj2 = this.GetType().GetMethod(nameof(ApplySubListPatches)).MakeGenericMethod(list.ToArray()).Invoke(this, new object[] { subListPatch.Value, obj1 });
+                            element.SetValue(target, obj2);
+                        }
+                    }
+                }
+                return target;
+        }
+        throw new ArgumentNullException(nameof(target), $"As this is '{patch.Action}' patch, target object can not be null!");
     }
-    Dictionary<string, List<Patch>> subListPatches1 = patch.SubListPatches;
-    if ((subListPatches1 != null ? (subListPatches1.Any<KeyValuePair<string, List<Patch>>>() ? 1 : 0) : 0) != 0)
+
+    public TList ApplySubListPatches<TList, T>(List<Patch> patches, TList targetList)
+        where TList : IList<T>
+        where T : class
     {
-      foreach (string str in patch.SubListPatches.Keys.ToList<string>())
-      {
-        string subListName = str;
-        IEnumerable<Patch> laterSubListPatches = laterPatches.Where<Patch>((Func<Patch, bool>) (x =>
+        PropertyInfo property = typeof(T).GetProperty("Id");
+        if (property == null)
+            throw new Exception("Sub list objects must have 'Id' property!");
+        foreach (Patch patch in patches)
         {
-          Dictionary<string, List<Patch>> subListPatches2 = x.SubListPatches;
-          // ISSUE: explicit non-virtual call
-          return subListPatches2 != null && __nonvirtual (subListPatches2.ContainsKey(subListName));
-        })).SelectMany<Patch, Patch>((Func<Patch, IEnumerable<Patch>>) (x => (IEnumerable<Patch>) x.SubListPatches[subListName]));
-        List<Patch> list = patch.SubListPatches[subListName].Select<Patch, Patch>((Func<Patch, Patch>) (x => this.CreatePatchForLeftPatch(x, laterSubListPatches.Where<Patch>((Func<Patch, bool>) (later => later.Id == x.Id)).ToList<Patch>()))).Where<Patch>((Func<Patch, bool>) (x =>
-        {
-          if (x == null)
-            return false;
-          Dictionary<string, object> propertyPatches2 = x.PropertyPatches;
-          if ((propertyPatches2 != null ? (propertyPatches2.Any<KeyValuePair<string, object>>() ? 1 : 0) : 0) != 0)
-            return true;
-          Dictionary<string, List<Patch>> subListPatches3 = x.SubListPatches;
-          return subListPatches3 != null && subListPatches3.Any<KeyValuePair<string, List<Patch>>>();
-        })).ToList<Patch>();
-        if (list.Any<Patch>())
-          patch.SubListPatches[subListName] = list;
-        else
-          patch.SubListPatches.Remove(subListName);
-      }
-      if (!patch.SubListPatches.Any<KeyValuePair<string, List<Patch>>>())
-        patch.SubListPatches = (Dictionary<string, List<Patch>>) null;
+            if (patch.Action == PatchAction.Create)
+            {
+                T obj = this.ApplyPatch<T>(patch, default);
+                targetList.Add(obj);
+            }
+            else
+            {
+                for (int index = 0; index < targetList.Count; ++index)
+                {
+                    T target = targetList[index];
+                    object obj = property.GetValue(target);
+                    if (patch.Id.Equals(obj?.ToString()))
+                    {
+                        if (patch.Action == PatchAction.Update)
+                            targetList[index] = this.ApplyPatch(patch, target);
+                        if (patch.Action == PatchAction.Delete)
+                        {
+                            targetList.RemoveAt(index);
+                            break;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        return targetList;
     }
-    return patch;
-  }
+
+    public Patch CreatePatchForLeftPatch(Patch patch, List<Patch> laterPatches)
+    {
+        if (patch == null)
+            throw new ArgumentNullException(nameof(patch));
+        if (laterPatches == null)
+            throw new ArgumentNullException(nameof(laterPatches));
+        if (patch.Action == PatchAction.Create)
+            throw new Exception("Create patch can not be a left behind patch (should be first)");
+        if (patch.Action == PatchAction.Delete)
+            return patch;
+        laterPatches = laterPatches.Where(x => x.Id == patch.Id).ToList();
+        if (!laterPatches.Any())
+            return patch;
+        if (laterPatches.Any(x => x.Action == PatchAction.Delete))
+            return null;
+
+        if (patch.PropertyPatches?.Any() == true)
+        {
+            foreach (string propertyName in patch.PropertyPatches.Keys.ToList())
+            {
+                if (laterPatches.Where(x => x.PropertyPatches != null).Any(x => x.PropertyPatches.Any(later => later.Key.Equals(propertyName, StringComparison.OrdinalIgnoreCase))))
+                    patch.PropertyPatches.Remove(propertyName);
+            }
+            if (!patch.PropertyPatches.Any())
+                patch.PropertyPatches = null;
+        }
+
+        if (patch.SubListPatches?.Any() == true)
+        {
+            foreach (string subListName in patch.SubListPatches.Keys.ToList())
+            {
+                IEnumerable<Patch> laterSubListPatches = laterPatches.Where(x => x.SubListPatches != null && x.SubListPatches.ContainsKey(subListName))
+                                                                     .SelectMany(x => x.SubListPatches[subListName]);
+
+                List<Patch> list = patch.SubListPatches[subListName].Select(x => this.CreatePatchForLeftPatch(x, laterSubListPatches.Where(later => later.Id == x.Id).ToList()))
+                                                                    .Where(x => x != null && (x.PropertyPatches?.Any() == true || x.SubListPatches?.Any() == true))
+                                                                    .ToList();
+                if (list.Any())
+                    patch.SubListPatches[subListName] = list;
+                else
+                    patch.SubListPatches.Remove(subListName);
+            }
+            if (!patch.SubListPatches.Any())
+                patch.SubListPatches = null;
+        }
+        return patch;
+    }
 }

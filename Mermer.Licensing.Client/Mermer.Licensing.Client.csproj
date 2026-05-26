@@ -1,68 +1,22 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!--Project was exported from assembly: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Licensing.Client.dll-->
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1D920178-32E8-404A-B433-B76502CF499D}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AssemblyName>Mermer.Licensing.Client</AssemblyName>
-    <ApplicationVersion>0.0.6.0</ApplicationVersion>
-    <RootNamespace>Mermer.Licensing.Client</RootNamespace>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Autofac">
-      <HintPath>lib\Autofac.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
-      <HintPath>lib\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Options">
-      <HintPath>lib\Microsoft.Extensions.Options.dll</HintPath>
-    </Reference>
-    <Reference Include="NETCore.Encrypt">
-      <HintPath>lib\NETCore.Encrypt.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>lib\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="netstandard">
-      <HintPath>lib\netstandard.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Mermer.Base\Mermer.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Microsoft\Extensions\Configuration\ConfigurationExtenders.cs" />
-    <Compile Include="System\BytesAndStringExtender.cs" />
-    <Compile Include="MermerLicensingClientModule.cs" />
-    <Compile Include="Services\IActivationService.cs" />
-    <Compile Include="Services\ICryptoService.cs" />
-    <Compile Include="Rest\ActivationService.cs" />
-    <Compile Include="Models\ActivationConfiguration.cs" />
-    <Compile Include="Models\ActivationRequest.cs" />
-    <Compile Include="Models\ReactivationRequest.cs" />
-    <Compile Include="Models\DeactivationRequest.cs" />
-    <Compile Include="Models\ActivationResult.cs" />
-    <Compile Include="Crypto\CryptoService.cs" />
-    <Compile Include="AssemblyInfo.cs" />
+    <PackageReference Include="Autofac" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
+    <PackageReference Include="NETCore.Encrypt" Version="2.1.1" />
   </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

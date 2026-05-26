@@ -17,49 +17,12 @@ namespace Mermer.Core.CRM.Functions;
 
 public class PartnerActionsToPartnerBalanceByTypeByDay
 {
-  public PartnerActionsToPartnerBalanceByTypeByDay()
-  {
-    ParameterExpression parameterExpression1;
-    ParameterExpression parameterExpression2;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Map = Expression.Lambda<Func<IEnumerable<PartnerAction>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.Select)), )); // Unable to render the statement
-    ParameterExpression parameterExpression3;
-    ParameterExpression parameterExpression4;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Reduce = Expression.Lambda<Func<IEnumerable<PartnerBalanceByTypeByDay>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.Select)), )); // Unable to render the statement
-  }
+    public PartnerActionsToPartnerBalanceByTypeByDay()
+    {
+        //Заглушки
+        this.Map = x => null;
+        this.Reduce = y => null;
+    }
 
   public Expression<Func<IEnumerable<PartnerAction>, IEnumerable>> Map { get; set; }
 

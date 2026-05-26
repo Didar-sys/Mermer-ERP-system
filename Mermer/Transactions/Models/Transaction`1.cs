@@ -210,7 +210,7 @@ public class Transaction<T> : TransactionModel, IRequestCurrencyConverter where 
 
   public event CurrencyId DisplayCurrencyIdRequested;
 
-  protected string GetDisplayCurrencyId() => this.DisplayCurrencyId;
+  public string GetDisplayCurrencyId() => this.DisplayCurrencyId;
 
   public virtual void UpdateDefaultCurrencyId()
   {
@@ -220,7 +220,7 @@ public class Transaction<T> : TransactionModel, IRequestCurrencyConverter where 
 
   public event CurrencyId DefaultCurrencyIdRequested;
 
-  protected string GetDefaultCurrencyId()
+  public string GetDefaultCurrencyId()
   {
     return this.DefaultCurrencyIdRequested == null ? (string) null : this.DefaultCurrencyIdRequested();
   }

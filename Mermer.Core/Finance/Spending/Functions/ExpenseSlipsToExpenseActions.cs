@@ -17,40 +17,11 @@ namespace Mermer.Core.Finance.Spending.Functions;
 
 public class ExpenseSlipsToExpenseActions
 {
-  public ExpenseSlipsToExpenseActions()
-  {
-    ParameterExpression parameterExpression1;
-    ParameterExpression parameterExpression2;
-    ParameterExpression parameterExpression3;
-    ParameterExpression parameterExpression4;
-    ParameterExpression parameterExpression5;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: type reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: type reference
-    // ISSUE: method reference
-    // ISSUE: type reference
-    // ISSUE: method reference
-    // ISSUE: type reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Map = Expression.Lambda<Func<IEnumerable<ExpenseSlip>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.Select)), )); // Unable to render the statement
-  }
+    public ExpenseSlipsToExpenseActions()
+    {
+        //Заглушки
+        this.Map = x => null;
+    }
 
   public Expression<Func<IEnumerable<ExpenseSlip>, IEnumerable>> Map { get; set; }
 }

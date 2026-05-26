@@ -17,47 +17,12 @@ namespace Mermer.Core.CRM.Functions;
 
 public class PartnerBalanceByTypeByDayToByMonth
 {
-  public PartnerBalanceByTypeByDayToByMonth()
-  {
-    ParameterExpression parameterExpression1;
-    ParameterExpression parameterExpression2;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Map = Expression.Lambda<Func<IEnumerable<PartnerBalanceByTypeByDay>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.Select)), )); // Unable to render the statement
-    ParameterExpression parameterExpression3;
-    ParameterExpression parameterExpression4;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Reduce = Expression.Lambda<Func<IEnumerable<PartnerBalanceByTypeByMonth>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.Select)), )); // Unable to render the statement
-  }
+    public PartnerBalanceByTypeByDayToByMonth()
+    {
+        //Заглушки
+        this.Map = x => null;
+        this.Reduce = y => null;
+    }
 
   public Expression<Func<IEnumerable<PartnerBalanceByTypeByDay>, IEnumerable>> Map { get; set; }
 

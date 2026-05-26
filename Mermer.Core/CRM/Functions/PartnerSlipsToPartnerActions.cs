@@ -17,47 +17,11 @@ namespace Mermer.Core.CRM.Functions;
 
 public class PartnerSlipsToPartnerActions
 {
-  public PartnerSlipsToPartnerActions()
-  {
-    ParameterExpression parameterExpression1;
-    ParameterExpression parameterExpression2;
-    ParameterExpression parameterExpression3;
-    ParameterExpression parameterExpression4;
-    ParameterExpression parameterExpression5;
-    ParameterExpression parameterExpression6;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: type reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: type reference
-    // ISSUE: method reference
-    // ISSUE: type reference
-    // ISSUE: method reference
-    // ISSUE: type reference
-    // ISSUE: method reference
-    // ISSUE: type reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Map = Expression.Lambda<Func<IEnumerable<PartnerSlip>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.Select)), )); // Unable to render the statement
-  }
+    public PartnerSlipsToPartnerActions()
+    {
+        //Заглушки
+        this.Map = x => null;
+    }
 
   public Expression<Func<IEnumerable<PartnerSlip>, IEnumerable>> Map { get; set; }
 }

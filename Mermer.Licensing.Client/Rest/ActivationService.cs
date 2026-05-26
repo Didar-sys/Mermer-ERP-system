@@ -54,11 +54,11 @@ public class ActivationService : IActivationService, IDisposable
   {
     return this.GetActiveDates(machineId, applicationId, applicationModuleId, activations).Any<(DateTime, DateTime?)>((Func<(DateTime, DateTime?), bool>) (x =>
     {
-      if (!(x.DateValidFrom <= DateTime.Today))
+      if (!(x.Item1 <= DateTime.Today))
         return false;
-      if (!x.DateValidTill.HasValue)
+      if (!x.Item2.HasValue)
         return true;
-      DateTime? dateValidTill = x.DateValidTill;
+      DateTime? dateValidTill = x.Item2;
       DateTime today = DateTime.Today;
       return dateValidTill.HasValue && dateValidTill.GetValueOrDefault() >= today;
     }));

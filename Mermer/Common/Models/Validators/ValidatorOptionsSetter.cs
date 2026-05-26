@@ -28,7 +28,7 @@ public class ValidatorOptionsSetter : IStartable
 
   public void Start()
   {
-    ValidatorOptions.LanguageManager = this._languageManager;
-    ValidatorOptions.DisplayNameResolver = (Func<Type, MemberInfo, LambdaExpression, string>) ((type, info, arg3) => this._localization.GetText(info.Name));
+    ValidatorOptions.Global.LanguageManager = this._languageManager;
+    ValidatorOptions.Global.DisplayNameResolver = (Func<Type, MemberInfo, LambdaExpression, string>) ((type, info, arg3) => this._localization.GetText(info.Name));
   }
 }

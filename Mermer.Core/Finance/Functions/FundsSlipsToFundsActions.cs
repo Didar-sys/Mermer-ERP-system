@@ -17,28 +17,11 @@ namespace Mermer.Core.Finance.Functions;
 
 public class FundsSlipsToFundsActions
 {
-  public FundsSlipsToFundsActions()
-  {
-    ParameterExpression parameterExpression1;
-    ParameterExpression parameterExpression2;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Map = Expression.Lambda<Func<IEnumerable<FundsSlip>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.Select)), )); // Unable to render the statement
-  }
+    public FundsSlipsToFundsActions()
+    {
+        //Заглушки
+        this.Map = x => null;
+    }
 
   public Expression<Func<IEnumerable<FundsSlip>, IEnumerable>> Map { get; set; }
 }

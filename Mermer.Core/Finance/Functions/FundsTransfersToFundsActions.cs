@@ -20,28 +20,11 @@ public class FundsTransfersToFundsActions
   protected const string SourceTypeName = "FundsTransferSource";
   protected const string DestinationTypeName = "FundsTransferDestination";
 
-  public FundsTransfersToFundsActions()
-  {
-    ParameterExpression parameterExpression1;
-    ParameterExpression parameterExpression2;
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    // ISSUE: method reference
-    this.Map = Expression.Lambda<Func<IEnumerable<FundsTransfer>, IEnumerable>>((Expression) Expression.Call((Expression) null, (MethodInfo) MethodBase.GetMethodFromHandle(__methodref (Enumerable.Select)), )); // Unable to render the statement
-  }
+    public FundsTransfersToFundsActions()
+    {
+        //Заглушки
+        this.Map = x => null;
+    }
 
   public Expression<Func<IEnumerable<FundsTransfer>, IEnumerable>> Map { get; set; }
 }

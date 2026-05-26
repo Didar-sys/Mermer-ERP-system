@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36429.23 d17.14
+VisualStudioVersion = 17.14.36429.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mermer", "..\Mermer.Base\Mermer.csproj", "{9D7DD76C-3FB9-FA9C-6245-AC0471ACC286}"
 EndProject
@@ -16,6 +16,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mermer.Ui.Core.Pc", "..\Mermer.Ui.Core.Pc\Mermer.Ui.Core.Pc.csproj", "{2457C63E-7078-495D-988A-886ED949B479}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mermer.Ui.Pc", "..\Mermer.Ui.Pc\Mermer.Ui.Pc.csproj", "{B8F4CFEE-E28C-42A0-84E7-BF94E96CF66F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mermer.Data.Patcher", "..\Mermer.Data.Patcher\Mermer.Data.Patcher.csproj", "{4E984CE1-338C-42B3-836D-3324683FEF8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mermer.Licensing.Client", "..\Mermer.Licensing.Client\Mermer.Licensing.Client.csproj", "{1D920178-32E8-404A-B433-B76502CF499D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +55,14 @@ Global
 		{B8F4CFEE-E28C-42A0-84E7-BF94E96CF66F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8F4CFEE-E28C-42A0-84E7-BF94E96CF66F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8F4CFEE-E28C-42A0-84E7-BF94E96CF66F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E984CE1-338C-42B3-836D-3324683FEF8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E984CE1-338C-42B3-836D-3324683FEF8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E984CE1-338C-42B3-836D-3324683FEF8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E984CE1-338C-42B3-836D-3324683FEF8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D920178-32E8-404A-B433-B76502CF499D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D920178-32E8-404A-B433-B76502CF499D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D920178-32E8-404A-B433-B76502CF499D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D920178-32E8-404A-B433-B76502CF499D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

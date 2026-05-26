@@ -1,48 +1,65 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Commerce.Models.Validators.InvoiceValidator
-// Assembly: Mermer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 19F85A6C-D40F-439D-9478-41F01000D67D
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.dll
-
-using FluentValidation;
+﻿using FluentValidation;
 using Mermer.StockManagement.Services;
 using Mermer.Transactions.Models;
 using Mermer.Transactions.Models.Validators;
 using Mermer.Data;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 
-#nullable disable
 namespace Mermer.Commerce.Models.Validators;
 
 public class InvoiceValidator : StockTransactionValidator<Invoice, InvoiceLine>
 {
-  public InvoiceValidator(
-    IValidator<InvoiceLine> lineValidator,
-    IValidator<InvoicePayment> paymentValidator,
-    IValidator<StockTransactionOverhead> overheadValidator,
-    IValidator<InvoiceDiscount> discountValidator,
-    IValidator<StockUnitConvertion> stockUnitConvertionValidator,
-    IValidator<CurrencyConvertion> currencyConvertionValidator,
-    IStockBalancesRepository stockBalancesRepository)
-    : base(lineValidator, stockUnitConvertionValidator, currencyConvertionValidator, overheadValidator, stockBalancesRepository)
-  {
-    this.RuleFor<DateTime>((Expression<Func<Invoice, DateTime>>) (x => x.DueDate)).NotEmpty<Invoice, DateTime>().Must<Invoice, DateTime>((Func<Invoice, DateTime, bool>) ((x, val) => x.DueDate >= x.Date)).WithLocalizationMessageKey<Invoice, DateTime>("Due date must be equal or greater than invoice date");
-    this.RuleFor<string>((Expression<Func<Invoice, string>>) (x => x.DepositoryId)).NotEmpty<Invoice, string>();
-    this.RuleFor<string>((Expression<Func<Invoice, string>>) (x => x.PartnerId)).NotEmpty<Invoice, string>().When<Invoice, string>((Func<Invoice, bool>) (x => x.DebitCreditLeftAmount)).WithLocalizationMessageKey<Invoice, string>("Partner must be selected to effect balance");
-    this.RuleFor<bool>((Expression<Func<Invoice, bool>>) (x => x.DebitCreditLeftAmount)).Equal<Invoice, bool>(true).When<Invoice, bool>((Func<Invoice, bool>) (x => Math.Round(x.ActionGrandTotal, 2) != Math.Round(x.ActionPaymentsTotal - x.ActionChangesTotal, 2))).WithLocalizationMessageKey<Invoice, bool>("Invoice must be fully payed or must effect balance");
-    ((IRuleBuilder<Invoice, IEnumerable<InvoiceDiscount>>) this.RuleFor<WatchedObservableCollection<InvoiceDiscount>>((Expression<Func<Invoice, WatchedObservableCollection<InvoiceDiscount>>>) (x => x.Discounts))).SetCollectionValidator<Invoice, InvoiceDiscount>(discountValidator);
-    ((IRuleBuilder<Invoice, IEnumerable<InvoicePayment>>) this.RuleFor<WatchedObservableCollection<InvoicePayment>>((Expression<Func<Invoice, WatchedObservableCollection<InvoicePayment>>>) (x => x.Payments))).SetCollectionValidator<Invoice, InvoicePayment>(paymentValidator).Must<Invoice, IEnumerable<InvoicePayment>>((Func<Invoice, IEnumerable<InvoicePayment>, bool>) ((model, list) => list == null || list.Where<InvoicePayment>((Func<InvoicePayment, bool>) (x => !string.IsNullOrEmpty(x.CurrencyId))).All<InvoicePayment>((Func<InvoicePayment, bool>) (x =>
+    public InvoiceValidator(
+      IValidator<InvoiceLine> lineValidator,
+      IValidator<InvoicePayment> paymentValidator,
+      IValidator<StockTransactionOverhead> overheadValidator,
+      IValidator<InvoiceDiscount> discountValidator,
+      IValidator<StockUnitConvertion> stockUnitConvertionValidator,
+      IValidator<CurrencyConvertion> currencyConvertionValidator,
+      IStockBalancesRepository stockBalancesRepository)
+      : base(lineValidator, stockUnitConvertionValidator, currencyConvertionValidator, overheadValidator, stockBalancesRepository)
     {
-      WatchedObservableCollection<CurrencyConvertion> currencyConvertions = model.CurrencyConvertions;
-      return currencyConvertions != null && currencyConvertions.Any<CurrencyConvertion>((Func<CurrencyConvertion, bool>) (z => z.CurrencyId == x.CurrencyId));
-    })))).WithLocalizationMessageKey<Invoice, IEnumerable<InvoicePayment>>("Not all currencies in {PropertyName} convertable");
-    ((IRuleBuilder<Invoice, IEnumerable<InvoicePayment>>) this.RuleFor<WatchedObservableCollection<InvoicePayment>>((Expression<Func<Invoice, WatchedObservableCollection<InvoicePayment>>>) (x => x.Changes))).SetCollectionValidator<Invoice, InvoicePayment>(paymentValidator).Must<Invoice, IEnumerable<InvoicePayment>>((Func<Invoice, IEnumerable<InvoicePayment>, bool>) ((model, list) => list == null || list.Where<InvoicePayment>((Func<InvoicePayment, bool>) (x => !string.IsNullOrEmpty(x.CurrencyId))).All<InvoicePayment>((Func<InvoicePayment, bool>) (x =>
-    {
-      WatchedObservableCollection<CurrencyConvertion> currencyConvertions = model.CurrencyConvertions;
-      return currencyConvertions != null && currencyConvertions.Any<CurrencyConvertion>((Func<CurrencyConvertion, bool>) (z => z.CurrencyId == x.CurrencyId));
-    })))).WithLocalizationMessageKey<Invoice, IEnumerable<InvoicePayment>>("Not all currencies in {PropertyName} convertable");
-  }
+        // 1. Базові перевірки дат та ідентифікаторів
+        RuleFor(x => x.DueDate)
+            .NotEmpty()
+            .Must((x, dueDate) => dueDate >= x.Date)
+            .WithLocalizationMessageKey("Due date must be equal or greater than invoice date");
+
+        RuleFor(x => x.DepositoryId).NotEmpty();
+
+        RuleFor(x => x.PartnerId)
+            .NotEmpty()
+            .When(x => x.DebitCreditLeftAmount)
+            .WithLocalizationMessageKey("Partner must be selected to effect balance");
+
+        // 2. Бізнес-правило для повної оплати або балансу
+        RuleFor(x => x.DebitCreditLeftAmount)
+            .Equal(true)
+            .When(x => Math.Round(x.ActionGrandTotal, 2) != Math.Round(x.ActionPaymentsTotal - x.ActionChangesTotal, 2))
+            .WithLocalizationMessageKey("Invoice must be fully payed or must effect balance");
+
+        // 3. Перевірка знижок (Discounts) через новий RuleForEach
+        RuleForEach(x => x.Discounts).SetValidator(discountValidator);
+
+        // 4. Перевірка платежів (Payments)
+        RuleForEach(x => x.Payments).SetValidator(paymentValidator);
+        RuleFor(x => x.Payments)
+            .Must((model, list) => list == null || list.Where(x => !string.IsNullOrEmpty(x.CurrencyId)).All(x =>
+            {
+                var convertions = model.CurrencyConvertions;
+                return convertions != null && convertions.Any(z => z.CurrencyId == x.CurrencyId);
+            }))
+            .WithLocalizationMessageKey("Not all currencies in {PropertyName} convertable");
+
+        // 5. Перевірка решти/змін (Changes)
+        RuleForEach(x => x.Changes).SetValidator(paymentValidator);
+        RuleFor(x => x.Changes)
+            .Must((model, list) => list == null || list.Where(x => !string.IsNullOrEmpty(x.CurrencyId)).All(x =>
+            {
+                var convertions = model.CurrencyConvertions;
+                return convertions != null && convertions.Any(z => z.CurrencyId == x.CurrencyId);
+            }))
+            .WithLocalizationMessageKey("Not all currencies in {PropertyName} convertable");
+    }
 }
