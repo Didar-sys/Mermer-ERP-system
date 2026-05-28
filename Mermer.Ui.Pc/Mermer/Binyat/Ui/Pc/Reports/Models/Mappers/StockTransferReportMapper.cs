@@ -11,21 +11,13 @@ using System.Threading.Tasks;
 #nullable disable
 namespace Mermer.Ui.Pc.Reports.Models.Mappers;
 
-public class StockTransferReportMapper(
-  NameHelper nameHelper,
-  StockTransferReportLineMapper lineMapper) : 
-  StockTransactionReportMapper<StockTransfer, StockTransferLine, StockTransferReport, StockTransferReportLine>(nameHelper, (TransactionReportLineMapper<StockTransferLine, StockTransferReportLine>) lineMapper)
+public class StockTransferReportMapper(NameHelper nameHelper, StockTransferReportLineMapper lineMapper) :
+    StockTransactionReportMapper<StockTransfer, StockTransferLine, StockTransferReport, StockTransferReportLine>(nameHelper, lineMapper)
 {
-  public override async Task<StockTransferReport> Map(StockTransfer source, string localizedType)
-  {
-    StockTransferReportMapper transferReportMapper = this;
-    // ISSUE: reference to a compiler-generated method
-    StockTransferReport destination = await transferReportMapper.\u003C\u003En__0(source, localizedType);
-    StockTransferReport stockTransferReport = destination;
-    stockTransferReport.DestinationWarehouse = await transferReportMapper.NameHelper.GetWarehouseName(source.DestinationWarehouseId);
-    stockTransferReport = (StockTransferReport) null;
-    StockTransferReport stockTransferReport1 = destination;
-    destination = (StockTransferReport) null;
-    return stockTransferReport1;
-  }
+    public override async Task<StockTransferReport> Map(StockTransfer source, string localizedType)
+    {
+        StockTransferReport destination = await base.Map(source, localizedType);
+        destination.DestinationWarehouse = await NameHelper.GetWarehouseName(source.DestinationWarehouseId);
+        return destination;
+    }
 }

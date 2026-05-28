@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Core.ViewModels.Commerce.InvoiceDetailsViewModel
-// Assembly: Mermer.Ui.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: DC92D011-8413-44AC-9F10-F866D891CF66
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
-
-using MvvmCross.Core.Navigation;
+﻿using MvvmCross.Core.Navigation;
 using MvvmCross.Core.ViewModels;
 using Mermer.Authorization.Services;
 using Mermer.Commerce.Models;
@@ -33,525 +27,397 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-#nullable disable
 namespace Mermer.Ui.Core.ViewModels.Commerce;
 
-public class InvoiceDetailsViewModel : 
-  StockTransactionDetailsViewModel<Invoice, InvoiceLine, InvoiceType>,
-  IMvxViewModel<InvoiceType>,
-  IMvxViewModel
+public class InvoiceDetailsViewModel :
+    StockTransactionDetailsViewModel<Invoice, InvoiceLine, InvoiceType>,
+    IMvxViewModel<InvoiceType>,
+    IMvxViewModel
 {
-  private readonly IPrintingService _printingService;
-  private readonly IStocksRepository _stocksRepository;
-  private readonly IPartnerBalancesRepository _partnerBalancesRepository;
-  private InvoiceType _newInvoiceType = InvoiceType.Sales;
-  private PartnerBalanceResult _partnerBalanceToDate;
-  private string[] _priceGroupNames;
+    private readonly IPrintingService _printingService;
+    private readonly IStocksRepository _stocksRepository;
+    private readonly IPartnerBalancesRepository _partnerBalancesRepository;
+    private InvoiceType _newInvoiceType = InvoiceType.Sales;
+    private PartnerBalanceResult _partnerBalanceToDate;
+    private string[] _priceGroupNames;
 
-  public InvoiceDetailsViewModel(
-    CopyCreate copyCreate,
-    IRepository<Invoice> repository,
-    ITransactionAuthorizer<Invoice> authorizer,
-    IConfigurator configurator,
-    ILoginService loginService,
-    StockSearcher stockSearcher,
-    Reference<Office> offices,
-    Reference<Partner> partners,
-    Reference<Currency> currencies,
-    Reference<Warehouse> warehouses,
-    IPrintingService printingService,
-    Reference<Depository> depositories,
-    IStocksRepository stocksRepository,
-    IMvxNavigationService navigationService,
-    ITransactionCodeGenerationService codegentor,
-    IUserInteractionService userInteractionService,
-    IPartnerBalancesRepository partnerBalancesRepository)
-    : base(copyCreate, repository, (IListAuthorizer<Invoice>) authorizer, configurator, loginService, stockSearcher, currencies, warehouses, stocksRepository, navigationService, codegentor, userInteractionService)
-  {
-    this._printingService = printingService;
-    this._stocksRepository = stocksRepository;
-    this._partnerBalancesRepository = partnerBalancesRepository;
-    this.Offices = offices;
-    this.Partners = partners;
-    this.Depositories = depositories;
-    this.DiscountTypes = Enum.GetValues(typeof (InvoiceDiscountType)).Cast<InvoiceDiscountType>().Select<InvoiceDiscountType, ListHelper<InvoiceDiscountType>>((Func<InvoiceDiscountType, ListHelper<InvoiceDiscountType>>) (x => new ListHelper<InvoiceDiscountType>()
+    public InvoiceDetailsViewModel(
+        CopyCreate copyCreate,
+        IRepository<Invoice> repository,
+        ITransactionAuthorizer<Invoice> authorizer,
+        IConfigurator configurator,
+        ILoginService loginService,
+        StockSearcher stockSearcher,
+        Reference<Office> offices,
+        Reference<Partner> partners,
+        Reference<Currency> currencies,
+        Reference<Warehouse> warehouses,
+        IPrintingService printingService,
+        Reference<Depository> depositories,
+        IStocksRepository stocksRepository,
+        IMvxNavigationService navigationService,
+        ITransactionCodeGenerationService codegentor,
+        IUserInteractionService userInteractionService,
+        IPartnerBalancesRepository partnerBalancesRepository)
+        : base(copyCreate, repository, authorizer, configurator, loginService, stockSearcher, currencies, warehouses, stocksRepository, navigationService, codegentor, userInteractionService)
     {
-      Text = this[x.ToString(), Array.Empty<object>()],
-      Value = x
-    })).ToArray<ListHelper<InvoiceDiscountType>>();
-  }
+        _printingService = printingService;
+        _stocksRepository = stocksRepository;
+        _partnerBalancesRepository = partnerBalancesRepository;
+        Offices = offices;
+        Partners = partners;
+        Depositories = depositories;
 
-  public Reference<Office> Offices { get; }
-
-  public Reference<Partner> Partners { get; }
-
-  public Reference<Depository> Depositories { get; }
-
-  public ListHelper<InvoiceDiscountType>[] DiscountTypes { get; set; }
-
-  public override Invoice Details
-  {
-    get => base.Details;
-    set
-    {
-      base.Details = value;
-      this.UpdatePartnerBalance();
-    }
-  }
-
-  public virtual PartnerBalanceResult PartnerBalanceToDate
-  {
-    get => this._partnerBalanceToDate;
-    set
-    {
-      this.SetProperty<PartnerBalanceResult>(ref this._partnerBalanceToDate, value, nameof (PartnerBalanceToDate));
-      this.RaisePropertyChanged<PartnerBalanceResult>((Expression<Func<PartnerBalanceResult>>) (() => this.PartnerBalanceResult));
-    }
-  }
-
-  public virtual PartnerBalanceResult PartnerBalanceResult
-  {
-    get
-    {
-      if (this.PartnerBalanceToDate == null)
-        return (PartnerBalanceResult) null;
-      return new PartnerBalanceResult()
-      {
-        Balance = this.PartnerBalanceToDate.Balance + this.Details.DisplayDebitCreditTotal
-      };
-    }
-  }
-
-  public virtual string[] PriceGroupNames
-  {
-    get => this._priceGroupNames;
-    set => this.SetProperty<string[]>(ref this._priceGroupNames, value, nameof (PriceGroupNames));
-  }
-
-  public void Prepare(InvoiceType parameter) => this._newInvoiceType = parameter;
-
-  protected override async Task LoadFacetsAsync()
-  {
-    await base.LoadFacetsAsync();
-    this.PriceGroupNames = (await this._stocksRepository.GetFacets("PriceGroupNames"))["PriceGroupNames"].Select<KeyValuePair<string, int>, string>((Func<KeyValuePair<string, int>, string>) (x => x.Key)).ToArray<string>();
-  }
-
-  protected override Task PreLoad()
-  {
-    return Task.WhenAll(base.PreLoad(), this.Offices.Initialize(), this.Partners.Initialize(), this.Depositories.Initialize());
-  }
-
-  protected override async Task OnLoad()
-  {
-    InvoiceDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__1();
-    if (!string.IsNullOrEmpty(detailsViewModel.ItemId))
-      return;
-    detailsViewModel.Details.InvoiceType = detailsViewModel._newInvoiceType;
-    detailsViewModel.Details.OfficeId = detailsViewModel.AppSettings.DefaultOfficeId;
-    detailsViewModel.Details.DepositoryId = detailsViewModel.AppSettings.DefaultDepositoryId;
-    detailsViewModel.Details.StockPriceGroup = detailsViewModel.AppSettings.DefaultStockPriceGroup;
-    Invoice details = detailsViewModel.Details;
-    DateTime dateTime = DateTime.Now;
-    dateTime = dateTime.AddDays((double) detailsViewModel.AppSettings.DefaultDueDateInDays);
-    DateTime date = dateTime.Date;
-    details.DueDate = date;
-  }
-
-  protected override async Task PostLoad()
-  {
-    InvoiceDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__2();
-    if (detailsViewModel.Details.Payments == null)
-      detailsViewModel.Details.Payments = new WatchedObservableCollection<InvoicePayment>();
-    if (detailsViewModel.Details.Changes == null)
-      detailsViewModel.Details.Changes = new WatchedObservableCollection<InvoicePayment>();
-    if (detailsViewModel.Details.Discounts == null)
-      detailsViewModel.Details.Discounts = new WatchedObservableCollection<InvoiceDiscount>();
-    // ISSUE: explicit non-virtual call
-    __nonvirtual (detailsViewModel.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => detailsViewModel.CanCreateAggregatedStockOrder)));
-    // ISSUE: explicit non-virtual call
-    __nonvirtual (detailsViewModel.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => detailsViewModel.CanShowNewPrices)));
-    detailsViewModel.Details.RaisePropertyChanged("DisplayDiscountsTotal");
-    detailsViewModel.Details.RaisePropertyChanged("DisplayGrandTotal");
-    detailsViewModel.Details.RaisePropertyChanged("DisplayPaymentsTotal");
-    detailsViewModel.Details.RaisePropertyChanged("DisplayChangesTotal");
-    detailsViewModel.Details.RaisePropertyChanged("DisplayLeftTotal");
-    detailsViewModel.Details.RaisePropertyChanged("DisplayDebitCreditTotal");
-    detailsViewModel.Details.RaisePropertyChanged("DisplayCreditTotal");
-    detailsViewModel.Details.RaisePropertyChanged("DisplayDebitTotal");
-    // ISSUE: explicit non-virtual call
-    __nonvirtual (detailsViewModel.RaisePropertyChanged<PartnerBalanceResult>((Expression<Func<PartnerBalanceResult>>) (() => detailsViewModel.PartnerBalanceToDate)));
-    // ISSUE: explicit non-virtual call
-    __nonvirtual (detailsViewModel.RaisePropertyChanged<PartnerBalanceResult>((Expression<Func<PartnerBalanceResult>>) (() => detailsViewModel.PartnerBalanceResult)));
-    detailsViewModel.StockSearcher.PriceGroup = detailsViewModel.Details.StockPriceGroup;
-    // ISSUE: reference to a compiler-generated method
-    detailsViewModel.Partners.Filter = new Func<Partner, bool>(detailsViewModel.\u003CPostLoad\u003Eb__35_4);
-    // ISSUE: reference to a compiler-generated method
-    detailsViewModel.Offices.Filter = new Func<Office, bool>(detailsViewModel.\u003CPostLoad\u003Eb__35_5);
-    detailsViewModel.UpdateFacilityFilters();
-  }
-
-  protected override void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
-  {
-    base.Details_PropertyChanged(sender, e);
-    if (e.PropertyName == "Date" || e.PropertyName == "PartnerId" || e.PropertyName == "WarehouseId" || e.PropertyName == "DisplayCurrencyId")
-      this.UpdatePartnerBalance();
-    else if (e.PropertyName == "DisplayDebitCreditTotal")
-      this.RaisePropertyChanged<PartnerBalanceResult>((Expression<Func<PartnerBalanceResult>>) (() => this.PartnerBalanceResult));
-    else if (e.PropertyName == "InvoiceType")
-    {
-      this.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => this.CanSelectSource));
-      this.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => this.CanCreateAggregatedStockOrder));
-      this.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => this.CanShowNewPrices));
-    }
-    else if (e.PropertyName == "OfficeId")
-      this.UpdateFacilityFilters();
-    else if (e.PropertyName == "StockPriceGroup")
-      this.StockSearcher.PriceGroup = this.Details.StockPriceGroup;
-    this.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => this.CanSelectSource));
-  }
-
-  private void UpdateFacilityFilters()
-  {
-    this.Warehouses.Filter = (Func<Warehouse, bool>) (x =>
-    {
-      if (!(x.OfficeId == this.Details?.OfficeId))
-        return false;
-      return !x.IsDisabled || x.Id == this.Details?.WarehouseId;
-    });
-    this.Depositories.Filter = (Func<Depository, bool>) (x =>
-    {
-      if (!(x.OfficeId == this.Details?.OfficeId))
-        return false;
-      return !x.IsDisabled || x.Id == this.Details?.DepositoryId;
-    });
-  }
-
-  private async void UpdatePartnerBalance()
-  {
-    InvoiceDetailsViewModel detailsViewModel = this;
-    if (!string.IsNullOrEmpty(detailsViewModel.Details?.PartnerId) && !string.IsNullOrEmpty(detailsViewModel.Details?.OfficeId) && detailsViewModel.Details?.CurrencyConvertions != null)
-    {
-      PartnerBalanceResult balanceToDateAsync = await detailsViewModel._partnerBalancesRepository.GetBalanceToDateAsync(detailsViewModel.Details.OfficeId, detailsViewModel.Details.PartnerId, detailsViewModel.Details.Date, detailsViewModel.Details.Id);
-      CurrencyConvertion currencyConvertion = detailsViewModel.CurrencyConverter(detailsViewModel.Details.DisplayCurrencyId);
-      detailsViewModel.PartnerBalanceToDate = new PartnerBalanceResult()
-      {
-        Balance = balanceToDateAsync.Balance / currencyConvertion.Multiplier * currencyConvertion.Divider
-      };
-    }
-    else
-      detailsViewModel.PartnerBalanceToDate = (PartnerBalanceResult) null;
-  }
-
-  protected override async Task<bool> OnSaveAsync()
-  {
-    InvoiceDetailsViewModel detailsViewModel1 = this;
-    try
-    {
-      if (!string.IsNullOrEmpty(detailsViewModel1.Details.PartnerId))
-      {
-        if (detailsViewModel1.Details.IsDebitCredit)
+        DiscountTypes = Enum.GetValues(typeof(InvoiceDiscountType)).Cast<InvoiceDiscountType>().Select(x => new ListHelper<InvoiceDiscountType>
         {
-          // ISSUE: reference to a compiler-generated method
-          Partner partner = detailsViewModel1.Partners.List.Single<Partner>(new Func<Partner, bool>(detailsViewModel1.\u003COnSaveAsync\u003Eb__39_0));
-          Decimal? creditLimit = partner.CreditLimit;
-          if (creditLimit.HasValue)
-          {
-            creditLimit = partner.CreditLimit;
-            Decimal credit = detailsViewModel1.PartnerBalanceResult.Credit;
-            if (creditLimit.GetValueOrDefault() < credit & creditLimit.HasValue)
-            {
-              IUserInteractionService interactionService = detailsViewModel1.UserInteractionService;
-              string caption = detailsViewModel1["Partner credit limit reached", Array.Empty<object>()];
-              InvoiceDetailsViewModel detailsViewModel2 = detailsViewModel1;
-              string textName = $"{{0}} partner has a credit limit at: {{1:#,##0.00}}{Environment.NewLine}Are you sure you want to continue?";
-              object[] objArray = new object[2]
-              {
-                (object) partner.Fullname,
-                null
-              };
-              creditLimit = partner.CreditLimit;
-              objArray[1] = (object) creditLimit.Value;
-              string message = detailsViewModel2[textName, objArray];
-              if (!interactionService.ShowMessage(caption, message, UserInteractionType.YesNo).GetValueOrDefault())
-                return false;
-            }
-          }
+            Text = this[x.ToString()],
+            Value = x
+        }).ToArray();
+    }
+
+    public Reference<Office> Offices { get; }
+    public Reference<Partner> Partners { get; }
+    public Reference<Depository> Depositories { get; }
+    public ListHelper<InvoiceDiscountType>[] DiscountTypes { get; set; }
+
+    public override Invoice Details
+    {
+        get => base.Details;
+        set
+        {
+            base.Details = value;
+            UpdatePartnerBalance();
         }
-      }
     }
-    catch (Exception ex)
+
+    public virtual PartnerBalanceResult PartnerBalanceToDate
     {
-      detailsViewModel1.UserInteractionService.ShowExceptionMessage(ex);
+        get => _partnerBalanceToDate;
+        set
+        {
+            SetProperty(ref _partnerBalanceToDate, value);
+            RaisePropertyChanged(() => PartnerBalanceResult);
+        }
     }
-    // ISSUE: reference to a compiler-generated method
-    if (!await detailsViewModel1.\u003C\u003En__3())
-      return false;
-    IPrintingService printingService = detailsViewModel1._printingService;
-    Invoice details = detailsViewModel1.Details;
-    PartnerBalanceResult partnerBalanceToDate = detailsViewModel1.PartnerBalanceToDate;
-    Decimal balance = partnerBalanceToDate != null ? partnerBalanceToDate.Balance : 0M;
-    await printingService.PrintInvoice(details, balance);
-    return true;
-  }
 
-  public ICommand SelectedLineAlternativeCommand
-  {
-    get
+    public virtual PartnerBalanceResult PartnerBalanceResult
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSelectedLineAlternativeCommandAsync), (Func<bool>) (() => !this.IsBusy && this.CanEditSelectedLine));
+        get
+        {
+            if (PartnerBalanceToDate == null) return null;
+            return new PartnerBalanceResult
+            {
+                Balance = PartnerBalanceToDate.Balance + Details.DisplayDebitCreditTotal
+            };
+        }
     }
-  }
 
-  protected virtual async Task OnSelectedLineAlternativeCommandAsync()
-  {
-    InvoiceDetailsViewModel detailsViewModel = this;
-    string stockId = await detailsViewModel.NavigationService.Navigate<SelectStockAlternativeViewModel, Tuple<string, string>, string>(new Tuple<string, string>(detailsViewModel.SelectedLine.StockId, detailsViewModel.Details.WarehouseId));
-    if (string.IsNullOrEmpty(stockId) || detailsViewModel.SelectedLine.StockId == stockId)
-      return;
-    Stock stocksCacheAsync = await detailsViewModel.GetFromStocksCacheAsync(stockId);
-    detailsViewModel.SelectedLine.StockId = stocksCacheAsync.Id;
-    detailsViewModel.SelectedLine.UnitId = stocksCacheAsync.UnitId;
-    CurrencyConvertion currencyConvertion = detailsViewModel.Details.CurrencyConverter(stocksCacheAsync.CurrencyId);
-    detailsViewModel.SelectedLine.Price = detailsViewModel.Details.GetDisplayAmount(stocksCacheAsync.Price * currencyConvertion.Multiplier / currencyConvertion.Divider);
-    detailsViewModel.SelectedLine.CurrencyId = detailsViewModel.Details.DisplayCurrencyId;
-  }
-
-  public ICommand UpdatePaymentCommand
-  {
-    get
+    public virtual string[] PriceGroupNames
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnUpdatePaymentCommandAsync), (Func<bool>) (() => !this.IsBusy && this.HasSaveAccess));
+        get => _priceGroupNames;
+        set => SetProperty(ref _priceGroupNames, value);
     }
-  }
 
-  private async Task OnUpdatePaymentCommandAsync()
-  {
-    InvoiceDetailsViewModel detailsViewModel = this;
-    try
+    public void Prepare(InvoiceType parameter) => _newInvoiceType = parameter;
+
+    protected override async Task LoadFacetsAsync()
     {
-      IMvxNavigationService navigationService = detailsViewModel.NavigationService;
-      IpdParams ipdParams1 = new IpdParams();
-      ipdParams1.SubTotal = detailsViewModel.Details.DisplayTotal;
-      ipdParams1.DiscountsTotal = detailsViewModel.Details.DisplayDiscountsTotal;
-      ipdParams1.PaymentsTotal = detailsViewModel.Details.DisplayPaymentsTotal;
-      ipdParams1.ChangesTotal = detailsViewModel.Details.DisplayChangesTotal;
-      ipdParams1.CanDebitCredit = detailsViewModel.Details.CanDebitCredit;
-      ipdParams1.DebitCreditLeftAmount = detailsViewModel.Details.DebitCreditLeftAmount;
-      CancellationToken cancellationToken = new CancellationToken();
-      IpdParams ipdParams2 = await navigationService.Navigate<InvoicePaymentDialogViewModel, IpdParams, IpdParams>(ipdParams1, cancellationToken: cancellationToken);
-      if (ipdParams2 == null)
-        return;
-      if (detailsViewModel.Details.DisplayDiscountsTotal != ipdParams2.DiscountsTotal)
-      {
-        detailsViewModel.Details.Discounts.Clear();
-        if (ipdParams2.DiscountsTotal > 0M)
-          detailsViewModel.Details.Discounts.Add(new InvoiceDiscount()
-          {
-            Amount = ipdParams2.DiscountsTotal,
-            Type = InvoiceDiscountType.Flat
-          });
-      }
-      if (detailsViewModel.Details.DisplayPaymentsTotal != ipdParams2.PaymentsTotal)
-      {
-        detailsViewModel.Details.Payments.Clear();
-        if (ipdParams2.PaymentsTotal > 0M)
-          detailsViewModel.Details.Payments.Add(new InvoicePayment()
-          {
-            Amount = ipdParams2.PaymentsTotal,
-            CurrencyId = detailsViewModel.Details.DisplayCurrencyId
-          });
-      }
-      if (detailsViewModel.Details.DisplayChangesTotal != ipdParams2.ChangesTotal)
-      {
-        detailsViewModel.Details.Changes.Clear();
-        if (ipdParams2.ChangesTotal > 0M)
-          detailsViewModel.Details.Changes.Add(new InvoicePayment()
-          {
-            Amount = ipdParams2.ChangesTotal,
-            CurrencyId = detailsViewModel.Details.DisplayCurrencyId
-          });
-      }
-      detailsViewModel.Details.DebitCreditLeftAmount = ipdParams2.DebitCreditLeftAmount;
+        await base.LoadFacetsAsync();
+        var facets = await _stocksRepository.GetFacets("PriceGroupNames");
+        PriceGroupNames = facets["PriceGroupNames"].Select(x => x.Key).ToArray();
     }
-    catch (Exception ex)
+
+    protected override Task PreLoad()
     {
-      detailsViewModel.UserInteractionService.ShowExceptionMessage(ex);
+        return Task.WhenAll(base.PreLoad(), Offices.Initialize(), Partners.Initialize(), Depositories.Initialize());
     }
-  }
 
-  public ICommand RemovePartnerCommand
-  {
-    get
+    protected override async Task OnLoad()
     {
-      return (ICommand) new MvxCommand(new Action(this.OnRemovePartnerCommand), (Func<bool>) (() => !this.IsBusy && this.HasSaveAccess));
+        await base.OnLoad();
+        if (!string.IsNullOrEmpty(ItemId)) return;
+
+        Details.InvoiceType = _newInvoiceType;
+        Details.OfficeId = AppSettings.DefaultOfficeId;
+        Details.DepositoryId = AppSettings.DefaultDepositoryId;
+        Details.StockPriceGroup = AppSettings.DefaultStockPriceGroup;
+        Details.DueDate = DateTime.Now.AddDays(AppSettings.DefaultDueDateInDays).Date;
     }
-  }
 
-  private void OnRemovePartnerCommand()
-  {
-    this.Details.DebitCreditLeftAmount = false;
-    this.Details.PartnerId = (string) null;
-  }
-
-  public ICommand SelectPartnerCommand
-  {
-    get
+    protected override async Task PostLoad()
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSelectPartnerCommandAsync), (Func<bool>) (() => !this.IsBusy && this.HasSaveAccess));
+        await base.PostLoad();
+
+        if (Details.Payments == null) Details.Payments = new WatchedObservableCollection<InvoicePayment>();
+        if (Details.Changes == null) Details.Changes = new WatchedObservableCollection<InvoicePayment>();
+        if (Details.Discounts == null) Details.Discounts = new WatchedObservableCollection<InvoiceDiscount>();
+
+        RaisePropertyChanged(() => CanCreateAggregatedStockOrder);
+        RaisePropertyChanged(() => CanShowNewPrices);
+
+        Details.RaisePropertyChanged("DisplayDiscountsTotal");
+        Details.RaisePropertyChanged("DisplayGrandTotal");
+        Details.RaisePropertyChanged("DisplayPaymentsTotal");
+        Details.RaisePropertyChanged("DisplayChangesTotal");
+        Details.RaisePropertyChanged("DisplayLeftTotal");
+        Details.RaisePropertyChanged("DisplayDebitCreditTotal");
+        Details.RaisePropertyChanged("DisplayCreditTotal");
+        Details.RaisePropertyChanged("DisplayDebitTotal");
+
+        RaisePropertyChanged(() => PartnerBalanceToDate);
+        RaisePropertyChanged(() => PartnerBalanceResult);
+
+        StockSearcher.PriceGroup = Details.StockPriceGroup;
+
+        Partners.Filter = x => !x.IsDisabled || x.Id == Details?.PartnerId;
+        Offices.Filter = x => !x.IsDisabled || x.Id == Details?.OfficeId;
+
+        UpdateFacilityFilters();
     }
-  }
 
-  private async Task OnSelectPartnerCommandAsync()
-  {
-    InvoiceDetailsViewModel detailsViewModel = this;
-    Invoice invoice = detailsViewModel.Details;
-    invoice.PartnerId = await detailsViewModel.NavigationService.Navigate<ListViewModel<Partner>, string, string>(detailsViewModel.Details.PartnerId ?? Guid.Empty.ToString());
-    invoice = (Invoice) null;
-  }
-
-  public ICommand SelectDepositoryCommand
-  {
-    get
+    protected override void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSelectDepositoryCommandAsync), (Func<bool>) (() => !this.IsBusy && this.HasSaveAccess));
+        base.Details_PropertyChanged(sender, e);
+
+        if (e.PropertyName == "Date" || e.PropertyName == "PartnerId" || e.PropertyName == "WarehouseId" || e.PropertyName == "DisplayCurrencyId")
+            UpdatePartnerBalance();
+        else if (e.PropertyName == "DisplayDebitCreditTotal")
+            RaisePropertyChanged(() => PartnerBalanceResult);
+        else if (e.PropertyName == "InvoiceType")
+        {
+            RaisePropertyChanged(() => CanSelectSource);
+            RaisePropertyChanged(() => CanCreateAggregatedStockOrder);
+            RaisePropertyChanged(() => CanShowNewPrices);
+        }
+        else if (e.PropertyName == "OfficeId")
+            UpdateFacilityFilters();
+        else if (e.PropertyName == "StockPriceGroup")
+            StockSearcher.PriceGroup = Details.StockPriceGroup;
+
+        RaisePropertyChanged(() => CanSelectSource);
     }
-  }
 
-  private async Task OnSelectDepositoryCommandAsync()
-  {
-    InvoiceDetailsViewModel detailsViewModel = this;
-    Invoice invoice = detailsViewModel.Details;
-    invoice.DepositoryId = await detailsViewModel.NavigationService.Navigate<ListViewModel<Depository>, string, string>(detailsViewModel.Details.DepositoryId ?? Guid.Empty.ToString());
-    invoice = (Invoice) null;
-  }
-
-  public bool CanSelectSource
-  {
-    get
+    private void UpdateFacilityFilters()
     {
-      return this.HasSaveAccess && this.Details != null && this.Details.InvoiceType == InvoiceType.SalesReturn;
+        Warehouses.Filter = x =>
+        {
+            if (x.OfficeId != Details?.OfficeId) return false;
+            return !x.IsDisabled || x.Id == Details?.WarehouseId;
+        };
+
+        Depositories.Filter = x =>
+        {
+            if (x.OfficeId != Details?.OfficeId) return false;
+            return !x.IsDisabled || x.Id == Details?.DepositoryId;
+        };
     }
-  }
 
-  public ICommand SelectSource
-  {
-    get
+    private async void UpdatePartnerBalance()
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSelectSourceAsync), (Func<bool>) (() => !this.IsBusy && this.CanSelectSource));
+        if (!string.IsNullOrEmpty(Details?.PartnerId) && !string.IsNullOrEmpty(Details?.OfficeId) && Details?.CurrencyConvertions != null)
+        {
+            var balanceToDateAsync = await _partnerBalancesRepository.GetBalanceToDateAsync(Details.OfficeId, Details.PartnerId, Details.Date, Details.Id);
+            var currencyConvertion = CurrencyConverter(Details.DisplayCurrencyId);
+            PartnerBalanceToDate = new PartnerBalanceResult
+            {
+                Balance = balanceToDateAsync.Balance / currencyConvertion.Multiplier * currencyConvertion.Divider
+            };
+        }
+        else
+        {
+            PartnerBalanceToDate = null;
+        }
     }
-  }
 
-  private async Task OnSelectSourceAsync()
-  {
-    InvoiceDetailsViewModel detailsViewModel = this;
-    IEnumerable<StockAction> stockActions = await detailsViewModel.NavigationService.Navigate<SelectSourceInvoiceViewModel, IEnumerable<StockAction>>();
-    CurrencyConvertion displayCurrencyConvertion;
-    if (stockActions == null)
+    protected override async Task<bool> OnSaveAsync()
     {
-      displayCurrencyConvertion = (CurrencyConvertion) null;
+        try
+        {
+            if (!string.IsNullOrEmpty(Details.PartnerId))
+            {
+                if (Details.IsDebitCredit)
+                {
+                    Partner partner = Partners.List.SingleOrDefault(x => x.Id == Details.PartnerId);
+                    if (partner != null && partner.CreditLimit.HasValue)
+                    {
+                        decimal credit = PartnerBalanceResult?.Credit ?? 0M;
+                        if (partner.CreditLimit.Value < credit)
+                        {
+                            string caption = this["Partner credit limit reached"];
+                            string message = this[$"{{0}} partner has a credit limit at: {{1:#,##0.00}}{Environment.NewLine}Are you sure you want to continue?", partner.Fullname, partner.CreditLimit.Value];
+
+                            if (!UserInteractionService.ShowMessage(caption, message, UserInteractionType.YesNo).GetValueOrDefault())
+                                return false;
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+        }
+
+        if (!await base.OnSaveAsync()) return false;
+
+        decimal balance = PartnerBalanceToDate?.Balance ?? 0M;
+        await _printingService.PrintInvoice(Details, balance);
+        return true;
     }
-    else
+
+    public ICommand SelectedLineAlternativeCommand => new MvxAsyncCommand(OnSelectedLineAlternativeCommandAsync, () => !IsBusy && CanEditSelectedLine);
+
+    protected virtual async Task OnSelectedLineAlternativeCommandAsync()
     {
-      displayCurrencyConvertion = detailsViewModel.CurrencyConverter(detailsViewModel.Details.DisplayCurrencyId);
-      foreach (StockAction source in stockActions)
-      {
-        Stock stocksCacheAsync = await detailsViewModel.GetFromStocksCacheAsync(source.ActionStockId);
-        Decimal num = source.ActionPrice / displayCurrencyConvertion.Multiplier * displayCurrencyConvertion.Divider;
-        string displayCurrencyId = detailsViewModel.Details.DisplayCurrencyId;
-        InvoiceLine newLine = detailsViewModel.CreateNewLine(stocksCacheAsync, new Decimal?(source.ActionExpense), stocksCacheAsync.UnitId, new Decimal?(num), displayCurrencyId);
-        newLine.SourceId = source.ActionId;
-        detailsViewModel.Details.Lines.Add(newLine);
-        detailsViewModel.SelectedLine = newLine;
-      }
-      displayCurrencyConvertion = (CurrencyConvertion) null;
+        string stockId = await NavigationService.Navigate<SelectStockAlternativeViewModel, Tuple<string, string>, string>(new Tuple<string, string>(SelectedLine.StockId, Details.WarehouseId));
+        if (string.IsNullOrEmpty(stockId) || SelectedLine.StockId == stockId) return;
+
+        Stock stocksCacheAsync = await GetFromStocksCacheAsync(stockId);
+        SelectedLine.StockId = stocksCacheAsync.Id;
+        SelectedLine.UnitId = stocksCacheAsync.UnitId;
+
+        var currencyConvertion = Details.CurrencyConverter(stocksCacheAsync.CurrencyId);
+        SelectedLine.Price = Details.GetDisplayAmount(stocksCacheAsync.Price * currencyConvertion.Multiplier / currencyConvertion.Divider);
+        SelectedLine.CurrencyId = Details.DisplayCurrencyId;
     }
-  }
 
-  public ICommand PrintCommand
-  {
-    get
+    public ICommand UpdatePaymentCommand => new MvxAsyncCommand(OnUpdatePaymentCommandAsync, () => !IsBusy && HasSaveAccess);
+
+    private async Task OnUpdatePaymentCommandAsync()
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnPrintCommandAsync), (Func<bool>) (() => !this.IsBusy && !this.IsDirty));
+        try
+        {
+            var parameters = new IpdParams
+            {
+                SubTotal = Details.DisplayTotal,
+                DiscountsTotal = Details.DisplayDiscountsTotal,
+                PaymentsTotal = Details.DisplayPaymentsTotal,
+                ChangesTotal = Details.DisplayChangesTotal,
+                CanDebitCredit = Details.CanDebitCredit,
+                DebitCreditLeftAmount = Details.DebitCreditLeftAmount
+            };
+
+            var result = await NavigationService.Navigate<InvoicePaymentDialogViewModel, IpdParams, IpdParams>(parameters);
+            if (result == null) return;
+
+            if (Details.DisplayDiscountsTotal != result.DiscountsTotal)
+            {
+                Details.Discounts.Clear();
+                if (result.DiscountsTotal > 0M)
+                    Details.Discounts.Add(new InvoiceDiscount { Amount = result.DiscountsTotal, Type = InvoiceDiscountType.Flat });
+            }
+
+            if (Details.DisplayPaymentsTotal != result.PaymentsTotal)
+            {
+                Details.Payments.Clear();
+                if (result.PaymentsTotal > 0M)
+                    Details.Payments.Add(new InvoicePayment { Amount = result.PaymentsTotal, CurrencyId = Details.DisplayCurrencyId });
+            }
+
+            if (Details.DisplayChangesTotal != result.ChangesTotal)
+            {
+                Details.Changes.Clear();
+                if (result.ChangesTotal > 0M)
+                    Details.Changes.Add(new InvoicePayment { Amount = result.ChangesTotal, CurrencyId = Details.DisplayCurrencyId });
+            }
+
+            Details.DebitCreditLeftAmount = result.DebitCreditLeftAmount;
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+        }
     }
-  }
 
-  protected virtual async Task OnPrintCommandAsync()
-  {
-    InvoiceDetailsViewModel detailsViewModel = this;
-    IPrintingService printingService = detailsViewModel._printingService;
-    Invoice details = detailsViewModel.Details;
-    PartnerBalanceResult partnerBalanceToDate = detailsViewModel.PartnerBalanceToDate;
-    Decimal balance = partnerBalanceToDate != null ? partnerBalanceToDate.Balance : 0M;
-    await printingService.PrintInvoice(details, balance, true);
-  }
+    public ICommand RemovePartnerCommand => new MvxCommand(OnRemovePartnerCommand, () => !IsBusy && HasSaveAccess);
 
-  public bool CanCreateAggregatedStockOrder
-  {
-    get => this.Details != null && this.Details.InvoiceType == InvoiceType.Purchase;
-  }
-
-  public ICommand ToAggregatedStockOrderCommand
-  {
-    get
+    private void OnRemovePartnerCommand()
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnToAggregatedStockOrderCommandAsync), (Func<bool>) (() => !this.IsBusy && !this.IsDirty && this.CanCreateAggregatedStockOrder));
+        Details.DebitCreditLeftAmount = false;
+        Details.PartnerId = null;
     }
-  }
 
-  protected virtual Task OnToAggregatedStockOrderCommandAsync()
-  {
-    return this.NavigationService.Navigate<AggregatedStockOrderDetailsViewModel, AggregatedStockOrderDetailsViewModel.Params>(new AggregatedStockOrderDetailsViewModel.Params()
+    public ICommand SelectPartnerCommand => new MvxAsyncCommand(OnSelectPartnerCommandAsync, () => !IsBusy && HasSaveAccess);
+
+    private async Task OnSelectPartnerCommandAsync()
     {
-      WarehouseId = this.Details.WarehouseId,
-      StockIds = this.Details.Lines.Select<InvoiceLine, string>((Func<InvoiceLine, string>) (x => x.StockId))
-    });
-  }
-
-  public bool CanShowNewPrices
-  {
-    get => this.Details != null && this.Details.InvoiceType == InvoiceType.Purchase;
-  }
-
-  public ICommand ShowNewPricesCommand
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnShowNewPricesCommandAsync), (Func<bool>) (() => !this.IsBusy && !this.IsDirty && this.CanShowNewPrices));
+        Details.PartnerId = await NavigationService.Navigate<ListViewModel<Partner>, string, string>(Details.PartnerId ?? Guid.Empty.ToString());
     }
-  }
 
-  private Task OnShowNewPricesCommandAsync()
-  {
-    return this.NavigationService.Navigate<StockRepriceDialogViewModel, IEnumerable<StockRepriceRequest>>(this.Details.Lines.Select<InvoiceLine, StockRepriceRequest>((Func<InvoiceLine, StockRepriceRequest>) (x => new StockRepriceRequest()
-    {
-      StockId = x.StockId,
-      ReferencePrice = x.Price,
-      ReferencePriceCurrencyId = x.CurrencyId
-    })));
-  }
+    public ICommand SelectDepositoryCommand => new MvxAsyncCommand(OnSelectDepositoryCommandAsync, () => !IsBusy && HasSaveAccess);
 
-  public ICommand SelectOfficeCommand
-  {
-    get
+    private async Task OnSelectDepositoryCommandAsync()
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSelectOfficeAsync), (Func<bool>) (() => !this.IsBusy && this.HasSaveAccess));
+        Details.DepositoryId = await NavigationService.Navigate<ListViewModel<Depository>, string, string>(Details.DepositoryId ?? Guid.Empty.ToString());
     }
-  }
 
-  private async Task OnSelectOfficeAsync()
-  {
-    InvoiceDetailsViewModel detailsViewModel = this;
-    Invoice invoice = detailsViewModel.Details;
-    invoice.OfficeId = await detailsViewModel.NavigationService.Navigate<ListViewModel<Office>, string, string>(detailsViewModel.Details.OfficeId ?? Guid.Empty.ToString());
-    invoice = (Invoice) null;
-  }
+    public bool CanSelectSource => HasSaveAccess && Details != null && Details.InvoiceType == InvoiceType.SalesReturn;
+
+    public ICommand SelectSource => new MvxAsyncCommand(OnSelectSourceAsync, () => !IsBusy && CanSelectSource);
+
+    private async Task OnSelectSourceAsync()
+    {
+        var stockActions = await NavigationService.Navigate<SelectSourceInvoiceViewModel, IEnumerable<StockAction>>();
+        if (stockActions == null) return;
+
+        var displayCurrencyConvertion = CurrencyConverter(Details.DisplayCurrencyId);
+
+        foreach (var source in stockActions)
+        {
+            Stock stocksCacheAsync = await GetFromStocksCacheAsync(source.ActionStockId);
+            decimal num = source.ActionPrice / displayCurrencyConvertion.Multiplier * displayCurrencyConvertion.Divider;
+
+            InvoiceLine newLine = CreateNewLine(stocksCacheAsync, source.ActionExpense, stocksCacheAsync.UnitId, num, Details.DisplayCurrencyId);
+            newLine.SourceId = source.ActionId;
+
+            Details.Lines.Add(newLine);
+            SelectedLine = newLine;
+        }
+    }
+
+    public ICommand PrintCommand => new MvxAsyncCommand(OnPrintCommandAsync, () => !IsBusy && !IsDirty);
+
+    protected virtual async Task OnPrintCommandAsync()
+    {
+        decimal balance = PartnerBalanceToDate?.Balance ?? 0M;
+        await _printingService.PrintInvoice(Details, balance, true);
+    }
+
+    public bool CanCreateAggregatedStockOrder => Details != null && Details.InvoiceType == InvoiceType.Purchase;
+
+    public ICommand ToAggregatedStockOrderCommand => new MvxAsyncCommand(OnToAggregatedStockOrderCommandAsync, () => !IsBusy && !IsDirty && CanCreateAggregatedStockOrder);
+
+    protected virtual Task OnToAggregatedStockOrderCommandAsync()
+    {
+        return NavigationService.Navigate<AggregatedStockOrderDetailsViewModel, AggregatedStockOrderDetailsViewModel.Params>(new AggregatedStockOrderDetailsViewModel.Params
+        {
+            WarehouseId = Details.WarehouseId,
+            StockIds = Details.Lines.Select(x => x.StockId)
+        });
+    }
+
+    public bool CanShowNewPrices => Details != null && Details.InvoiceType == InvoiceType.Purchase;
+
+    public ICommand ShowNewPricesCommand => new MvxAsyncCommand(OnShowNewPricesCommandAsync, () => !IsBusy && !IsDirty && CanShowNewPrices);
+
+    private Task OnShowNewPricesCommandAsync()
+    {
+        return NavigationService.Navigate<StockRepriceDialogViewModel, IEnumerable<StockRepriceRequest>>(Details.Lines.Select(x => new StockRepriceRequest
+        {
+            StockId = x.StockId,
+            ReferencePrice = x.Price,
+            ReferencePriceCurrencyId = x.CurrencyId
+        }));
+    }
+
+    public ICommand SelectOfficeCommand => new MvxAsyncCommand(OnSelectOfficeAsync, () => !IsBusy && HasSaveAccess);
+
+    private async Task OnSelectOfficeAsync()
+    {
+        Details.OfficeId = await NavigationService.Navigate<ListViewModel<Office>, string, string>(Details.OfficeId ?? Guid.Empty.ToString());
+    }
 }

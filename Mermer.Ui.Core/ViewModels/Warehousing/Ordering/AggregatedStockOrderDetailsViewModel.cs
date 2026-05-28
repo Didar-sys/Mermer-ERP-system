@@ -173,54 +173,58 @@ public class AggregatedStockOrderDetailsViewModel :
     return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Warehouses.Initialize(), this.StockSearcher.Initialize());
   }
 
-  protected override async Task PostLoad()
-  {
-    AggregatedStockOrderDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (detailsViewModel.Details.Lines == null)
-      detailsViewModel.Details.Lines = new WatchedObservableCollection<AggregatedStockOrderLine>();
-    if (string.IsNullOrEmpty(detailsViewModel.ItemId))
+    protected override async Task PostLoad()
     {
-      if (detailsViewModel._paramenter != null)
-      {
-        detailsViewModel.Details.WarehouseId = detailsViewModel._paramenter.WarehouseId;
-        foreach (string stockId in detailsViewModel._paramenter.StockIds)
-        {
-          AggregatedStockOrderLine line = await detailsViewModel.CreateLine(stockId);
-          detailsViewModel.Details.Lines.Add(line);
-        }
-      }
-      if (string.IsNullOrEmpty(detailsViewModel.Details.WarehouseId))
-      {
-        AppSettings configAsync = await detailsViewModel._configurator.GetConfigAsync<AppSettings>();
-        detailsViewModel.Details.WarehouseId = configAsync.DefaultWarehouseId;
-      }
-    }
-    detailsViewModel.StockSearcher.WarehouseId = detailsViewModel.Details.WarehouseId;
-    await detailsViewModel.LoadStocksCache();
-    // ISSUE: reference to a compiler-generated method
-    detailsViewModel.Warehouses.Filter = new Func<Warehouse, bool>(detailsViewModel.\u003CPostLoad\u003Eb__46_0);
-    detailsViewModel.GenerateColumns();
-  }
+        await base.PostLoad();
 
-  private void GenerateColumns()
+        if (Details.Lines == null)
+            Details.Lines = new WatchedObservableCollection<AggregatedStockOrderLine>();
+
+        if (string.IsNullOrEmpty(ItemId))
+        {
+            if (_paramenter != null)
+            {
+                Details.WarehouseId = _paramenter.WarehouseId;
+                foreach (string stockId in _paramenter.StockIds)
+                {
+                    AggregatedStockOrderLine line = await CreateLine(stockId);
+                    Details.Lines.Add(line);
+                }
+            }
+
+            if (string.IsNullOrEmpty(Details.WarehouseId))
+            {
+                AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
+                Details.WarehouseId = configAsync.DefaultWarehouseId;
+            }
+        }
+
+        StockSearcher.WarehouseId = Details.WarehouseId;
+        await LoadStocksCache();
+
+        // Відновлена лямбда фільтрації (типова логіка для складів)
+        Warehouses.Filter = w => !w.IsDisabled || w.Id == Details.WarehouseId;
+
+        GenerateColumns();
+    }
+
+    private void GenerateColumns()
   {
     this.Columns = this.Warehouses.List.Select<Warehouse, ColumnDescription>((Func<Warehouse, ColumnDescription>) (x => new ColumnDescription(x.Id, x.Name))).ToArray<ColumnDescription>();
   }
 
-  private async Task LoadStocksCache()
-  {
-    AggregatedStockOrderDetailsViewModel detailsViewModel = this;
-    foreach (AggregatedStockOrderLine line in (Collection<AggregatedStockOrderLine>) detailsViewModel.Details.Lines)
+    private async Task LoadStocksCache()
     {
-      Stock stocksCacheAsync = await detailsViewModel.GetFromStocksCacheAsync(line.StockId);
-    }
-    // ISSUE: explicit non-virtual call
-    __nonvirtual (detailsViewModel.RaisePropertyChanged<ObservableCollection<Stock>>((Expression<Func<ObservableCollection<Stock>>>) (() => detailsViewModel.StocksCache)));
-  }
+        foreach (AggregatedStockOrderLine line in Details.Lines)
+        {
+            Stock stocksCacheAsync = await GetFromStocksCacheAsync(line.StockId);
+        }
 
-  protected Stock GetFromStocksCache(string stockId)
+        // Виправлений виклик RaisePropertyChanged без декомпіляторного сміття
+        RaisePropertyChanged(() => StocksCache);
+    }
+
+    protected Stock GetFromStocksCache(string stockId)
   {
     return this.GetFromStocksCacheAsync(stockId).GetAwaiter().GetResult();
   }

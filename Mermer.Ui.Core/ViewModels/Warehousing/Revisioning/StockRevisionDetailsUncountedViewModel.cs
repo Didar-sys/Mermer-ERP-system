@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Core.ViewModels.Warehousing.Revisioning.StockRevisionDetailsUncountedViewModel
-// Assembly: Mermer.Ui.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: DC92D011-8413-44AC-9F10-F866D891CF66
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
-
-using MvvmCross.Core.Navigation;
+﻿using MvvmCross.Core.Navigation;
 using MvvmCross.Core.ViewModels;
 using MvvmCross.Plugins.Messenger;
 using Mermer.Authorization.Services;
@@ -17,148 +11,136 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-#nullable disable
 namespace Mermer.Ui.Core.ViewModels.Warehousing.Revisioning;
 
-public class StockRevisionDetailsUncountedViewModel : 
-  DialogViewModel,
-  IMvxViewModel<string>,
-  IMvxViewModel
+public class StockRevisionDetailsUncountedViewModel :
+    DialogViewModel,
+    IMvxViewModel<string>,
+    IMvxViewModel
 {
-  private string _revisionId;
-  private readonly ILoginService _loginService;
-  private readonly IStockRevisionsRepository _revisionsRepository;
-  private ObservableCollection<StockRevisionUncountedInfo> _list;
-  private ObservableCollection<StockRevisionUncountedInfo> _selectedItems;
+    private string _revisionId;
+    private readonly ILoginService _loginService;
+    private readonly IStockRevisionsRepository _revisionsRepository;
+    private ObservableCollection<StockRevisionUncountedInfo> _list;
+    private ObservableCollection<StockRevisionUncountedInfo> _selectedItems;
 
-  public StockRevisionDetailsUncountedViewModel(
-    IMvxMessenger messenger,
-    ILoginService loginService,
-    IMvxNavigationService navigationService,
-    IStockRevisionsRepository revisionsRepository,
-    IUserInteractionService userInteractionService)
-    : base(messenger, navigationService, userInteractionService)
-  {
-    this._loginService = loginService;
-    this._revisionsRepository = revisionsRepository;
-  }
-
-  public ObservableCollection<StockRevisionUncountedInfo> List
-  {
-    get => this._list;
-    set
+    public StockRevisionDetailsUncountedViewModel(
+        IMvxMessenger messenger,
+        ILoginService loginService,
+        IMvxNavigationService navigationService,
+        IStockRevisionsRepository revisionsRepository,
+        IUserInteractionService userInteractionService)
+        : base(messenger, navigationService, userInteractionService)
     {
-      if (this._list != null)
-        this._list.CollectionChanged -= new NotifyCollectionChangedEventHandler(this.List_CollectionChanged);
-      this.SetProperty<ObservableCollection<StockRevisionUncountedInfo>>(ref this._list, value, nameof (List));
-      if (this._list != null)
-        this._list.CollectionChanged += new NotifyCollectionChangedEventHandler(this.List_CollectionChanged);
-      this.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => this.HasAnyItems));
+        _loginService = loginService;
+        _revisionsRepository = revisionsRepository;
     }
-  }
 
-  public bool HasAnyItems
-  {
-    get
+    public ObservableCollection<StockRevisionUncountedInfo> List
     {
-      ObservableCollection<StockRevisionUncountedInfo> list = this.List;
-      return list != null && list.Any<StockRevisionUncountedInfo>();
-    }
-  }
+        get => _list;
+        set
+        {
+            if (_list != null)
+                _list.CollectionChanged -= List_CollectionChanged;
 
-  public ObservableCollection<StockRevisionUncountedInfo> SelectedItems
-  {
-    get => this._selectedItems;
-    set
+            SetProperty(ref _list, value);
+
+            if (_list != null)
+                _list.CollectionChanged += List_CollectionChanged;
+
+            RaisePropertyChanged(() => HasAnyItems);
+        }
+    }
+
+    public bool HasAnyItems => List != null && List.Any();
+
+    public ObservableCollection<StockRevisionUncountedInfo> SelectedItems
     {
-      if (this._selectedItems != null)
-        this._selectedItems.CollectionChanged -= new NotifyCollectionChangedEventHandler(this.SelectedItems_CollectionChanged);
-      this.SetProperty<ObservableCollection<StockRevisionUncountedInfo>>(ref this._selectedItems, value, nameof (SelectedItems));
-      if (this._selectedItems != null)
-        this._selectedItems.CollectionChanged += new NotifyCollectionChangedEventHandler(this.SelectedItems_CollectionChanged);
-      this.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => this.HasAnyItemsSelected));
-    }
-  }
+        get => _selectedItems;
+        set
+        {
+            if (_selectedItems != null)
+                _selectedItems.CollectionChanged -= SelectedItems_CollectionChanged;
 
-  public bool HasAnyItemsSelected
-  {
-    get
+            SetProperty(ref _selectedItems, value);
+
+            if (_selectedItems != null)
+                _selectedItems.CollectionChanged += SelectedItems_CollectionChanged;
+
+            RaisePropertyChanged(() => HasAnyItemsSelected);
+        }
+    }
+
+    public bool HasAnyItemsSelected => SelectedItems != null && SelectedItems.Any();
+
+    public void Prepare(string parameter) => _revisionId = parameter;
+
+    protected override async Task OnLoad()
     {
-      ObservableCollection<StockRevisionUncountedInfo> selectedItems = this.SelectedItems;
-      return selectedItems != null && selectedItems.Any<StockRevisionUncountedInfo>();
+        SelectedItems = new ObservableCollection<StockRevisionUncountedInfo>();
+        List = new ObservableCollection<StockRevisionUncountedInfo>(await _revisionsRepository.GetUncountedAsync(_revisionId));
     }
-  }
 
-  public void Prepare(string parameter) => this._revisionId = parameter;
-
-  protected override async Task OnLoad()
-  {
-    this.SelectedItems = new ObservableCollection<StockRevisionUncountedInfo>();
-    this.List = new ObservableCollection<StockRevisionUncountedInfo>(await this._revisionsRepository.GetUncountedAsync(this._revisionId));
-  }
-
-  private void List_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-  {
-    this.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => this.HasAnyItems));
-  }
-
-  private void SelectedItems_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-  {
-    this.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => this.HasAnyItemsSelected));
-  }
-
-  public ICommand SelectedItemsDeleteCommand
-  {
-    get
+    private void List_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
-      return (ICommand) new MvxCommand(new Action(this.OnSelectedItemsDeleteCommand), (Func<bool>) (() => !this.IsBusy && this.HasAnyItemsSelected));
+        RaisePropertyChanged(() => HasAnyItems);
     }
-  }
 
-  protected virtual void OnSelectedItemsDeleteCommand()
-  {
-    this.IsBusy = true;
-    try
+    private void SelectedItems_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
-      StockRevisionUncountedInfo[] array = this.SelectedItems.ToArray<StockRevisionUncountedInfo>();
-      this.SelectedItems = new ObservableCollection<StockRevisionUncountedInfo>();
-      foreach (StockRevisionUncountedInfo revisionUncountedInfo in array)
-        this.List.Remove(revisionUncountedInfo);
+        RaisePropertyChanged(() => HasAnyItemsSelected);
     }
-    catch (Exception ex)
-    {
-      this.UserInteractionService.ShowExceptionMessage(ex);
-    }
-    this.IsBusy = false;
-  }
 
-  public ICommand AddToRevisionCommand
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnAddToRevisionCommandAsync), (Func<bool>) (() => !this.IsBusy && this.HasAnyItems));
-    }
-  }
+    public ICommand SelectedItemsDeleteCommand => new MvxCommand(OnSelectedItemsDeleteCommand, () => !IsBusy && HasAnyItemsSelected);
 
-  protected virtual async Task OnAddToRevisionCommandAsync()
-  {
-    StockRevisionDetailsUncountedViewModel uncountedViewModel = this;
-    uncountedViewModel.IsBusy = true;
-    try
+    protected virtual void OnSelectedItemsDeleteCommand()
     {
-      // ISSUE: reference to a compiler-generated method
-      IEnumerable<StockRevisionLine> list = await Task.Run<IEnumerable<StockRevisionLine>>(new Func<IEnumerable<StockRevisionLine>>(uncountedViewModel.\u003COnAddToRevisionCommandAsync\u003Eb__25_0));
-      await uncountedViewModel._revisionsRepository.StoreLinesAsync(uncountedViewModel._revisionId, list);
-      int num = await uncountedViewModel.OnCloseAsync() ? 1 : 0;
+        IsBusy = true;
+        try
+        {
+            var array = SelectedItems.ToArray();
+            SelectedItems = new ObservableCollection<StockRevisionUncountedInfo>();
+
+            foreach (var item in array)
+                List.Remove(item);
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+        }
+        IsBusy = false;
     }
-    catch (Exception ex)
+
+    public ICommand AddToRevisionCommand => new MvxAsyncCommand(OnAddToRevisionCommandAsync, () => !IsBusy && HasAnyItems);
+
+    protected virtual async Task OnAddToRevisionCommandAsync()
     {
-      uncountedViewModel.UserInteractionService.ShowExceptionMessage(ex);
+        IsBusy = true;
+        try
+        {
+            // Відновлена логіка замість загубленого b__25_0
+            var list = await Task.Run(() =>
+        {
+            return List.Select(info => new StockRevisionLine // Прибрали довгий префікс
+            {
+                Id = Guid.NewGuid().ToString(),
+                StockId = info.StockId,
+                UnitId = info.StockUnitId, // Твоя правильна правка!
+                Quantity = 0
+            }).ToList();
+        });
+
+            await _revisionsRepository.StoreLinesAsync(_revisionId, list);
+            await OnCloseAsync();
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+        }
+        IsBusy = false;
     }
-    uncountedViewModel.IsBusy = false;
-  }
 }

@@ -103,27 +103,33 @@ public class PartnerTransferDetailsViewModel : TransactionDetailsViewModel<Partn
     return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Offices.Initialize(), this.Partners.Initialize(), this.Currencies.Initialize());
   }
 
-  protected override async Task PostLoad()
-  {
-    PartnerTransferDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (detailsViewModel.Details.Lines == null)
-      detailsViewModel.Details.Lines = new ObservableCollection<PartnerTransferLine>();
-    detailsViewModel.Details.Lines.CollectionChanged += new NotifyCollectionChangedEventHandler(detailsViewModel.Lines_CollectionChanged);
-    foreach (BindableObject line in (Collection<PartnerTransferLine>) detailsViewModel.Details.Lines)
-      line.PropertyChanged += new PropertyChangedEventHandler(detailsViewModel.Line_PropertyChanged);
-    if (detailsViewModel.Details.CurrencyConvertions == null)
-      detailsViewModel.Details.CurrencyConvertions = new ObservableCollection<CurrencyConvertion>();
-    IEnumerable<string> usedOfficeIds = detailsViewModel.Details.Lines.Select<PartnerTransferLine, string>((Func<PartnerTransferLine, string>) (x => x.OfficeId)).Distinct<string>();
-    detailsViewModel.Offices.Filter = (Func<Office, bool>) (x => !x.IsDisabled || usedOfficeIds.Contains<string>(x.Id));
-    IEnumerable<string> usedPartnerIds = detailsViewModel.Details.Lines.Select<PartnerTransferLine, string>((Func<PartnerTransferLine, string>) (x => x.PartnerId)).Distinct<string>();
-    detailsViewModel.Partners.Filter = (Func<Partner, bool>) (x => !x.IsDisabled || usedPartnerIds.Contains<string>(x.Id));
-    IEnumerable<string> usedCurrencyIds = detailsViewModel.Details.Lines.Select<PartnerTransferLine, string>((Func<PartnerTransferLine, string>) (x => x.CreditCurrencyId)).Union<string>(detailsViewModel.Details.Lines.Select<PartnerTransferLine, string>((Func<PartnerTransferLine, string>) (x => x.DebitCurrencyId))).Distinct<string>();
-    detailsViewModel.Currencies.Filter = (Func<Currency, bool>) (x => !x.IsDisabled || usedCurrencyIds.Contains<string>(x.Id));
-  }
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
 
-  private void Lines_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        if (Details.Lines == null)
+            Details.Lines = new ObservableCollection<PartnerTransferLine>();
+
+        Details.Lines.CollectionChanged += Lines_CollectionChanged;
+
+        foreach (var line in Details.Lines)
+            line.PropertyChanged += Line_PropertyChanged;
+
+        if (Details.CurrencyConvertions == null)
+            Details.CurrencyConvertions = new ObservableCollection<CurrencyConvertion>();
+
+        IEnumerable<string> usedOfficeIds = Details.Lines.Select(x => x.OfficeId).Distinct();
+        Offices.Filter = x => !x.IsDisabled || usedOfficeIds.Contains(x.Id);
+
+        IEnumerable<string> usedPartnerIds = Details.Lines.Select(x => x.PartnerId).Distinct();
+        Partners.Filter = x => !x.IsDisabled || usedPartnerIds.Contains(x.Id);
+
+        IEnumerable<string> usedCurrencyIds = Details.Lines.Select(x => x.CreditCurrencyId)
+            .Union(Details.Lines.Select(x => x.DebitCurrencyId)).Distinct();
+        Currencies.Filter = x => !x.IsDisabled || usedCurrencyIds.Contains(x.Id);
+    }
+
+    private void Lines_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
   {
     if (e.NewItems == null)
       return;

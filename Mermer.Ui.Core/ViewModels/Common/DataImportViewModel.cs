@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Core.ViewModels.Common.DataImportViewModel
-// Assembly: Mermer.Ui.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: DC92D011-8413-44AC-9F10-F866D891CF66
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
-
-using MvvmCross.Core.Navigation;
+﻿using MvvmCross.Core.Navigation;
 using MvvmCross.Core.ViewModels;
 using MvvmCross.Plugins.Messenger;
 using Mermer.Ui.Core.Helpers;
@@ -18,165 +12,187 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-#nullable disable
 namespace Mermer.Ui.Core.ViewModels.Common;
 
-public class DataImportViewModel : 
-  DialogViewModel,
-  IMvxViewModel<Type, IEnumerable<object>>,
-  IMvxViewModel<Type>,
-  IMvxViewModel,
-  IMvxViewModelResult<IEnumerable<object>>
+public class DataImportViewModel :
+    DialogViewModel,
+    IMvxViewModel<Type, IEnumerable<object>>,
+    IMvxViewModel<Type>,
+    IMvxViewModel,
+    IMvxViewModelResult<IEnumerable<object>>
 {
-  private Type _itemType;
-  private readonly IExcelReaderService _excelReaderService;
-  private string _status;
-  private string _fileName;
-  private bool _isFileLoaded;
-  private IEnumerable<ListHelper<int>> _columns;
-  private DataImportViewModel.Property[] _properties;
+    private Type _itemType;
+    private readonly IExcelReaderService _excelReaderService;
+    private string _status;
+    private string _fileName;
+    private bool _isFileLoaded;
+    private IEnumerable<ListHelper<int>> _columns;
+    private Property[] _properties;
 
-  public DataImportViewModel(
-    IMvxMessenger messenger,
-    IExcelReaderService excelReaderService,
-    IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService)
-    : base(messenger, navigationService, userInteractionService)
-  {
-    this._excelReaderService = excelReaderService;
-  }
-
-  public new string Status
-  {
-    get => this._status;
-    set => this.SetProperty<string>(ref this._status, value, nameof (Status));
-  }
-
-  public string FileName
-  {
-    get => this._fileName;
-    set
+    public DataImportViewModel(
+        IMvxMessenger messenger,
+        IExcelReaderService excelReaderService,
+        IMvxNavigationService navigationService,
+        IUserInteractionService userInteractionService)
+        : base(messenger, navigationService, userInteractionService)
     {
-      this.SetProperty<string>(ref this._fileName, value, nameof (FileName));
-      if (string.IsNullOrEmpty(this._fileName))
-        return;
-      this.LoadFileAsync();
+        _excelReaderService = excelReaderService;
     }
-  }
 
-  public bool IsFileLoaded
-  {
-    get => this._isFileLoaded;
-    set => this.SetProperty<bool>(ref this._isFileLoaded, value, nameof (IsFileLoaded));
-  }
-
-  public IEnumerable<ListHelper<int>> Columns
-  {
-    get => this._columns;
-    set
+    public new string Status
     {
-      this.SetProperty<IEnumerable<ListHelper<int>>>(ref this._columns, value, nameof (Columns));
+        get => _status;
+        set => SetProperty(ref _status, value);
     }
-  }
 
-  public DataImportViewModel.Property[] Properties
-  {
-    get => this._properties;
-    set
+    public string FileName
     {
-      this.SetProperty<DataImportViewModel.Property[]>(ref this._properties, value, nameof (Properties));
-    }
-  }
-
-  public void Prepare(Type parameter)
-  {
-    this._itemType = parameter;
-    this.Properties = this._itemType.GetTypeInfo().DeclaredProperties.Select<PropertyInfo, DataImportViewModel.Property>((Func<PropertyInfo, DataImportViewModel.Property>) (x => new DataImportViewModel.Property()
-    {
-      Info = x,
-      DisplayName = this[x.Name, Array.Empty<object>()]
-    })).ToArray<DataImportViewModel.Property>();
-  }
-
-  public override Task<bool> OnCloseAsync() => this.Close();
-
-  public virtual Task<bool> Close(IEnumerable<object> list = null)
-  {
-    return this.NavigationService.Close<IEnumerable<object>>((IMvxViewModelResult<IEnumerable<object>>) this, list);
-  }
-
-  protected virtual async void LoadFileAsync()
-  {
-    DataImportViewModel dataImportViewModel = this;
-    dataImportViewModel.IsBusy = true;
-    dataImportViewModel.Status = dataImportViewModel["Loading file...", Array.Empty<object>()];
-    // ISSUE: reference to a compiler-generated method
-    await Task.Run(new Action(dataImportViewModel.\u003CLoadFileAsync\u003Eb__27_0));
-    dataImportViewModel.Status = dataImportViewModel["File Loaded", Array.Empty<object>()];
-    dataImportViewModel.IsBusy = false;
-  }
-
-  public ICommand ImportCommand
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnImportCommandAsync), (Func<bool>) (() => !this.IsBusy));
-    }
-  }
-
-  protected virtual async Task OnImportCommandAsync()
-  {
-    DataImportViewModel dataImportViewModel = this;
-    dataImportViewModel.IsBusy = true;
-    dataImportViewModel.Status = dataImportViewModel["Reading data...", Array.Empty<object>()];
-    try
-    {
-      IEnumerable<DataImportViewModel.Property> source = ((IEnumerable<DataImportViewModel.Property>) dataImportViewModel.Properties).Where<DataImportViewModel.Property>((Func<DataImportViewModel.Property, bool>) (x => x.ColumnIndex.HasValue));
-      if (!source.Any<DataImportViewModel.Property>())
-        throw new Exception(dataImportViewModel["At least one property must be configured to import!", Array.Empty<object>()]);
-      List<object> list = new List<object>();
-      int row = 1;
-      bool flag;
-      do
-      {
-        flag = false;
-        object instance = Activator.CreateInstance(dataImportViewModel._itemType);
-        foreach (DataImportViewModel.Property property in source)
+        get => _fileName;
+        set
         {
-          object obj1 = dataImportViewModel._excelReaderService.GetValue(row, property.ColumnIndex.Value);
-          if (obj1 != null)
-          {
-            object obj2 = Convert.ChangeType(obj1, property.Info.PropertyType);
-            property.Info.SetValue(instance, obj2);
-            flag = true;
-          }
+            if (SetProperty(ref _fileName, value) && !string.IsNullOrEmpty(_fileName))
+            {
+                LoadFileAsync();
+            }
         }
-        if (flag)
-        {
-          list.Add(instance);
-          ++row;
-        }
-        dataImportViewModel.Status = dataImportViewModel["{0} items read", new object[1]
-        {
-          (object) row
-        }];
-      }
-      while (flag);
-      int num = await dataImportViewModel.Close((IEnumerable<object>) list) ? 1 : 0;
     }
-    catch (Exception ex)
+
+    public bool IsFileLoaded
     {
-      dataImportViewModel.UserInteractionService.ShowExceptionMessage(ex);
+        get => _isFileLoaded;
+        set => SetProperty(ref _isFileLoaded, value);
     }
-    dataImportViewModel.IsBusy = false;
-  }
 
-  public class Property
-  {
-    public PropertyInfo Info { get; set; }
+    public IEnumerable<ListHelper<int>> Columns
+    {
+        get => _columns;
+        set => SetProperty(ref _columns, value);
+    }
 
-    public string DisplayName { get; set; }
+    public Property[] Properties
+    {
+        get => _properties;
+        set => SetProperty(ref _properties, value);
+    }
 
-    public int? ColumnIndex { get; set; }
-  }
+    public void Prepare(Type parameter)
+    {
+        _itemType = parameter;
+        Properties = _itemType.GetTypeInfo().DeclaredProperties.Select(x => new Property
+        {
+            Info = x,
+            DisplayName = this[x.Name]
+        }).ToArray();
+    }
+
+    public override Task<bool> OnCloseAsync() => Close();
+
+    public virtual Task<bool> Close(IEnumerable<object> list = null)
+    {
+        return NavigationService.Close(this, list);
+    }
+
+    protected virtual async void LoadFileAsync()
+    {
+        IsBusy = true;
+        Status = this["Loading file..."];
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                // 1. Відкриваємо файл через твій правильний метод
+                _excelReaderService.OpenExcelFile(_fileName);
+
+                // 2. Генеруємо список колонок із правильними властивостей Value та Text
+                var columnsList = new List<ListHelper<int>>();
+                for (int i = 1; i <= 50; i++)
+                {
+                    columnsList.Add(new ListHelper<int> { Value = i, Text = $"Column {i}" });
+                }
+                Columns = columnsList;
+            });
+
+            IsFileLoaded = true;
+            Status = this["File Loaded"];
+        }
+        catch (Exception ex)
+        {
+            // Якщо сталася помилка при відкритті, намагаємося закрити файл, щоб не блокувати його
+            try { _excelReaderService.CloseExcelFile(); } catch { }
+
+            UserInteractionService.ShowExceptionMessage(ex);
+            Status = this["Error loading file"];
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    public ICommand ImportCommand => new MvxAsyncCommand(OnImportCommandAsync, () => !IsBusy);
+
+    protected virtual async Task OnImportCommandAsync()
+    {
+        IsBusy = true;
+        Status = this["Reading data..."];
+
+        try
+        {
+            var configuredProperties = Properties.Where(x => x.ColumnIndex.HasValue).ToList();
+            if (!configuredProperties.Any())
+                throw new Exception(this["At least one property must be configured to import!"]);
+
+            var list = new List<object>();
+            int row = 1;
+            bool hasDataInRow;
+
+            do
+            {
+                hasDataInRow = false;
+                object instance = Activator.CreateInstance(_itemType);
+
+                foreach (var property in configuredProperties)
+                {
+                    object cellValue = _excelReaderService.GetValue(row, property.ColumnIndex.Value);
+
+                    if (cellValue != null && !string.IsNullOrWhiteSpace(cellValue.ToString()))
+                    {
+                        // Витягуємо базовий тип, якщо це Nullable (наприклад, decimal?)
+                        Type targetType = Nullable.GetUnderlyingType(property.Info.PropertyType) ?? property.Info.PropertyType;
+
+                        object convertedValue = Convert.ChangeType(cellValue, targetType);
+                        property.Info.SetValue(instance, convertedValue);
+                        hasDataInRow = true;
+                    }
+                }
+
+                if (hasDataInRow)
+                {
+                    list.Add(instance);
+                    row++;
+                }
+
+                Status = this["{0} items read", row - 1]; // -1 бо ми починаємо з 1 рядка
+            }
+            while (hasDataInRow);
+
+            await Close(list);
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    public class Property
+    {
+        public PropertyInfo Info { get; set; }
+        public string DisplayName { get; set; }
+        public int? ColumnIndex { get; set; }
+    }
 }

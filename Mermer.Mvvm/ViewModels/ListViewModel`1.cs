@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Mvvm.ViewModels.ListViewModel`1
-// Assembly: Mermer.Mvvm, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 3EAA5570-F618-4E39-B929-F7374F99B43D
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Mvvm.dll
-
-using MvvmCross.Core.Navigation;
+﻿using MvvmCross.Core.Navigation;
 using MvvmCross.Core.ViewModels;
 using MvvmCross.Plugins.Messenger;
 using Mermer.Data.Authorizers;
@@ -18,10 +12,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-#nullable disable
 namespace Mermer.Mvvm.ViewModels;
 
-public class ListViewModel<T> : 
+public class ListViewModel<T> :
   ListViewModelBase<T>,
   IMvxViewModel<string, string>,
   IMvxViewModel<string>,
@@ -29,76 +22,59 @@ public class ListViewModel<T> :
   IMvxViewModelResult<string>
   where T : class, INotifyPropertyChanged, IModel
 {
-  protected string ItemId;
-  protected readonly IRepository<T> Repository;
-  protected readonly IListAuthorizer<T> Authorizer;
+    protected string ItemId;
+    protected readonly IRepository<T> Repository;
+    protected readonly IListAuthorizer<T> Authorizer;
 
-  public ListViewModel(
-    IRepository<T> repository,
-    IListAuthorizer<T> authorizer,
-    IMvxMessenger messenger,
-    IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService)
-    : base(messenger, navigationService, userInteractionService)
-  {
-    this.Repository = repository;
-    this.Authorizer = authorizer;
-  }
-
-  public void Prepare(string parameter) => this.ItemId = parameter;
-
-  protected override async Task OnLoad()
-  {
-    ListViewModel<T> listViewModel = this;
-    IEnumerable<T> async = await listViewModel.Repository.GetAsync();
-    listViewModel.List = async;
-    if (string.IsNullOrEmpty(listViewModel.ItemId))
-      return;
-    // ISSUE: reference to a compiler-generated method
-    listViewModel.SelectedItem = listViewModel.List.SingleOrDefault<T>(new Func<T, bool>(listViewModel.\u003COnLoad\u003Eb__5_0));
-  }
-
-  public bool HasCreateAccess => this.Authorizer.CanCreate();
-
-  public ICommand CreateNewCommand
-  {
-    get
+    public ListViewModel(
+        IRepository<T> repository,
+        IListAuthorizer<T> authorizer,
+        IMvxMessenger messenger,
+        IMvxNavigationService navigationService,
+        IUserInteractionService userInteractionService)
+        : base(messenger, navigationService, userInteractionService)
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnCreateNewAsync), (Func<bool>) (() => !this.IsBusy && this.HasCreateAccess));
+        Repository = repository;
+        Authorizer = authorizer;
     }
-  }
 
-  protected virtual Task OnCreateNewAsync()
-  {
-    return this.NavigationService.Navigate<DetailsViewModel<T>, string>(string.Empty);
-  }
+    public void Prepare(string parameter) => ItemId = parameter;
 
-  public ICommand ViewDetailsCommand
-  {
-    get
+    protected override async Task OnLoad()
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnViewDetailsAsync), (Func<bool>) (() => !this.IsBusy && (object) this.SelectedItem != null));
+        List = await Repository.GetAsync();
+
+        if (string.IsNullOrEmpty(ItemId))
+            return;
+
+        // Виправлено кашу декомпілятора з лямбдою (\u003COnLoad\u003Eb__5_0)
+        SelectedItem = List.SingleOrDefault(x => x.Id == ItemId);
     }
-  }
 
-  protected virtual Task OnViewDetailsAsync()
-  {
-    return this.NavigationService.Navigate<DetailsViewModel<T>, string>(this.SelectedItem.Id);
-  }
+    public bool HasCreateAccess => Authorizer.CanCreate();
 
-  public ICommand SelectOrViewDetailsCommand
-  {
-    get
+    public ICommand CreateNewCommand => new MvxAsyncCommand(OnCreateNewAsync, () => !IsBusy && HasCreateAccess);
+
+    protected virtual Task OnCreateNewAsync()
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSelectOrViewDetailsAsync), (Func<bool>) (() => !this.IsBusy && (object) this.SelectedItem != null));
+        return NavigationService.Navigate<DetailsViewModel<T>, string>(string.Empty);
     }
-  }
 
-  protected virtual Task OnSelectOrViewDetailsAsync()
-  {
-    if (!string.IsNullOrEmpty(this.ItemId))
-      return (Task) this.NavigationService.Close<string>((IMvxViewModelResult<string>) this, this.SelectedItem.Id);
-    this.ViewDetailsCommand.Execute((object) null);
-    return Task.CompletedTask;
-  }
+    public ICommand ViewDetailsCommand => new MvxAsyncCommand(OnViewDetailsAsync, () => !IsBusy && SelectedItem != null);
+
+    protected virtual Task OnViewDetailsAsync()
+    {
+        return NavigationService.Navigate<DetailsViewModel<T>, string>(SelectedItem.Id);
+    }
+
+    public ICommand SelectOrViewDetailsCommand => new MvxAsyncCommand(OnSelectOrViewDetailsAsync, () => !IsBusy && SelectedItem != null);
+
+    protected virtual Task OnSelectOrViewDetailsAsync()
+    {
+        if (!string.IsNullOrEmpty(ItemId))
+            return NavigationService.Close(this, SelectedItem.Id);
+
+        ViewDetailsCommand.Execute(null);
+        return Task.CompletedTask;
+    }
 }

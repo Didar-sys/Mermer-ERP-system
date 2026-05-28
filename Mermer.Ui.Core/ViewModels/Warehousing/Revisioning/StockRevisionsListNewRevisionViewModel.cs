@@ -55,18 +55,16 @@ public class StockRevisionsListNewRevisionViewModel(
     this.Warehouses = parameter.Where<Warehouse>((Func<Warehouse, bool>) (x => !x.IsDisabled));
   }
 
-  protected override async Task OnLoad()
-  {
-    StockRevisionsListNewRevisionViewModel revisionViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await revisionViewModel.\u003C\u003En__0();
-    revisionViewModel.Details = new StockRevisionsListNewRevisionViewModel.Result()
+    protected override async Task OnLoad()
     {
-      StartDate = DateTime.Now
-    };
-  }
+        await base.OnLoad();
+        Details = new Result
+        {
+            StartDate = DateTime.Now
+        };
+    }
 
-  public override Task<bool> OnCloseAsync()
+    public override Task<bool> OnCloseAsync()
   {
     return this.NavigationService.Close<StockRevisionsListNewRevisionViewModel.Result>((IMvxViewModelResult<StockRevisionsListNewRevisionViewModel.Result>) this, (StockRevisionsListNewRevisionViewModel.Result) null);
   }

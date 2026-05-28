@@ -138,24 +138,50 @@ public class StockRepriceDialogViewModel :
   }
 
   protected override async Task OnLoad()
-  {
-    StockRepriceDialogViewModel repriceDialogViewModel = this;
-    repriceDialogViewModel.SelectedItems = new ObservableCollection<StockReprice>();
-    System.Collections.Generic.List<StockReprice> list = new System.Collections.Generic.List<StockReprice>();
-    for (int i = 0; i < repriceDialogViewModel._requests.Length; i += 100)
+{
+    SelectedItems = new ObservableCollection<StockReprice>();
+    var list = new List<StockReprice>();
+    
+    for (int i = 0; i < _requests.Length; i += 100)
     {
-      IEnumerable<string> stocksToLoad = ((IEnumerable<StockRepriceRequest>) repriceDialogViewModel._requests).Skip<StockRepriceRequest>(i).Take<StockRepriceRequest>(100).Select<StockRepriceRequest, string>((Func<StockRepriceRequest, string>) (x => x.StockId));
-      IRepository<Stock> stocksRepository = repriceDialogViewModel._stocksRepository;
-      Expression<Func<Stock, bool>>[] expressionArray = new Expression<Func<Stock, bool>>[1]
-      {
-        (Expression<Func<Stock, bool>>) (x => stocksToLoad.Contains<string>(x.Id))
-      };
-      // ISSUE: reference to a compiler-generated method
-      list.AddRange((await stocksRepository.GetAsync(expressionArray)).Join<Stock, StockRepriceRequest, string, StockReprice>((IEnumerable<StockRepriceRequest>) repriceDialogViewModel._requests, (Func<Stock, string>) (x => x.Id), (Func<StockRepriceRequest, string>) (y => y.StockId), new Func<Stock, StockRepriceRequest, StockReprice>(repriceDialogViewModel.\u003COnLoad\u003Eb__27_3)));
+        var requestsBatch = _requests.Skip(i).Take(100).ToList();
+        var stocksToLoad = requestsBatch.Select(x => x.StockId).ToList();
+        
+        var expressionArray = new Expression<Func<Stock, bool>>[]
+        {
+            x => stocksToLoad.Contains(x.Id)
+        };
+        
+        var loadedStocks = await _stocksRepository.GetAsync(expressionArray);
+
+            // Відновлений людський LINQ
+            var batchReprices = loadedStocks
+                .Join(requestsBatch,
+                      s => s.Id,
+                      r => r.StockId,
+                      (s, r) =>
+                      {
+                          // 1. Присваиваем Stock. 
+                          // В этот момент сеттер класса StockReprice 
+                          // автоматически запишет текущую (старую) s.Price в CurrentPrice.
+                          var stockReprice = new StockReprice
+                          {
+                              Stock = s
+                          };
+
+                          // 2. Обновляем цену на новую из запроса.
+                          // Это вызовет Stock_PropertyChanged внутри StockReprice 
+                          // и обновит свойство NewPriceValue для UI.
+                          stockReprice.Stock.Price = r.ReferencePrice;
+
+                          return stockReprice;
+                      });
+
+            list.AddRange(batchReprices);
     }
-    repriceDialogViewModel.List = new ObservableCollection<StockReprice>(list);
-    list = (System.Collections.Generic.List<StockReprice>) null;
-  }
+    
+    List = new ObservableCollection<StockReprice>(list);
+}
 
   private CurrencyConvertion CurrencyConverter(string currencyId)
   {
@@ -172,10 +198,10 @@ public class StockRepriceDialogViewModel :
 
   private void OnCalculateNewPriceCommand()
   {
-    foreach (StockReprice stockReprice in (Collection<StockReprice>) this.List)
+    foreach (var stockReprice in List)
     {
-      stockReprice.Stock.Price = stockReprice.ReferencePrice * (0.01M * (Decimal) this.RepricePercentage + 1M);
-      stockReprice.Stock.CurrencyId = stockReprice.ReferencePriceCurrencyId;
+        stockReprice.Stock.Price = stockReprice.ReferencePrice * (0.01M * (Decimal) this.RepricePercentage + 1M);
+        stockReprice.Stock.CurrencyId = stockReprice.ReferencePriceCurrencyId;
     }
   }
 

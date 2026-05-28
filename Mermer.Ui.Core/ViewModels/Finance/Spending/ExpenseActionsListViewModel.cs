@@ -88,23 +88,24 @@ public class ExpenseActionsListViewModel : ListViewModelBaseWithFilterDate<Expen
 
   public LocalizedTransactionTypes Types { get; }
 
-  protected override async Task PreLoad()
-  {
-    ExpenseActionsListViewModel actionsListViewModel = this;
-    if (!actionsListViewModel._loaded && !((IEnumerable<string>) actionsListViewModel.DepositoryIds).Any<string>())
+    protected override async Task PreLoad()
     {
-      AppSettings configAsync = await actionsListViewModel._configurator.GetConfigAsync<AppSettings>();
-      actionsListViewModel.SelectedDepositoryIds = new System.Collections.Generic.List<object>((IEnumerable<object>) new object[1]
-      {
-        (object) configAsync.DefaultDepositoryId
-      });
-    }
-    actionsListViewModel._loaded = true;
-    // ISSUE: reference to a compiler-generated method
-    await Task.WhenAll(actionsListViewModel.\u003C\u003En__0(), actionsListViewModel.Expenses.Initialize(), actionsListViewModel.Depositories.Initialize());
-  }
+        if (!_loaded && !DepositoryIds.Any())
+        {
+            AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
+            SelectedDepositoryIds = new List<object> { configAsync.DefaultDepositoryId };
+        }
 
-  protected override Task<int> CountFilteredListByDateAsync(DateTime from, DateTime till)
+        _loaded = true;
+
+        await Task.WhenAll(
+            base.PreLoad(),
+            Expenses.Initialize(),
+            Depositories.Initialize()
+        );
+    }
+
+    protected override Task<int> CountFilteredListByDateAsync(DateTime from, DateTime till)
   {
     return this._repository.CountAsync(new DateTime?(from), new DateTime?(till), this.DepositoryIds, this.ExpenseId);
   }

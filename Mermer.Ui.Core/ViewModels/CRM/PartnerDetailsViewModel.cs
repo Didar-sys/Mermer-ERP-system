@@ -67,15 +67,13 @@ public class PartnerDetailsViewModel : DetailsViewModel<Partner>
     return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Currencies.Initialize());
   }
 
-  protected override async Task PostLoad()
-  {
-    PartnerDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (!string.IsNullOrEmpty(detailsViewModel.Details.Code))
-      return;
-    Partner partner = detailsViewModel.Details;
-    partner.Code = await detailsViewModel._codeGenerator.GetNextCode();
-    partner = (Partner) null;
-  }
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
+
+        if (!string.IsNullOrEmpty(Details.Code))
+            return;
+
+        Details.Code = await _codeGenerator.GetNextCode();
+    }
 }

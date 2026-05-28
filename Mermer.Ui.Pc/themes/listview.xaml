@@ -5,7 +5,7 @@
       <Setter.Value>
         <ControlTemplate>
           <Rectangle Margin="2" SnapsToDevicePixels="true"
-                     Stroke="{DynamicResource {x:Static JetSystemColors.ControlTextBrushKey}}" StrokeThickness="1"
+                     Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1"
                      StrokeDashArray="1 2"/>
         </ControlTemplate>
       </Setter.Value>
@@ -48,7 +48,7 @@
               <Setter TargetName="Bd" Property="Border.BorderBrush" Value="#FF7582A1"/>
             </Trigger>
             <Trigger Property="UIElement.IsEnabled" Value="false">
-              <Setter TargetName="Bd" Value="{DynamicResource {x:Static JetSystemColors.GrayTextBrushKey}}"
+                            <Setter TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"
                       Property="TextElement.Foreground"/>
             </Trigger>
           </ControlTemplate.Triggers>

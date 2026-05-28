@@ -40,69 +40,71 @@ public class StockBalancesByStatusesListViewModel : ListViewModelBaseWithFilter<
   private bool _loaded;
   private IEnumerable<StockBalanceWithData> _balances;
 
-  public StockBalancesByStatusesListViewModel(
-    IMvxMessenger messenger,
-    IConfigurator configurator,
-    Reference<Currency> currencies,
-    Reference<Warehouse> warehouses,
-    IStocksRepository stocksRepository,
-    IStockBalancesRepository balancesRepository,
-    IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService)
-    : base(messenger, navigationService, userInteractionService)
-  {
-    this._configurator = configurator;
-    this._stocksRepository = stocksRepository;
-    this._balancesRepository = balancesRepository;
-    this._messageToken = messenger.Subscribe<DocumentModified<StockBalance>>((Action<DocumentModified<StockBalance>>) (async m => await this.Initialize()), MvxReference.Strong);
-    this.Currencies = currencies;
-    this.Warehouses = warehouses;
-    this.Filters = (IEnumerable<ListFilter>) new ListFilter[5]
+    public StockBalancesByStatusesListViewModel(
+      IMvxMessenger messenger,
+      IConfigurator configurator,
+      Reference<Currency> currencies,
+      Reference<Warehouse> warehouses,
+      IStocksRepository stocksRepository,
+      IStockBalancesRepository balancesRepository,
+      IMvxNavigationService navigationService,
+      IUserInteractionService userInteractionService)
+      : base(messenger, navigationService, userInteractionService)
     {
-      new ListFilter()
-      {
-        Title = this["Existing", Array.Empty<object>()],
-        Tag = (object) "Existing",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<StockBalanceWithData, StockBalanceWithData>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["Finished", Array.Empty<object>()],
-        Tag = (object) "Finished",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<StockBalanceWithData, StockBalanceWithData>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["Small Amount", Array.Empty<object>()],
-        Tag = (object) "Min",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<StockBalanceWithData, StockBalanceWithData>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["Over Limit", Array.Empty<object>()],
-        Tag = (object) "Max",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<StockBalanceWithData, StockBalanceWithData>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["All Records", Array.Empty<object>()],
-        Tag = (object) "All",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<StockBalanceWithData, StockBalanceWithData>) this).CountByFilterAsync)
-      }
-    };
-  }
+        _configurator = configurator;
+        _stocksRepository = stocksRepository;
+        _balancesRepository = balancesRepository;
+        _messageToken = messenger.Subscribe<DocumentModified<StockBalance>>(async m => await Initialize(), MvxReference.Strong);
+        Currencies = currencies;
+        Warehouses = warehouses;
 
-  public override string Caption
+        // Очищений масив фільтрів
+        Filters = new[]
+        {
+        new ListFilter
+        {
+            Title = this["Existing"],
+            Tag = "Existing",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["Finished"],
+            Tag = "Finished",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["Small Amount"],
+            Tag = "Min",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["Over Limit"],
+            Tag = "Max",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["All Records"],
+            Tag = "All",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        }
+    };
+    }
+
+    public override string Caption
   {
     get => this._caption ?? this["StockBalance".Pluralize(), Array.Empty<object>()];
     set => this._caption = value;
@@ -143,115 +145,77 @@ public class StockBalancesByStatusesListViewModel : ListViewModelBaseWithFilter<
 
   public Reference<Warehouse> Warehouses { get; }
 
-  protected override async Task PreLoad()
-  {
-    StockBalancesByStatusesListViewModel statusesListViewModel = this;
-    await Task.WhenAll(statusesListViewModel.Currencies.Initialize(), statusesListViewModel.Warehouses.Initialize());
-    if (!statusesListViewModel._loaded)
+    protected override async Task PreLoad()
     {
-      AppSettings configAsync = await statusesListViewModel._configurator.GetConfigAsync<AppSettings>();
-      statusesListViewModel.SelectedWarehouseIds = new System.Collections.Generic.List<object>((IEnumerable<object>) new object[1]
-      {
-        (object) configAsync.DefaultWarehouseId
-      });
-      statusesListViewModel.DisplayCurrencyId = statusesListViewModel.Currencies.List.Single<Currency>((Func<Currency, bool>) (x => x.IsDefault)).Id;
-    }
-    statusesListViewModel._loaded = true;
-    await statusesListViewModel.PreLoadBalances();
-    // ISSUE: reference to a compiler-generated method
-    await statusesListViewModel.\u003C\u003En__0();
-  }
+        await Task.WhenAll(Currencies.Initialize(), Warehouses.Initialize());
 
-  private async Task PreLoadBalances()
-  {
-    Stock[] stocks;
-    if (this.WarehouseIds.Length == 0)
-    {
-      stocks = (Stock[]) null;
-    }
-    else
-    {
-      stocks = (await this._stocksRepository.GetAsync()).ToArray<Stock>();
-      IEnumerable<\u003C\u003Ef__AnonymousType1<string, Decimal, Decimal, Decimal>> inner = (await this._balancesRepository.GetAsync((string) null, DateTime.Now, this.WarehouseIds)).GroupBy<StockBalance, string>((Func<StockBalance, string>) (x => x.StockId)).Select(g => new
-      {
-        StockId = g.Key,
-        Income = g.Sum<StockBalance>((Func<StockBalance, Decimal>) (x => x.Income)),
-        Expense = g.Sum<StockBalance>((Func<StockBalance, Decimal>) (x => x.Expense)),
-        Balance = g.Sum<StockBalance>((Func<StockBalance, Decimal>) (x => x.Balance))
-      });
-      Currency currency = this.Currencies.List.Single<Currency>((Func<Currency, bool>) (x => x.Id == this.DisplayCurrencyId));
-      CurrencyRate displayCurrencyRate = currency.GetRate();
-      int displayCurrencyDecimals = currency.Decimals;
-      this._balances = ((IEnumerable<Stock>) stocks).Join(this.Currencies.List, (Func<Stock, string>) (s => s.CurrencyId), (Func<Currency, string>) (c => c.Id), (s, c) => new
-      {
-        s = s,
-        c = c
-      }).GroupJoin(inner, _param1 => _param1.s.Id, sb => sb.StockId, (_param1, gj) => new
-      {
-        \u003C\u003Eh__TransparentIdentifier0 = _param1,
-        gj = gj
-      }).SelectMany(_param1 => _param1.gj.DefaultIfEmpty(), (_param1, sb) => new
-      {
-        \u003C\u003Eh__TransparentIdentifier1 = _param1,
-        sb = sb
-      }).Select(_param1 => new
-      {
-        \u003C\u003Eh__TransparentIdentifier2 = _param1,
-        currencyRate = _param1.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.c.GetRate()
-      }).Select(_param1 =>
-      {
-        StockBalanceWithData stockBalanceWithData = new StockBalanceWithData();
-        stockBalanceWithData.StockId = _param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.Id;
-        stockBalanceWithData.StockCode = _param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.Code;
-        stockBalanceWithData.StockName = _param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.Name;
-        stockBalanceWithData.StockUnit = _param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.Unit;
-        stockBalanceWithData.StockPrice = Math.Round(_param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.Price * _param1.currencyRate.Multiplier / _param1.currencyRate.Divider / displayCurrencyRate.Multiplier * displayCurrencyRate.Divider, displayCurrencyDecimals);
-        stockBalanceWithData.StockGroup = _param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.Group;
-        stockBalanceWithData.StockType = _param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.Type;
-        stockBalanceWithData.StockTags = _param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.Tags;
-        var sb1 = _param1.\u003C\u003Eh__TransparentIdentifier2.sb;
-        stockBalanceWithData.Income = sb1 != null ? sb1.Income : 0M;
-        var sb2 = _param1.\u003C\u003Eh__TransparentIdentifier2.sb;
-        stockBalanceWithData.Expense = sb2 != null ? sb2.Expense : 0M;
-        var sb3 = _param1.\u003C\u003Eh__TransparentIdentifier2.sb;
-        stockBalanceWithData.IsExisting = (sb3 != null ? sb3.Balance : 0M) > 0M;
-        var sb4 = _param1.\u003C\u003Eh__TransparentIdentifier2.sb;
-        stockBalanceWithData.IsFinished = (sb4 != null ? sb4.Balance : 0M) <= 0M;
-        var sb5 = _param1.\u003C\u003Eh__TransparentIdentifier2.sb;
-        stockBalanceWithData.IsOverUsed = (sb5 != null ? sb5.Balance : 0M) < 0M;
-        Decimal? nullable = _param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.LimitMin;
-        int num1;
-        if (nullable.HasValue)
+        if (!_loaded)
         {
-          var sb6 = _param1.\u003C\u003Eh__TransparentIdentifier2.sb;
-          Decimal balance = sb6 != null ? sb6.Balance : 0M;
-          nullable = _param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.LimitMin;
-          Decimal valueOrDefault = nullable.GetValueOrDefault();
-          num1 = balance < valueOrDefault & nullable.HasValue ? 1 : 0;
+            AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
+            SelectedWarehouseIds = new List<object> { configAsync.DefaultWarehouseId };
+            DisplayCurrencyId = Currencies.List.Single(x => x.IsDefault).Id;
         }
-        else
-          num1 = 0;
-        stockBalanceWithData.IsFinishing = num1 != 0;
-        nullable = _param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.LimitMax;
-        int num2;
-        if (nullable.HasValue)
-        {
-          var sb7 = _param1.\u003C\u003Eh__TransparentIdentifier2.sb;
-          Decimal balance = sb7 != null ? sb7.Balance : 0M;
-          nullable = _param1.\u003C\u003Eh__TransparentIdentifier2.\u003C\u003Eh__TransparentIdentifier1.\u003C\u003Eh__TransparentIdentifier0.s.LimitMax;
-          Decimal valueOrDefault = nullable.GetValueOrDefault();
-          num2 = balance > valueOrDefault & nullable.HasValue ? 1 : 0;
-        }
-        else
-          num2 = 0;
-        stockBalanceWithData.IsOverLimit = num2 != 0;
-        return stockBalanceWithData;
-      });
-      stocks = (Stock[]) null;
-    }
-  }
 
-  protected override PredicateBuilder<StockBalanceWithData> GetPredicateBuilder(ListFilter filter)
+        _loaded = true;
+        await PreLoadBalances();
+        await base.PreLoad(); // Відновлено base
+    }
+
+    private async Task PreLoadBalances()
+    {
+        if (WarehouseIds.Length == 0)
+        {
+            _balances = Enumerable.Empty<StockBalanceWithData>();
+            return;
+        }
+
+        var stocks = await _stocksRepository.GetAsync();
+        var balancesList = await _balancesRepository.GetAsync(null, DateTime.Now, WarehouseIds);
+
+        var inner = balancesList
+            .GroupBy(x => x.StockId)
+            .Select(g => new
+            {
+                StockId = g.Key,
+                Income = g.Sum(x => x.Income),
+                Expense = g.Sum(x => x.Expense),
+                Balance = g.Sum(x => x.Balance)
+            }).ToList();
+
+        var displayCurrency = Currencies.List.Single(x => x.Id == DisplayCurrencyId);
+        var displayCurrencyRate = displayCurrency.GetRate();
+        int displayCurrencyDecimals = displayCurrency.Decimals;
+
+        // Відновлений людський LINQ
+        var query =
+            from s in stocks
+            join c in Currencies.List on s.CurrencyId equals c.Id
+            join b in inner on s.Id equals b.StockId into bGroup
+            from sb in bGroup.DefaultIfEmpty()
+            let currencyRate = c.GetRate()
+            select new StockBalanceWithData
+            {
+                StockId = s.Id,
+                StockCode = s.Code,
+                StockName = s.Name,
+                StockUnit = s.Unit,
+                StockPrice = Math.Round(s.Price * currencyRate.Multiplier / currencyRate.Divider / displayCurrencyRate.Multiplier * displayCurrencyRate.Divider, displayCurrencyDecimals),
+                StockGroup = s.Group,
+                StockType = s.Type,
+                StockTags = s.Tags,
+                Income = sb?.Income ?? 0M,
+                Expense = sb?.Expense ?? 0M,
+                IsExisting = (sb?.Balance ?? 0M) > 0M,
+                IsFinished = (sb?.Balance ?? 0M) <= 0M,
+                IsOverUsed = (sb?.Balance ?? 0M) < 0M,
+                IsFinishing = s.LimitMin.HasValue && (sb?.Balance ?? 0M) < s.LimitMin.Value,
+                IsOverLimit = s.LimitMax.HasValue && (sb?.Balance ?? 0M) > s.LimitMax.Value
+            };
+
+        _balances = query.ToList();
+    }
+
+    protected override PredicateBuilder<StockBalanceWithData> GetPredicateBuilder(ListFilter filter)
   {
     PredicateBuilder<StockBalanceWithData> predicateBuilder = base.GetPredicateBuilder(filter);
     if (filter.Tag is string tag)

@@ -62,28 +62,25 @@ public class StockSlipDetailsViewModel :
 
   public void Prepare(StockSlipType parameter) => this._newSlipType = parameter;
 
-  protected override async Task PostLoad()
-  {
-    StockSlipDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (!string.IsNullOrEmpty(detailsViewModel.ItemId))
-      return;
-    detailsViewModel.Details.SlipType = detailsViewModel._newSlipType;
-  }
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
+        if (!string.IsNullOrEmpty(ItemId))
+            return;
+        Details.SlipType = _newSlipType;
+    }
 
-  protected override async Task<bool> OnSaveAsync()
-  {
-    StockSlipDetailsViewModel detailsViewModel = this;
-    detailsViewModel._newSlipType = detailsViewModel.Details.SlipType;
-    // ISSUE: reference to a compiler-generated method
-    if (!await detailsViewModel.\u003C\u003En__1())
-      return false;
-    await detailsViewModel._printingService.PrintStockSlip(detailsViewModel.Details);
-    return true;
-  }
+    protected override async Task<bool> OnSaveAsync()
+    {
+        _newSlipType = Details.SlipType;
+        if (!await base.OnSaveAsync())
+            return false;
 
-  protected override void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        await _printingService.PrintStockSlip(Details);
+        return true;
+    }
+
+    protected override void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
   {
     base.Details_PropertyChanged(sender, e);
     if (!(e.PropertyName == "IsPriceEditable") || this.Details.IsPriceEditable)

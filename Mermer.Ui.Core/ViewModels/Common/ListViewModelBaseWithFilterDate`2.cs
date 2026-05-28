@@ -26,86 +26,90 @@ public abstract class ListViewModelBaseWithFilterDate<TList, TFilter> :
   private DateTime _dateFilterTill;
   private bool _isCustomDateFilter;
 
-  protected ListViewModelBaseWithFilterDate(
-    IMvxMessenger messenger,
-    IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService)
-    : base(messenger, navigationService, userInteractionService)
-  {
-    ListFilter[] listFilterArray = new ListFilter[8];
-    ListFilterByDate listFilterByDate1 = new ListFilterByDate();
-    listFilterByDate1.Title = this["Today", Array.Empty<object>()];
-    listFilterByDate1.CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy);
-    listFilterByDate1.Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x));
-    listFilterByDate1.Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<TList, TFilter>) this).CountByFilterAsync);
-    listFilterByDate1.From = DateTime.Today;
-    listFilterByDate1.Till = DateTime.Today;
-    listFilterArray[0] = (ListFilter) listFilterByDate1;
-    ListFilterByDate listFilterByDate2 = new ListFilterByDate();
-    listFilterByDate2.Title = this["Yesturday", Array.Empty<object>()];
-    listFilterByDate2.CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy);
-    listFilterByDate2.Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x));
-    listFilterByDate2.Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<TList, TFilter>) this).CountByFilterAsync);
-    listFilterByDate2.From = DateTime.Today.AddDays(-1.0);
-    listFilterByDate2.Till = DateTime.Today.AddDays(-1.0);
-    listFilterArray[1] = (ListFilter) listFilterByDate2;
-    ListFilterByDate listFilterByDate3 = new ListFilterByDate();
-    listFilterByDate3.Title = this["This Week", Array.Empty<object>()];
-    listFilterByDate3.CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy);
-    listFilterByDate3.Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x));
-    listFilterByDate3.Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<TList, TFilter>) this).CountByFilterAsync);
-    listFilterByDate3.From = DateTime.Today.StartOfWeek();
-    listFilterByDate3.Till = DateTime.Today.EndOfWeek();
-    listFilterArray[2] = (ListFilter) listFilterByDate3;
-    ListFilterByDate listFilterByDate4 = new ListFilterByDate();
-    listFilterByDate4.Title = this["Past Week", Array.Empty<object>()];
-    listFilterByDate4.CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy);
-    listFilterByDate4.Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x));
-    listFilterByDate4.Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<TList, TFilter>) this).CountByFilterAsync);
-    listFilterByDate4.From = DateTime.Today.AddDays(-7.0).StartOfWeek();
-    listFilterByDate4.Till = DateTime.Today.AddDays(-7.0).EndOfWeek();
-    listFilterArray[3] = (ListFilter) listFilterByDate4;
-    ListFilterByDate listFilterByDate5 = new ListFilterByDate();
-    listFilterByDate5.Title = this["This Month", Array.Empty<object>()];
-    listFilterByDate5.CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy);
-    listFilterByDate5.Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x));
-    listFilterByDate5.Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<TList, TFilter>) this).CountByFilterAsync);
-    listFilterByDate5.From = DateTime.Today.AddDays((double) (1 - DateTime.Today.Day));
-    DateTime dateTime1 = DateTime.Today;
-    dateTime1 = dateTime1.AddMonths(1);
-    listFilterByDate5.Till = dateTime1.AddDays((double) -DateTime.Today.Day);
-    listFilterArray[4] = (ListFilter) listFilterByDate5;
-    ListFilterByDate listFilterByDate6 = new ListFilterByDate();
-    listFilterByDate6.Title = this["Past Month", Array.Empty<object>()];
-    listFilterByDate6.CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy);
-    listFilterByDate6.Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x));
-    listFilterByDate6.Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<TList, TFilter>) this).CountByFilterAsync);
-    DateTime dateTime2 = DateTime.Today;
-    dateTime2 = dateTime2.AddDays((double) (1 - DateTime.Today.Day));
-    listFilterByDate6.From = dateTime2.AddMonths(-1);
-    listFilterByDate6.Till = DateTime.Today.AddDays((double) -DateTime.Today.Day);
-    listFilterArray[5] = (ListFilter) listFilterByDate6;
-    ListFilterByDate listFilterByDate7 = new ListFilterByDate();
-    listFilterByDate7.Title = this["This Year", Array.Empty<object>()];
-    listFilterByDate7.CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy);
-    listFilterByDate7.Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x));
-    listFilterByDate7.Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<TList, TFilter>) this).CountByFilterAsync);
-    listFilterByDate7.From = DateTime.Today.AddDays((double) (1 - DateTime.Today.DayOfYear));
-    DateTime dateTime3 = DateTime.Today;
-    dateTime3 = dateTime3.AddYears(1);
-    listFilterByDate7.Till = dateTime3.AddDays((double) -DateTime.Today.DayOfYear);
-    listFilterArray[6] = (ListFilter) listFilterByDate7;
-    listFilterArray[7] = new ListFilter()
+    protected ListViewModelBaseWithFilterDate(
+      IMvxMessenger messenger,
+      IMvxNavigationService navigationService,
+      IUserInteractionService userInteractionService)
+      : base(messenger, navigationService, userInteractionService)
     {
-      Title = this["All Records", Array.Empty<object>()],
-      CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-      Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-      Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<TList, TFilter>) this).CountByFilterAsync)
-    };
-    this.Filters = (IEnumerable<ListFilter>) listFilterArray;
-  }
+        var today = DateTime.Today;
 
-  public DateTime DateFilterFrom
+        Filters = new ListFilter[]
+        {
+        new ListFilterByDate
+        {
+            Title = this["Today"],
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync,
+            From = today,
+            Till = today
+        },
+        new ListFilterByDate
+        {
+            Title = this["Yesterday"], // До речі, виправив одруківку Yesturday :)
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync,
+            From = today.AddDays(-1),
+            Till = today.AddDays(-1)
+        },
+        new ListFilterByDate
+        {
+            Title = this["This Week"],
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync,
+            From = today.StartOfWeek(),
+            Till = today.EndOfWeek()
+        },
+        new ListFilterByDate
+        {
+            Title = this["Past Week"],
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync,
+            From = today.AddDays(-7).StartOfWeek(),
+            Till = today.AddDays(-7).EndOfWeek()
+        },
+        new ListFilterByDate
+        {
+            Title = this["This Month"],
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync,
+            From = today.AddDays(1 - today.Day),
+            Till = today.AddMonths(1).AddDays(-today.Day)
+        },
+        new ListFilterByDate
+        {
+            Title = this["Past Month"],
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync,
+            From = today.AddDays(1 - today.Day).AddMonths(-1),
+            Till = today.AddDays(-today.Day)
+        },
+        new ListFilterByDate
+        {
+            Title = this["This Year"],
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync,
+            From = today.AddDays(1 - today.DayOfYear),
+            Till = today.AddYears(1).AddDays(-today.DayOfYear)
+        },
+        new ListFilter
+        {
+            Title = this["All Records"],
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        }
+        };
+    }
+
+    public DateTime DateFilterFrom
   {
     get => this._dateFilterFrom;
     set => this.SetProperty<DateTime>(ref this._dateFilterFrom, value, nameof (DateFilterFrom));
@@ -198,26 +202,24 @@ public abstract class ListViewModelBaseWithFilterDate<TList, TFilter> :
 
   protected virtual async Task OnFilterByDateCommandAsync() => await this.LoadByDateAsync();
 
-  protected virtual async Task LoadByDateAsync(bool setBusiness = true)
-  {
-    ListViewModelBaseWithFilterDate<TList, TFilter> baseWithFilterDate = this;
-    int num;
-    if (num != 0 && setBusiness)
-      baseWithFilterDate.IsBusy = true;
-    try
+    protected virtual async Task LoadByDateAsync(bool setBusiness = true)
     {
-      baseWithFilterDate.SelectedFilter = (ListFilter) null;
-      IEnumerable<TList> filteredListByDateAsync = await baseWithFilterDate.GetFilteredListByDateAsync(baseWithFilterDate.DateFilterFrom, baseWithFilterDate.DateFilterTillInclusive);
-      baseWithFilterDate.List = filteredListByDateAsync;
-      baseWithFilterDate.SubCaption = $"{baseWithFilterDate.DateFilterFrom:MMM d} - {baseWithFilterDate.DateFilterTill:MMM d}";
-      baseWithFilterDate._isCustomDateFilter = true;
+        if (setBusiness)
+            IsBusy = true;
+
+        try
+        {
+            SelectedFilter = null;
+            List = await GetFilteredListByDateAsync(DateFilterFrom, DateFilterTillInclusive);
+            SubCaption = $"{DateFilterFrom:MMM d} - {DateFilterTill:MMM d}";
+            _isCustomDateFilter = true;
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+        }
+
+        if (setBusiness)
+            IsBusy = false;
     }
-    catch (Exception ex)
-    {
-      baseWithFilterDate.UserInteractionService.ShowExceptionMessage(ex);
-    }
-    if (!setBusiness)
-      return;
-    baseWithFilterDate.IsBusy = false;
-  }
 }

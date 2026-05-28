@@ -10,7 +10,6 @@ using MvvmCross.Platform;
 using MvvmCross.Plugins.Messenger;
 using Mermer.Common.Services;
 using Mermer.Common.Settings;
-using Mermer.Core.Couch.Common;
 using Mermer.Ui.Core.Helpers;
 using Mermer.Data.Storage;
 using Mermer.Mvvm.Services;
@@ -21,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Payhas.Binyat.Core.Couch.Common;
 
 #nullable disable
 namespace Mermer.Ui.Core.ViewModels.Settings;

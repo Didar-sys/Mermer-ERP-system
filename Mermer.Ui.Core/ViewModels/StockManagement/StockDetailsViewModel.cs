@@ -99,77 +99,61 @@ public class StockDetailsViewModel : DetailsViewModel<Stock>
     detailsViewModel.PriceGroupNames = facets["PriceGroupNames"].Select<KeyValuePair<string, int>, string>((Func<KeyValuePair<string, int>, string>) (x => x.Key)).ToArray<string>();
   }
 
-  protected override async Task PostLoad()
-  {
-    StockDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (string.IsNullOrEmpty(detailsViewModel.ItemId))
+    protected override async Task PostLoad()
     {
-      Stock stock = detailsViewModel.Details;
-      stock.Code = await detailsViewModel._codeGenerationService.GetNextCode();
-      stock = (Stock) null;
-    }
-    if (detailsViewModel.Details.Prices == null)
-      detailsViewModel.Details.Prices = new WatchedObservableCollection<StockPrice>();
-    detailsViewModel.Details.Prices.Watcher.ItemsChanged += (ItemsChangedEventHandler) (() =>
-    {
-      if (!string.IsNullOrEmpty(this.Details.CurrencyId))
-        return;
-      Stock details = this.Details;
-      Reference<Currency> currencies = this.Currencies;
-      string str;
-      if (currencies == null)
-      {
-        str = (string) null;
-      }
-      else
-      {
-        IEnumerable<Currency> list = currencies.List;
-        str = list != null ? list.SingleOrDefault<Currency>((Func<Currency, bool>) (x => x.IsDefault))?.Id : (string) null;
-      }
-      details.CurrencyId = str;
-    });
-    if (detailsViewModel.Details.AdditionalPrices == null)
-      detailsViewModel.Details.AdditionalPrices = new WatchedObservableCollection<StockAdditionalPrice>();
-    detailsViewModel.Details.AdditionalPrices.Watcher.ItemPropertyChanged += (ItemPropertyChangedEventHandler) ((s, e) =>
-    {
-      if (!(s is StockAdditionalPrice stockAdditionalPrice2))
-        return;
-      if (string.IsNullOrEmpty(stockAdditionalPrice2.CurrencyId))
-      {
-        StockAdditionalPrice stockAdditionalPrice3 = stockAdditionalPrice2;
-        Reference<Currency> currencies = this.Currencies;
-        string str;
-        if (currencies == null)
-        {
-          str = (string) null;
-        }
-        else
-        {
-          IEnumerable<Currency> list = currencies.List;
-          str = list != null ? list.SingleOrDefault<Currency>((Func<Currency, bool>) (x => x.IsDefault))?.Id : (string) null;
-        }
-        stockAdditionalPrice3.CurrencyId = str;
-      }
-      if (!(stockAdditionalPrice2.ValidFrom == new DateTime()))
-        return;
-      stockAdditionalPrice2.ValidFrom = DateTime.Today;
-    });
-    if (detailsViewModel.Details.Units == null)
-      detailsViewModel.Details.Units = new ObservableCollection<StockUnit>();
-    detailsViewModel.Details.Units.CollectionChanged += (NotifyCollectionChangedEventHandler) ((s, e) =>
-    {
-      if (e.Action != NotifyCollectionChangedAction.Add)
-        return;
-      foreach (StockUnit stockUnit in e.NewItems.Cast<StockUnit>())
-        stockUnit.Id = Guid.NewGuid().ToString();
-    });
-    IEnumerable<string> usedCurrencyIds = detailsViewModel.Details.Prices.Select<StockPrice, string>((Func<StockPrice, string>) (x => x.CurrencyId));
-    detailsViewModel.Currencies.Filter = (Func<Currency, bool>) (x => !x.IsDisabled || usedCurrencyIds.Contains<string>(x.Id));
-  }
+        await base.PostLoad();
 
-  public Reference<Currency> Currencies { get; }
+        if (string.IsNullOrEmpty(ItemId))
+        {
+            Details.Code = await _codeGenerationService.GetNextCode();
+        }
+
+        if (Details.Prices == null)
+            Details.Prices = new WatchedObservableCollection<StockPrice>();
+
+        Details.Prices.Watcher.ItemsChanged += () =>
+        {
+            if (!string.IsNullOrEmpty(Details.CurrencyId))
+                return;
+
+            Details.CurrencyId = Currencies?.List?.SingleOrDefault(x => x.IsDefault)?.Id;
+        };
+
+        if (Details.AdditionalPrices == null)
+            Details.AdditionalPrices = new WatchedObservableCollection<StockAdditionalPrice>();
+
+        Details.AdditionalPrices.Watcher.ItemPropertyChanged += (s, e) =>
+        {
+            if (s is StockAdditionalPrice stockAdditionalPrice)
+            {
+                if (string.IsNullOrEmpty(stockAdditionalPrice.CurrencyId))
+                {
+                    stockAdditionalPrice.CurrencyId = Currencies?.List?.SingleOrDefault(x => x.IsDefault)?.Id;
+                }
+                if (stockAdditionalPrice.ValidFrom == default(DateTime))
+                {
+                    stockAdditionalPrice.ValidFrom = DateTime.Today;
+                }
+            }
+        };
+
+        if (Details.Units == null)
+            Details.Units = new ObservableCollection<StockUnit>();
+
+        Details.Units.CollectionChanged += (s, e) =>
+        {
+            if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems != null)
+            {
+                foreach (StockUnit stockUnit in e.NewItems.Cast<StockUnit>())
+                    stockUnit.Id = Guid.NewGuid().ToString();
+            }
+        };
+
+        IEnumerable<string> usedCurrencyIds = Details.Prices.Select(x => x.CurrencyId);
+        Currencies.Filter = x => !x.IsDisabled || usedCurrencyIds.Contains(x.Id);
+    }
+
+    public Reference<Currency> Currencies { get; }
 
   public virtual StockPrice SelectedPrice
   {

@@ -173,7 +173,7 @@
         </dxg:GridControlBand>
       </dxg:GridControl.Bands>
       <dxg:GridControl.TotalSummary>
-        <dxg:GridSummaryItem FieldName="StockCode" DisplayFormat="{0}" SummaryType="Count"/>
+        <dxg:GridSummaryItem FieldName="StockCode" DisplayFormat="{}{0}" SummaryType="Count"/>
         <dxg:GridSummaryItem FieldName="TotalCounted" DisplayFormat="#,##0.##" SummaryType="Sum"/>
         <dxg:GridSummaryItem FieldName="TotalComputed" DisplayFormat="#,##0.##" SummaryType="Sum"/>
         <dxg:GridSummaryItem FieldName="TotalDifference" DisplayFormat="#,##0.##" SummaryType="Sum"/>

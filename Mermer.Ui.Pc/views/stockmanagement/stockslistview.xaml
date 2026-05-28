@@ -107,7 +107,7 @@
             <dxg:GridColumn FieldName="Type" GroupIndex="0" Header="{Localize Type}"/>
           </dxg:GridControl.Columns>
           <dxg:GridControl.TotalSummary>
-            <dxg:GridSummaryItem FieldName="Code" DisplayFormat="{0}" SummaryType="Count"/>
+            <dxg:GridSummaryItem FieldName="Code" DisplayFormat="{}{0}" SummaryType="Count"/>
           </dxg:GridControl.TotalSummary>
         </ctrl:StyledGridControl>
       </dxlc:LayoutControl>

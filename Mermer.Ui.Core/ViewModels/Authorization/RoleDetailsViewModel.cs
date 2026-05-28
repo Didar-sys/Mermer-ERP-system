@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Core.ViewModels.Authorization.RoleDetailsViewModel
-// Assembly: Mermer.Ui.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: DC92D011-8413-44AC-9F10-F866D891CF66
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
-
-using MvvmCross.Core.Navigation;
+﻿using MvvmCross.Core.Navigation;
 using Mermer.Authorization.Enums;
 using Mermer.Authorization.Models;
 using Mermer.Commerce.Models;
@@ -20,78 +14,79 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-#nullable disable
 namespace Mermer.Ui.Core.ViewModels.Authorization;
 
-public class RoleDetailsViewModel(
-  IRepository<Role> repository,
-  IListAuthorizer<Role> authorizer,
-  IMvxNavigationService navigationService,
-  IUserInteractionService userInteractionService) : DetailsViewModel<Role>(repository, authorizer, navigationService, userInteractionService)
+public class RoleDetailsViewModel : DetailsViewModel<Role>
 {
-  private IEnumerable<RoleAction> _actions;
-  private IEnumerable<RoleAction> _listActions;
-  private IEnumerable<RoleAction> _transactionActions;
+    private IEnumerable<RoleAction> _actions;
+    private IEnumerable<RoleAction> _listActions;
+    private IEnumerable<RoleAction> _transactionActions;
 
-  protected override async Task PostLoad()
-  {
-    RoleDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (detailsViewModel.Details.Authorizations == null)
-      detailsViewModel.Details.Authorizations = new Dictionary<string, int>();
-    detailsViewModel.Actions = detailsViewModel.CreateActions<Mermer.Authorization.Enums.Actions, AccessLevel>();
-    detailsViewModel.ListActions = detailsViewModel.CreateActions<Mermer.Authorization.Enums.ListActions, ListAccessLevel>();
-    List<RoleAction> roleActionList = new List<RoleAction>();
-    roleActionList.AddRange(detailsViewModel.CreateActions<InvoiceType, TransactionAccessLevel>());
-    roleActionList.AddRange(detailsViewModel.CreateActions<BillType, TransactionAccessLevel>());
-    roleActionList.AddRange(detailsViewModel.CreateActions<StockSlipType, TransactionAccessLevel>());
-    roleActionList.AddRange(detailsViewModel.CreateActions<FundsSlipType, TransactionAccessLevel>());
-    roleActionList.AddRange(detailsViewModel.CreateActions<Mermer.Authorization.Enums.TransactionActions, TransactionAccessLevel>());
-    detailsViewModel.TransactionActions = (IEnumerable<RoleAction>) roleActionList;
-  }
-
-  public virtual IEnumerable<RoleAction> Actions
-  {
-    get => this._actions;
-    set => this.SetProperty<IEnumerable<RoleAction>>(ref this._actions, value, nameof (Actions));
-  }
-
-  public virtual IEnumerable<RoleAction> ListActions
-  {
-    get => this._listActions;
-    set
+    public RoleDetailsViewModel(
+        IRepository<Role> repository,
+        IListAuthorizer<Role> authorizer,
+        IMvxNavigationService navigationService,
+        IUserInteractionService userInteractionService)
+        : base(repository, authorizer, navigationService, userInteractionService)
     {
-      this.SetProperty<IEnumerable<RoleAction>>(ref this._listActions, value, nameof (ListActions));
     }
-  }
 
-  public virtual IEnumerable<RoleAction> TransactionActions
-  {
-    get => this._transactionActions;
-    set
+    protected override async Task PostLoad()
     {
-      this.SetProperty<IEnumerable<RoleAction>>(ref this._transactionActions, value, nameof (TransactionActions));
-    }
-  }
+        await base.PostLoad(); // Виправлений артефакт декомпілятора
 
-  private IEnumerable<RoleAction> CreateActions<TAction, TAccess>()
-  {
-    RoleAction[] array = Enum.GetValues(typeof (TAction)).Cast<TAction>().Select<TAction, RoleAction>((Func<TAction, RoleAction>) (x => new RoleAction(this.Details)
-    {
-      Id = x.ToString(),
-      Name = this[x.ToString(), Array.Empty<object>()]
-    })).ToArray<RoleAction>();
-    foreach (RoleAction roleAction in array)
-    {
-      RoleAction action = roleAction;
-      action.Options = (IEnumerable<RoleOption>) Enum.GetValues(typeof (TAccess)).Cast<TAccess>().Select<TAccess, RoleOption>((Func<TAccess, RoleOption>) (x => new RoleOption(action)
-      {
-        Name = this[x.ToString(), Array.Empty<object>()],
-        Value = Convert.ToInt32((object) x)
-      })).ToArray<RoleOption>();
+        if (Details.Authorizations == null)
+            Details.Authorizations = new Dictionary<string, int>();
+
+        Actions = CreateActions<Mermer.Authorization.Enums.Actions, AccessLevel>();
+        ListActions = CreateActions<Mermer.Authorization.Enums.ListActions, ListAccessLevel>();
+
+        var roleActionList = new List<RoleAction>();
+        roleActionList.AddRange(CreateActions<InvoiceType, TransactionAccessLevel>());
+        roleActionList.AddRange(CreateActions<BillType, TransactionAccessLevel>());
+        roleActionList.AddRange(CreateActions<StockSlipType, TransactionAccessLevel>());
+        roleActionList.AddRange(CreateActions<FundsSlipType, TransactionAccessLevel>());
+        roleActionList.AddRange(CreateActions<Mermer.Authorization.Enums.TransactionActions, TransactionAccessLevel>());
+
+        TransactionActions = roleActionList;
     }
-    DirtynessController.ControlList<RoleAction>((IEnumerable<RoleAction>) array, (Action<RoleAction>) (x => this.IsDirty = true));
-    return (IEnumerable<RoleAction>) array;
-  }
+
+    public virtual IEnumerable<RoleAction> Actions
+    {
+        get => _actions;
+        set => SetProperty(ref _actions, value);
+    }
+
+    public virtual IEnumerable<RoleAction> ListActions
+    {
+        get => _listActions;
+        set => SetProperty(ref _listActions, value);
+    }
+
+    public virtual IEnumerable<RoleAction> TransactionActions
+    {
+        get => _transactionActions;
+        set => SetProperty(ref _transactionActions, value);
+    }
+
+    private IEnumerable<RoleAction> CreateActions<TAction, TAccess>()
+    {
+        var array = Enum.GetValues(typeof(TAction)).Cast<TAction>().Select(x => new RoleAction(Details)
+        {
+            Id = x.ToString(),
+            Name = this[x.ToString()]
+        }).ToArray();
+
+        foreach (var action in array)
+        {
+            action.Options = Enum.GetValues(typeof(TAccess)).Cast<TAccess>().Select(x => new RoleOption(action)
+            {
+                Name = this[x.ToString()],
+                Value = Convert.ToInt32(x)
+            }).ToArray();
+        }
+
+        DirtynessController.ControlList(array, x => IsDirty = true);
+        return array;
+    }
 }

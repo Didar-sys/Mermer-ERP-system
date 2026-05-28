@@ -96,23 +96,23 @@ public class RevenueReportViewModel : BaseViewModel
     }
   }
 
-  protected override async Task PreLoad()
-  {
-    RevenueReportViewModel revenueReportViewModel = this;
-    if (!revenueReportViewModel._loaded && !((IEnumerable<string>) revenueReportViewModel.WarehouseIds).Any<string>())
+    protected override async Task PreLoad()
     {
-      AppSettings configAsync = await revenueReportViewModel._configurator.GetConfigAsync<AppSettings>();
-      revenueReportViewModel.SelectedWarehouseIds = new System.Collections.Generic.List<object>((IEnumerable<object>) new object[1]
-      {
-        (object) configAsync.DefaultWarehouseId
-      });
-    }
-    revenueReportViewModel._loaded = true;
-    // ISSUE: reference to a compiler-generated method
-    await Task.WhenAll(revenueReportViewModel.\u003C\u003En__0(), revenueReportViewModel.Warehouses.Initialize());
-  }
+        if (!_loaded && !WarehouseIds.Any())
+        {
+            AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
+            SelectedWarehouseIds = new List<object> { configAsync.DefaultWarehouseId };
+        }
 
-  protected override async Task OnLoad()
+        _loaded = true;
+
+        await Task.WhenAll(
+            base.PreLoad(),
+            Warehouses.Initialize()
+        );
+    }
+
+    protected override async Task OnLoad()
   {
     RevenueReportViewModel revenueReportViewModel = this;
     IEnumerable<RevenueReport> async = await revenueReportViewModel._repository.GetAsync(revenueReportViewModel.WarehouseIds, revenueReportViewModel.DateFilterFrom, revenueReportViewModel.DateFilterTillInclusive);

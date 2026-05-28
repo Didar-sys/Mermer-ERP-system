@@ -39,20 +39,20 @@ public class FundsTransferDetailsViewModel(
   IUserInteractionService userInteractionService) : 
   FundsTransactionDetailsViewModel<FundsTransfer, FundsTransferLine>(repository, authorizer, configurator, loginService, currencies, depositories, navigationService, codegentor, userInteractionService)
 {
-  protected override async Task PostLoad()
-  {
-    FundsTransferDetailsViewModel detailsViewModel = this;
-    IEnumerable<string> usedDepositoryIds = ((IEnumerable<string>) new string[2]
+    protected override async Task PostLoad()
     {
-      detailsViewModel.Details.DepositoryId,
-      detailsViewModel.Details.DestinationDepositoryId
-    }).Distinct<string>();
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    detailsViewModel.Depositories.Filter = (Func<Depository, bool>) (x => !x.IsDisabled || usedDepositoryIds.Contains<string>(x.Id));
-  }
+        var usedDepositoryIds = new[]
+        {
+        Details.DepositoryId,
+        Details.DestinationDepositoryId
+    }.Distinct();
 
-  public ICommand SelectDestinationDepositoryCommand
+        await base.PostLoad();
+
+        Depositories.Filter = x => !x.IsDisabled || usedDepositoryIds.Contains(x.Id);
+    }
+
+    public ICommand SelectDestinationDepositoryCommand
   {
     get
     {

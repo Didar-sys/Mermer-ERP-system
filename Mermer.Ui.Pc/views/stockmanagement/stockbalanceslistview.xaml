@@ -115,7 +115,7 @@
           </dxg:GridControlBand>
         </dxg:GridControl.Bands>
         <dxg:GridControl.TotalSummary>
-          <dxg:GridSummaryItem FieldName="StockCode" DisplayFormat="{0}" SummaryType="Count"/>
+          <dxg:GridSummaryItem FieldName="StockCode" DisplayFormat="{}{0}" SummaryType="Count"/>
           <dxg:GridSummaryItem FieldName="StartingBalance" DisplayFormat="#,##0.##" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="StockOpening" DisplayFormat="#,##0.##" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="RevisionExceed" DisplayFormat="#,##0.##" SummaryType="Sum"/>

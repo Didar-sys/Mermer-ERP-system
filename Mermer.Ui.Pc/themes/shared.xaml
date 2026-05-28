@@ -2,22 +2,16 @@
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
-                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                    xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars"
                     xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
                     xmlns:dxet="http://schemas.devexpress.com/winfx/2008/xaml/editors/themekeys"
-                    xmlns:dxn="clr-namespace:DevExpress.Xpf.Core.Native;assembly=DevExpress.Xpf.Core.v21.2"
                     xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
                     xmlns:dxgt="http://schemas.devexpress.com/winfx/2008/xaml/grid/themekeys"
-                    xmlns:dxr="http://schemas.devexpress.com/winfx/2008/xaml/ribbon"
-                    xmlns:dxc="http://schemas.devexpress.com/winfx/2008/xaml/charts"
                     xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
                     xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui"
                     xmlns:dxwuii="http://schemas.devexpress.com/winfx/2008/xaml/windowsui/internal"
                     xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
-                    xmlns:local="clr-namespace:DevExpress.DevAV"
                     xmlns:dxnav="http://schemas.devexpress.com/winfx/2008/xaml/navigation"
-                    xmlns:devav="clr-namespace:DevExpress.DevAV;assembly=DevExpress.DevAV.v21.2.Data">
+                    xmlns:dxc="http://schemas.devexpress.com/winfx/2008/xaml/charts">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/Mermer.Ui.Pc;component/Themes/ListView.xaml"/>
   </ResourceDictionary.MergedDictionaries>
@@ -30,16 +24,14 @@
   <SolidColorBrush x:Key="grayForegroundBrush" Color="#FF808080"/>
   <SolidColorBrush x:Key="blackForegroundBrush" Color="#FF191919"/>
   <SolidColorBrush x:Key="appBarBackgroundBrush" Color="#696969"/>
-  <CustomPalette x:Key="chartsPalette">
-    <CustomPalette.Colors>
-      <Color>#FF00859C</Color>
-      <Color>#FFCE7100</Color>
-      <Color>#FF0072C6</Color>
-      <Color>#FF3D7138</Color>
-      <Color>#FF555555</Color>
-    </CustomPalette.Colors>
-  </CustomPalette>
-  <Style TargetType="{x:Type dx:WaitIndicator}">
+    <dx:WpfSvgPalette x:Key="CustomPalette">
+        <SolidColorBrush x:Key="Color1" Color="#FF00859C"/>
+        <SolidColorBrush x:Key="Color2" Color="#FFCE7100"/>
+        <SolidColorBrush x:Key="Color3" Color="#FF0072C6"/>
+        <SolidColorBrush x:Key="Color4" Color="#FF3D7138"/>
+        <SolidColorBrush x:Key="Color5" Color="#FF555555"/>
+    </dx:WpfSvgPalette>
+    <Style TargetType="{x:Type dx:WaitIndicator}">
     <Setter Property="ContentControl.ContentTemplate">
       <Setter.Value>
         <DataTemplate>

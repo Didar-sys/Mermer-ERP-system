@@ -110,20 +110,20 @@ public class AggregatedReportViewModel : BaseViewModel
   }
 
   protected override async Task PreLoad()
-  {
-    AggregatedReportViewModel aggregatedReportViewModel = this;
-    if (!aggregatedReportViewModel._loaded && !((IEnumerable<string>) aggregatedReportViewModel.OfficeIds).Any<string>())
+{
+    if (!_loaded && !OfficeIds.Any())
     {
-      AppSettings configAsync = await aggregatedReportViewModel._configurator.GetConfigAsync<AppSettings>();
-      aggregatedReportViewModel.SelectedOfficeIds = new List<object>((IEnumerable<object>) new object[1]
-      {
-        (object) configAsync.DefaultOfficeId
-      });
+        var config = await _configurator.GetConfigAsync<AppSettings>();
+        SelectedOfficeIds = new List<object> { config.DefaultOfficeId };
     }
-    aggregatedReportViewModel._loaded = true;
-    // ISSUE: reference to a compiler-generated method
-    await Task.WhenAll(aggregatedReportViewModel.\u003C\u003En__0(), aggregatedReportViewModel.Offices.Initialize());
-  }
+    
+    _loaded = true;
+    
+    await Task.WhenAll(
+        base.PreLoad(), 
+        Offices.Initialize()
+    );
+}
 
   protected override async Task OnLoad()
   {

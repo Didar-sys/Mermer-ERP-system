@@ -72,28 +72,26 @@ public abstract class ListViewModelBaseWithFilter<TList, TFilter> : ListViewMode
     return this.SelectedFilter == null ? Task.CompletedTask : this.LoadByFilterAsync(this.SelectedFilter, false);
   }
 
-  protected virtual async Task LoadByFilterAsync(ListFilter filter, bool setBusiness = true)
-  {
-    ListViewModelBaseWithFilter<TList, TFilter> modelBaseWithFilter = this;
-    int num;
-    if (num != 0 && setBusiness)
-      modelBaseWithFilter.IsBusy = true;
-    try
+    protected virtual async Task LoadByFilterAsync(ListFilter filter, bool setBusiness = true)
     {
-      IEnumerable<TList> filteredListAsync = await modelBaseWithFilter.GetFilteredListAsync(filter);
-      modelBaseWithFilter.List = filteredListAsync;
-      modelBaseWithFilter.SubCaption = filter.Title;
-    }
-    catch (Exception ex)
-    {
-      modelBaseWithFilter.UserInteractionService.ShowExceptionMessage(ex);
-    }
-    if (!setBusiness)
-      return;
-    modelBaseWithFilter.IsBusy = false;
-  }
+        if (setBusiness)
+            IsBusy = true;
 
-  protected virtual Task<int> CountByFilterAsync(ListFilter filter)
+        try
+        {
+            List = await GetFilteredListAsync(filter);
+            SubCaption = filter.Title;
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+        }
+
+        if (setBusiness)
+            IsBusy = false;
+    }
+
+    protected virtual Task<int> CountByFilterAsync(ListFilter filter)
   {
     return filter != null ? this.CountFilteredListAsync(filter) : Task.FromResult<int>(0);
   }

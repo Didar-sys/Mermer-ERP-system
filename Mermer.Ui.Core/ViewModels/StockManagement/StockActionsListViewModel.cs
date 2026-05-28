@@ -126,44 +126,43 @@ public class StockActionsListViewModel :
 
   public void Prepare(StockActionsFilter parameter) => this._parameter = parameter;
 
-  protected override async Task PreLoad()
-  {
-    StockActionsListViewModel actionsListViewModel = this;
-    if (!actionsListViewModel._loaded)
+    protected override async Task PreLoad()
     {
-      if (actionsListViewModel._parameter != null)
-      {
-        actionsListViewModel.SelectedWarehouseIds = actionsListViewModel._parameter.WarehouseIds.Cast<object>().ToList<object>();
-        actionsListViewModel.StockId = actionsListViewModel._parameter.StockId;
-        actionsListViewModel.DateFilterFrom = actionsListViewModel._parameter.DateFrom;
-        actionsListViewModel.DateFilterTill = actionsListViewModel._parameter.DateTill;
-        if (!string.IsNullOrEmpty(actionsListViewModel.StockId))
+        if (!_loaded)
         {
-          Stock async = await actionsListViewModel._stocksRepository.GetAsync(actionsListViewModel.StockId);
-          actionsListViewModel.SelectedStockMessage = actionsListViewModel["Showing actions for stock: {0} | {1}", new object[2]
-          {
-            (object) async.Code,
-            (object) async.Name
-          }];
-        }
-      }
-      else
-      {
-        AppSettings configAsync = await actionsListViewModel._configurator.GetConfigAsync<AppSettings>();
-        actionsListViewModel.SelectedWarehouseIds = new System.Collections.Generic.List<object>((IEnumerable<object>) new object[1]
-        {
-          (object) configAsync.DefaultWarehouseId
-        });
-      }
-    }
-    actionsListViewModel._loaded = true;
-    if (string.IsNullOrEmpty(actionsListViewModel.StockId))
-      actionsListViewModel.SelectedStockMessage = actionsListViewModel["Showing actions for all stocks", Array.Empty<object>()];
-    // ISSUE: reference to a compiler-generated method
-    await Task.WhenAll(actionsListViewModel.\u003C\u003En__0(), actionsListViewModel.Warehouses.Initialize(), actionsListViewModel.StockSearcher.Initialize());
-  }
+            if (_parameter != null)
+            {
+                SelectedWarehouseIds = _parameter.WarehouseIds.Cast<object>().ToList();
+                StockId = _parameter.StockId;
+                DateFilterFrom = _parameter.DateFrom;
+                DateFilterTill = _parameter.DateTill;
 
-  protected override Task OnLoad()
+                if (!string.IsNullOrEmpty(StockId))
+                {
+                    Stock async = await _stocksRepository.GetAsync(StockId);
+                    SelectedStockMessage = this["Showing actions for stock: {0} | {1}", async.Code, async.Name];
+                }
+            }
+            else
+            {
+                AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
+                SelectedWarehouseIds = new List<object> { configAsync.DefaultWarehouseId };
+            }
+        }
+
+        _loaded = true;
+
+        if (string.IsNullOrEmpty(StockId))
+            SelectedStockMessage = this["Showing actions for all stocks"];
+
+        await Task.WhenAll(
+            base.PreLoad(), // Відновлено
+            Warehouses.Initialize(),
+            StockSearcher.Initialize()
+        );
+    }
+
+    protected override Task OnLoad()
   {
     if (this._parameter == null)
       return base.OnLoad();

@@ -10,7 +10,8 @@
                 xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
                 xmlns:ctrl="clr-namespace:Mermer.Ui.Pc.Controls"
                 xmlns:menu="clr-namespace:Mermer.Ui.Pc.Controls.MenuItems"
-                xmlns:vm="clr-namespace:Mermer.Ui.Core.ViewModels.FundsManagement;assembly=Mermer.Ui.Core">
+                xmlns:vm="clr-namespace:Mermer.Ui.Core.ViewModels.FundsManagement;assembly=Mermer.Ui.Core"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors">
   <DockPanel>
     <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
       <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
@@ -31,7 +32,7 @@
           <dxg:LookUpEdit NullValueButtonPlacement="EditBox" AutoPopulateColumns="false" DisplayMember="Name"
                           ValueMember="Id" EditValue="{Binding DepositoryId, UpdateSourceTrigger=PropertyChanged}"
                           ItemsSource="{Binding Depositories.List}" NullText="{Localize 'All Depositories'}">
-            <PopupBaseEdit.PopupContentTemplate>
+            <dxe:PopupBaseEdit.PopupContentTemplate>
               <ControlTemplate>
                 <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
                   <dxg:GridControl.Columns>
@@ -42,7 +43,7 @@
                   </dxg:GridControl.View>
                 </dxg:GridControl>
               </ControlTemplate>
-            </PopupBaseEdit.PopupContentTemplate>
+            </dxe:PopupBaseEdit.PopupContentTemplate>
             <dxg:LookUpEdit.StyleSettings>
               <dxg:SearchLookUpEditStyleSettings/>
             </dxg:LookUpEdit.StyleSettings>
@@ -98,7 +99,7 @@
           </dxg:GridControlBand>
         </dxg:GridControl.Bands>
         <dxg:GridControl.TotalSummary>
-          <dxg:GridSummaryItem FieldName="DepositoryId" DisplayFormat="{0}" SummaryType="Count"/>
+          <dxg:GridSummaryItem FieldName="DepositoryId" DisplayFormat="{}{0}" SummaryType="Count"/>
           <dxg:GridSummaryItem FieldName="StartingBalance" DisplayFormat="#,##0.00" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="FundsOpening" DisplayFormat="#,##0.00" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="FundsRevisionExceed" DisplayFormat="#,##0.00" SummaryType="Sum"/>

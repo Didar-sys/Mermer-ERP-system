@@ -115,58 +115,63 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     return Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize(), this.StockSearcher.Initialize());
   }
 
-  protected override async Task OnLoad()
-  {
-    StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    ConnectionSettings configAsync = await detailsViewModel.Configurator.GetConfigAsync<ConnectionSettings>();
-    detailsViewModel.AllowReporting = configAsync.AllowReporting;
-    if (!string.IsNullOrEmpty(detailsViewModel.ItemId) || !string.IsNullOrEmpty(detailsViewModel.Details.WarehouseId))
-      return;
-    detailsViewModel.Details.WarehouseId = detailsViewModel.AppSettings.DefaultWarehouseId;
-  }
-
-  protected override async Task PostLoad()
-  {
-    StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__1();
-    detailsViewModel.Details.StockUnitConverterRequested += new Mermer.Transactions.Models.StockUnitConverter(detailsViewModel.StockUnitConverter);
-    if (detailsViewModel.Details.StockUnitConvertions == null)
-      detailsViewModel.Details.StockUnitConvertions = new WatchedObservableCollection<StockUnitConvertion>();
-    if (detailsViewModel.Details.Overheads == null)
-      detailsViewModel.Details.Overheads = new WatchedObservableCollection<StockTransactionOverhead>();
-    if (string.IsNullOrEmpty(detailsViewModel.ItemId) && detailsViewModel._stockLineCopies != null)
+    protected override async Task OnLoad()
     {
-      await detailsViewModel.UpdateStocksCacheAsync(detailsViewModel._stockLineCopies.Select<CopyCreateLine, string>((Func<CopyCreateLine, string>) (x => x.StockId)).ToArray<string>());
-      foreach (CopyCreateLine stockLineCopy in detailsViewModel._stockLineCopies)
-      {
-        TLine newLineAsync = await detailsViewModel.CreateNewLineAsync(stockLineCopy.StockId, stockLineCopy.Quantity, stockLineCopy.UnitId, stockLineCopy.Price, stockLineCopy.CurrencyId);
-        detailsViewModel.Details.Lines.Add(newLineAsync);
-      }
+        await base.OnLoad();
+        ConnectionSettings configAsync = await Configurator.GetConfigAsync<ConnectionSettings>();
+        AllowReporting = configAsync.AllowReporting;
+
+        if (!string.IsNullOrEmpty(ItemId) || !string.IsNullOrEmpty(Details.WarehouseId))
+            return;
+
+        Details.WarehouseId = AppSettings.DefaultWarehouseId;
     }
-    detailsViewModel.StockSearcher.WarehouseId = detailsViewModel.Details.WarehouseId;
-    detailsViewModel.StockSearcher.CurrencyId = detailsViewModel.Details.DisplayCurrencyId;
-    detailsViewModel.StockSearcher.ShowLastPurchasePrice = detailsViewModel.AppSettings.ShowLastPurchasePriceOnSearch;
-    await detailsViewModel.LoadStocksCache();
-    detailsViewModel.Details.RaisePropertyChanged("LineQuantitiesSum");
-    // ISSUE: reference to a compiler-generated method
-    detailsViewModel.Warehouses.Filter = new Func<Warehouse, bool>(detailsViewModel.\u003CPostLoad\u003Eb__27_1);
-  }
 
-  public override async Task Initialize()
-  {
-    StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__2();
-    if (detailsViewModel._stockLineCopies == null)
-      return;
-    detailsViewModel._stockLineCopies = (IEnumerable<CopyCreateLine>) null;
-    detailsViewModel.IsDirty = true;
-  }
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
 
-  protected override void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        Details.StockUnitConverterRequested += StockUnitConverter;
+
+        if (Details.StockUnitConvertions == null)
+            Details.StockUnitConvertions = new WatchedObservableCollection<StockUnitConvertion>();
+
+        if (Details.Overheads == null)
+            Details.Overheads = new WatchedObservableCollection<StockTransactionOverhead>();
+
+        if (string.IsNullOrEmpty(ItemId) && _stockLineCopies != null)
+        {
+            await UpdateStocksCacheAsync(_stockLineCopies.Select(x => x.StockId).ToArray());
+            foreach (CopyCreateLine stockLineCopy in _stockLineCopies)
+            {
+                TLine newLineAsync = await CreateNewLineAsync(stockLineCopy.StockId, stockLineCopy.Quantity, stockLineCopy.UnitId, stockLineCopy.Price, stockLineCopy.CurrencyId);
+                Details.Lines.Add(newLineAsync);
+            }
+        }
+
+        StockSearcher.WarehouseId = Details.WarehouseId;
+        StockSearcher.CurrencyId = Details.DisplayCurrencyId;
+        StockSearcher.ShowLastPurchasePrice = AppSettings.ShowLastPurchasePriceOnSearch;
+
+        await LoadStocksCache();
+        Details.RaisePropertyChanged("LineQuantitiesSum");
+
+        // Відновлена лямбда фільтрації складів
+        Warehouses.Filter = w => !w.IsDisabled || w.Id == Details.WarehouseId;
+    }
+
+    public override async Task Initialize()
+    {
+        await base.Initialize();
+
+        if (_stockLineCopies == null)
+            return;
+
+        _stockLineCopies = null;
+        IsDirty = true;
+    }
+
+    protected override void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
   {
     if (e.PropertyName == "WarehouseId")
       this.StockSearcher.WarehouseId = this.Details.WarehouseId;
@@ -200,15 +205,13 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     };
   }
 
-  private async Task LoadStocksCache()
-  {
-    StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    await detailsViewModel.UpdateStocksCacheAsync(detailsViewModel.Details.Lines.Select<TLine, string>((Func<TLine, string>) (x => x.StockId)).ToArray<string>());
-    // ISSUE: explicit non-virtual call
-    __nonvirtual (detailsViewModel.RaisePropertyChanged<ObservableCollection<Stock>>((Expression<Func<ObservableCollection<Stock>>>) (() => detailsViewModel.StocksCache)));
-  }
+    private async Task LoadStocksCache()
+    {
+        await UpdateStocksCacheAsync(Details.Lines.Select(x => x.StockId).ToArray());
+        RaisePropertyChanged(() => StocksCache); // Виправлено explicit non-virtual call
+    }
 
-  protected Stock GetFromStocksCache(string stockId)
+    protected Stock GetFromStocksCache(string stockId)
   {
     return this.GetFromStocksCacheAsync(stockId).GetAwaiter().GetResult();
   }
@@ -224,44 +227,41 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     return stocksCacheAsync;
   }
 
-  protected async Task UpdateStocksCacheAsync(params string[] stockIds)
-  {
-    StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    string[] array = ((IEnumerable<string>) stockIds).Distinct<string>().Where<string>(new Func<string, bool>(detailsViewModel.\u003CUpdateStocksCacheAsync\u003Eb__34_0)).ToArray<string>();
-    if (!((IEnumerable<string>) array).Any<string>())
-      return;
-    foreach (Stock stock in await detailsViewModel._stocksRepository.GetListAsync(array))
-      detailsViewModel.StocksCache.Add(stock);
-  }
+    protected async Task UpdateStocksCacheAsync(params string[] stockIds)
+    {
+        // Відновлена лямбда фільтрації (завантажуємо тільки ті стоки, яких ще немає в кеші)
+        string[] array = stockIds.Distinct().Where(id => !StocksCache.Any(sc => sc.Id == id)).ToArray();
 
-  protected async Task UpdateStocksCacheByCodeAsync(params string[] stockCodes)
-  {
-    StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    string[] stockCodesToAdd = ((IEnumerable<string>) stockCodes).Distinct<string>().Where<string>(new Func<string, bool>(detailsViewModel.\u003CUpdateStocksCacheByCodeAsync\u003Eb__35_0)).ToArray<string>();
-    if (!((IEnumerable<string>) stockCodesToAdd).Any<string>())
-    {
-      stockCodesToAdd = (string[]) null;
+        if (!array.Any())
+            return;
+
+        foreach (Stock stock in await _stocksRepository.GetListAsync(array))
+            StocksCache.Add(stock);
     }
-    else
+
+    protected async Task UpdateStocksCacheByCodeAsync(params string[] stockCodes)
     {
-      for (int i = 0; i < stockCodesToAdd.Length; i += 100)
-      {
-        string[] stockCodesToAddPartial = ((IEnumerable<string>) stockCodesToAdd).Skip<string>(i).Take<string>(100).ToArray<string>();
-        IStocksRepository stocksRepository = detailsViewModel._stocksRepository;
-        Expression<Func<Stock, bool>>[] expressionArray = new Expression<Func<Stock, bool>>[1]
+        // Відновлена лямбда фільтрації (завантажуємо тільки ті стоки, яких ще немає в кеші)
+        string[] stockCodesToAdd = stockCodes.Distinct().Where(code => !StocksCache.Any(sc => sc.Code == code)).ToArray();
+
+        if (!stockCodesToAdd.Any())
         {
-          (Expression<Func<Stock, bool>>) (x => stockCodesToAddPartial.Contains<string>(x.Code))
-        };
-        foreach (Stock stock in await stocksRepository.GetAsync(expressionArray))
-          detailsViewModel.StocksCache.Add(stock);
-      }
-      stockCodesToAdd = (string[]) null;
-    }
-  }
+            return;
+        }
 
-  protected async Task<Stock> GetFromStocksCacheByCodeAsync(string stockCode)
+        for (int i = 0; i < stockCodesToAdd.Length; i += 100)
+        {
+            string[] stockCodesToAddPartial = stockCodesToAdd.Skip(i).Take(100).ToArray();
+            var expressionArray = new System.Linq.Expressions.Expression<Func<Stock, bool>>[]
+            {
+            x => stockCodesToAddPartial.Contains(x.Code)
+            };
+
+            foreach (Stock stock in await _stocksRepository.GetAsync(expressionArray))
+                StocksCache.Add(stock);
+        }
+    }
+    protected async Task<Stock> GetFromStocksCacheByCodeAsync(string stockCode)
   {
     Stock cacheByCodeAsync = this.StocksCache.SingleOrDefault<Stock>((Func<Stock, bool>) (x => x.Code == stockCode));
     if (cacheByCodeAsync == null)
@@ -417,14 +417,13 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     }
   }
 
-  protected virtual bool AllowStockTracking()
-  {
-    // ISSUE: variable of a boxed type
-    __Boxed<T> details = (object) this.Details;
-    return details != null && details.IsStockIncome;
-  }
+    protected virtual bool AllowStockTracking()
+    {
+        // Виправлений __Boxed<T>
+        return Details != null && Details.IsStockIncome;
+    }
 
-  protected virtual Task OnShowStockTrackinsListAsync()
+    protected virtual Task OnShowStockTrackinsListAsync()
   {
     return this.NavigationService.Navigate<StokTrackingsListViewModel, (string, string)>((this.Details.Id, this.Details.Code));
   }
@@ -437,58 +436,60 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     }
   }
 
-  protected virtual async Task OnImportCommandAsync()
-  {
-    StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    IEnumerable<object> source = await detailsViewModel.NavigationService.Navigate<DataImportViewModel, Type, IEnumerable<object>>(typeof (StockTransactionDetailsViewModel<T, TLine>.LineImport));
-    int i = 0;
-    detailsViewModel.IsBusy = true;
-    detailsViewModel.SuspendLoading = true;
-    try
+    protected virtual async Task OnImportCommandAsync()
     {
-      StockTransactionDetailsViewModel<T, TLine>.LineImport[] list = source != null ? source.Cast<StockTransactionDetailsViewModel<T, TLine>.LineImport>().ToArray<StockTransactionDetailsViewModel<T, TLine>.LineImport>() : (StockTransactionDetailsViewModel<T, TLine>.LineImport[]) null;
-      if (list != null)
-      {
-        int itemsCount = list.Length;
-        await detailsViewModel.UpdateStocksCacheByCodeAsync(((IEnumerable<StockTransactionDetailsViewModel<T, TLine>.LineImport>) list).Select<StockTransactionDetailsViewModel<T, TLine>.LineImport, string>((Func<StockTransactionDetailsViewModel<T, TLine>.LineImport, string>) (x => x.StockCode)).ToArray<string>());
-        await Task.Run((Action) (() =>
-        {
-          List<TLine> collection = new List<TLine>();
-          foreach (StockTransactionDetailsViewModel<T, TLine>.LineImport lineImport in list)
-          {
-            StockTransactionDetailsViewModel<T, TLine>.LineImport item = lineImport;
-            ++i;
-            // ISSUE: reference to a compiler-generated field
-            // ISSUE: reference to a compiler-generated field
-            this.\u003C\u003E4__this.Status = this.\u003C\u003E4__this["Importing {0} of {1} lines", new object[2]
-            {
-              (object) i,
-              (object) itemsCount
-            }];
-            // ISSUE: reference to a compiler-generated field
-            Stock stock = this.\u003C\u003E4__this.StocksCache.Single<Stock>((Func<Stock, bool>) (x => x.Code == item.StockCode));
-            string id1 = stock.Units.SingleOrDefault<StockUnit>((Func<StockUnit, bool>) (x => x.Name == item.Unit))?.Id;
-            // ISSUE: reference to a compiler-generated field
-            string id2 = this.\u003C\u003E4__this.Currencies.List.SingleOrDefault<Currency>((Func<Currency, bool>) (x => x.Name == item.Currency))?.Id;
-            // ISSUE: reference to a compiler-generated field
-            TLine newLine = this.\u003C\u003E4__this.CreateNewLine(stock, new Decimal?(item.Quantity), id1, new Decimal?(item.Price), id2);
-            collection.Add(newLine);
-          }
-          // ISSUE: reference to a compiler-generated field
-          this.\u003C\u003E4__this.Details.Lines = new WatchedObservableCollection<TLine>((IEnumerable<TLine>) collection);
-        }));
-      }
-    }
-    catch (Exception ex)
-    {
-      detailsViewModel.UserInteractionService.ShowExceptionMessage(ex);
-    }
-    detailsViewModel.Status = (string) null;
-    detailsViewModel.SuspendLoading = false;
-    detailsViewModel.IsBusy = false;
-  }
+        var source = await NavigationService.Navigate<DataImportViewModel, Type, IEnumerable<object>>(typeof(LineImport));
+        int i = 0;
+        IsBusy = true;
+        SuspendLoading = true;
 
-  public class LineImport
+        try
+        {
+            var list = source?.Cast<LineImport>().ToArray();
+            if (list != null)
+            {
+                int itemsCount = list.Length;
+                await UpdateStocksCacheByCodeAsync(list.Select(x => x.StockCode).ToArray());
+
+                await Task.Run(() =>
+                {
+                    var collection = new List<TLine>();
+                    foreach (LineImport item in list)
+                    {
+                        i++;
+
+                        // Використовуємо MvvmCross диспетчер
+                        InvokeOnMainThread(() =>
+                        {
+                            Status = this[$"Importing {i} of {itemsCount} lines"];
+                        });
+
+                        Stock stock = StocksCache.Single(x => x.Code == item.StockCode);
+                        string id1 = stock.Units.SingleOrDefault(x => x.Name == item.Unit)?.Id;
+                        string id2 = Currencies.List.SingleOrDefault(x => x.Name == item.Currency)?.Id;
+
+                        TLine newLine = CreateNewLine(stock, item.Quantity, id1, item.Price, id2);
+                        collection.Add(newLine);
+                    }
+
+                    InvokeOnMainThread(() =>
+                    {
+                        Details.Lines = new WatchedObservableCollection<TLine>(collection);
+                    });
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+        }
+
+        Status = null;
+        SuspendLoading = false;
+        IsBusy = false;
+    }
+
+    public class LineImport
   {
     public string StockCode { get; set; }
 

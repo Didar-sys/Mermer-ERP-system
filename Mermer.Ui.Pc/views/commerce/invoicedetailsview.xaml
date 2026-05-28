@@ -166,7 +166,7 @@
                 </dxg:GridControl.View>
               </dxg:GridControl>
             </dxlc:LayoutGroup>
-            <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize 'Discounts & Payments'}">
+                        <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize 'Discounts &amp; Payments'}">
               <dxlc:LayoutGroup Orientation="Vertical">
                 <dxlc:LayoutGroup>
                   <dxlc:LayoutGroup View="Tabs">

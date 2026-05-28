@@ -11,7 +11,8 @@
                 xmlns:cnv="clr-namespace:Mermer.Ui.Pc.Converters"
                 xmlns:ctrl="clr-namespace:Mermer.Ui.Pc.Controls"
                 xmlns:menu="clr-namespace:Mermer.Ui.Pc.Controls.MenuItems"
-                xmlns:vm="clr-namespace:Mermer.Ui.Core.ViewModels.StockManagement;assembly=Mermer.Ui.Core">
+                xmlns:vm="clr-namespace:Mermer.Ui.Core.ViewModels.StockManagement;assembly=Mermer.Ui.Core"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors">
   <DockPanel>
     <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
       <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
@@ -30,7 +31,7 @@
           <dxg:LookUpEdit NullValueButtonPlacement="EditBox" AutoPopulateColumns="false" DisplayMember="Name"
                           ValueMember="Id" EditValue="{Binding WarehouseId, UpdateSourceTrigger=PropertyChanged}"
                           ItemsSource="{Binding Warehouses.List}">
-            <PopupBaseEdit.PopupContentTemplate>
+            <dxe:PopupBaseEdit.PopupContentTemplate>
               <ControlTemplate>
                 <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
                   <dxg:GridControl.Columns>
@@ -41,7 +42,7 @@
                   </dxg:GridControl.View>
                 </dxg:GridControl>
               </ControlTemplate>
-            </PopupBaseEdit.PopupContentTemplate>
+            </dxe:PopupBaseEdit.PopupContentTemplate>
             <dxg:LookUpEdit.StyleSettings>
               <dxg:SearchLookUpEditStyleSettings/>
             </dxg:LookUpEdit.StyleSettings>
@@ -58,9 +59,9 @@
             <dxg:GridColumn Binding="{Binding StockTags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
               <dxg:ColumnBase.EditSettings>
                 <dxg:LookUpEditSettings>
-                  <BaseEditSettings.StyleSettings>
+                  <dxe:BaseEditSettings.StyleSettings>
                     <dxg:TokenLookUpEditStyleSettings/>
-                  </BaseEditSettings.StyleSettings>
+                  </dxe:BaseEditSettings.StyleSettings>
                 </dxg:LookUpEditSettings>
               </dxg:ColumnBase.EditSettings>
             </dxg:GridColumn>

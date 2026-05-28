@@ -86,32 +86,33 @@ public class FundsActionsListViewModel :
 
   public void Prepare(FundsActionsFilter parameter) => this._parameter = parameter;
 
-  protected override async Task PreLoad()
-  {
-    FundsActionsListViewModel actionsListViewModel = this;
-    if (!actionsListViewModel._loaded)
+    protected override async Task PreLoad()
     {
-      if (actionsListViewModel._parameter != null)
-      {
-        actionsListViewModel.SelectedDepositoryIds = actionsListViewModel._parameter.DepositoryIds.Cast<object>().ToList<object>();
-        actionsListViewModel.DateFilterFrom = actionsListViewModel._parameter.DateFrom;
-        actionsListViewModel.DateFilterTill = actionsListViewModel._parameter.DateTill;
-      }
-      else
-      {
-        AppSettings configAsync = await actionsListViewModel._configurator.GetConfigAsync<AppSettings>();
-        actionsListViewModel.SelectedDepositoryIds = new System.Collections.Generic.List<object>((IEnumerable<object>) new object[1]
+        if (!_loaded)
         {
-          (object) configAsync.DefaultDepositoryId
-        });
-      }
-    }
-    actionsListViewModel._loaded = true;
-    // ISSUE: reference to a compiler-generated method
-    await Task.WhenAll(actionsListViewModel.\u003C\u003En__0(), actionsListViewModel.Depositories.Initialize(), actionsListViewModel.Partners.Initialize());
-  }
+            if (_parameter != null)
+            {
+                SelectedDepositoryIds = _parameter.DepositoryIds.Cast<object>().ToList();
+                DateFilterFrom = _parameter.DateFrom;
+                DateFilterTill = _parameter.DateTill;
+            }
+            else
+            {
+                AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
+                SelectedDepositoryIds = new List<object> { configAsync.DefaultDepositoryId };
+            }
+        }
 
-  protected override Task OnLoad()
+        _loaded = true;
+
+        await Task.WhenAll(
+            base.PreLoad(),
+            Depositories.Initialize(),
+            Partners.Initialize()
+        );
+    }
+
+    protected override Task OnLoad()
   {
     if (this._parameter == null)
       return base.OnLoad();

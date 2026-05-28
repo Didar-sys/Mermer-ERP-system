@@ -198,46 +198,60 @@ public class StockRevisionDetailsViewModel : TransactionDetailsViewModel<StockRe
     this._initialized = true;
   }
 
-  protected override async Task OnLoad()
-  {
-    StockRevisionDetailsViewModel detailsViewModel = this;
-    if (string.IsNullOrEmpty(detailsViewModel.ItemId))
-      throw new Exception("Wrong usage, revision must first be created!");
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__1();
-    detailsViewModel._stocks = new List<Stock>();
-    detailsViewModel._stockBalances = new List<StockBalance>();
-    await detailsViewModel.LoadLines();
-    detailsViewModel.StockSearcher.WarehouseId = detailsViewModel.Details.WarehouseId;
-    detailsViewModel.StockSearcher.CurrencyId = detailsViewModel.DisplayCurrencyId;
-  }
-
-  protected virtual async Task LoadLines()
-  {
-    StockRevisionDetailsViewModel detailsViewModel = this;
-    if (detailsViewModel._pauseLoading)
-      return;
-    StockRevisionLine[] array1 = (await detailsViewModel.RevisionsRepository.GetLinesAsync(detailsViewModel.Details.Id)).ToArray<StockRevisionLine>();
-    int length = array1.Length;
-    Decimal num = ((IEnumerable<StockRevisionLine>) array1).Sum<StockRevisionLine>((Func<StockRevisionLine, Decimal>) (x => x.Quantity));
-    if (detailsViewModel._linesCount == length && detailsViewModel._linesQuantityTotal == num)
-      return;
-    detailsViewModel._linesCount = length;
-    detailsViewModel._linesQuantityTotal = num;
-    StockRevisionLineInfo[] array2 = (await detailsViewModel.RevisionsRepository.CalcLineInfosAsync(detailsViewModel.Details, (IEnumerable<StockRevisionLine>) array1, new Func<string[], Task<IEnumerable<Stock>>>(detailsViewModel.StocksGetter), new Func<string[], Task<IEnumerable<StockBalance>>>(detailsViewModel.StockBalancesGetter), new Func<(string, DateTime?)[], Task<IEnumerable<StockBalance>>>(detailsViewModel.StockBalancesGetterAlt), detailsViewModel.DisplayCurrencyId)).ToArray<StockRevisionLineInfo>();
-    foreach (StockRevisionLineInfo revisionLineInfo in array2)
+    protected override async Task OnLoad()
     {
-      revisionLineInfo.DisplayCurrencyIdRequested += new CurrencyId(detailsViewModel.GetDisplayCurrencyId);
-      revisionLineInfo.CurrencyConverterRequested += new CurrencyConverter(detailsViewModel.GetCurrencyConverter);
-    }
-    detailsViewModel.Lines = new ObservableCollection<StockRevisionLineInfo>((IEnumerable<StockRevisionLineInfo>) array2);
-    if (string.IsNullOrEmpty(detailsViewModel._lastSelectedLineId))
-      return;
-    // ISSUE: reference to a compiler-generated method
-    detailsViewModel.SelectedLine = detailsViewModel.Lines.FirstOrDefault<StockRevisionLineInfo>(new Func<StockRevisionLineInfo, bool>(detailsViewModel.\u003CLoadLines\u003Eb__57_1));
-  }
+        if (string.IsNullOrEmpty(ItemId))
+            throw new Exception("Wrong usage, revision must first be created!");
 
-  private async Task<IEnumerable<Stock>> StocksGetter(string[] stockIds)
+        await base.OnLoad();
+
+        _stocks = new List<Stock>();
+        _stockBalances = new List<StockBalance>();
+        await LoadLines();
+
+        StockSearcher.WarehouseId = Details.WarehouseId;
+        StockSearcher.CurrencyId = DisplayCurrencyId;
+    }
+
+    protected virtual async Task LoadLines()
+    {
+        if (_pauseLoading)
+            return;
+
+        var array1 = (await RevisionsRepository.GetLinesAsync(Details.Id)).ToArray();
+        int length = array1.Length;
+        decimal num = array1.Sum(x => x.Quantity);
+
+        if (_linesCount == length && _linesQuantityTotal == num)
+            return;
+
+        _linesCount = length;
+        _linesQuantityTotal = num;
+
+        var array2 = (await RevisionsRepository.CalcLineInfosAsync(
+            Details,
+            array1,
+            StocksGetter,
+            StockBalancesGetter,
+            StockBalancesGetterAlt,
+            DisplayCurrencyId)).ToArray();
+
+        foreach (var revisionLineInfo in array2)
+        {
+            revisionLineInfo.DisplayCurrencyIdRequested += GetDisplayCurrencyId;
+            revisionLineInfo.CurrencyConverterRequested += GetCurrencyConverter;
+        }
+
+        Lines = new System.Collections.ObjectModel.ObservableCollection<StockRevisionLineInfo>(array2);
+
+        if (string.IsNullOrEmpty(_lastSelectedLineId))
+            return;
+
+        // Відновлена лямбда пошуку за ID
+        SelectedLine = Lines.FirstOrDefault(x => x.UnitId == _lastSelectedLineId);
+    }
+
+    private async Task<IEnumerable<Stock>> StocksGetter(string[] stockIds)
   {
     IEnumerable<string> existingStockIds = this._stocks.Select<Stock, string>((Func<Stock, string>) (x => x.Id));
     string[] array = ((IEnumerable<string>) stockIds).Where<string>((Func<string, bool>) (x => !existingStockIds.Contains<string>(x))).ToArray<string>();
@@ -259,34 +273,39 @@ public class StockRevisionDetailsViewModel : TransactionDetailsViewModel<StockRe
     return (IEnumerable<StockBalance>) detailsViewModel._stockBalances;
   }
 
-  private async Task<IEnumerable<StockBalance>> StockBalancesGetterAlt(
-    (string stockId, DateTime? balanceDate)[] stockBalanceDates)
-  {
-    StockRevisionDetailsViewModel detailsViewModel = this;
-    IEnumerable<string> existingStockIds = detailsViewModel._stockBalances.Select<StockBalance, string>((Func<StockBalance, string>) (x => x.StockId));
-    (string, DateTime?)[] array = ((IEnumerable<(string, DateTime?)>) stockBalanceDates).Where<(string, DateTime?)>((Func<(string, DateTime?), bool>) (x => !existingStockIds.Contains<string>(x.stockId))).ToArray<(string, DateTime?)>();
-    if (((IEnumerable<(string, DateTime?)>) array).Any<(string, DateTime?)>())
+    private async Task<IEnumerable<StockBalance>> StockBalancesGetterAlt((string stockId, DateTime? balanceDate)[] stockBalanceDates)
     {
-      IEnumerable<StockBalance> async = await detailsViewModel._stockBalancesRepository.GetAsync(detailsViewModel.Details.WarehouseId, array);
-      detailsViewModel._stockBalances.AddRange(async);
+        // Отримуємо список ID існуючих балансів
+        var existingStockIds = _stockBalances.Select(x => x.StockId).ToList();
+
+        // Фільтруємо ті, яких ще немає
+        var array = stockBalanceDates.Where(x => !existingStockIds.Contains(x.stockId)).ToArray();
+
+        if (array.Any())
+        {
+            // Завантажуємо нові баланси і додаємо їх до загального списку
+            var newBalances = await _stockBalancesRepository.GetAsync(Details.WarehouseId, array);
+            _stockBalances.AddRange(newBalances);
+        }
+
+        return _stockBalances;
     }
-    return (IEnumerable<StockBalance>) detailsViewModel._stockBalances;
-  }
 
-  protected override async Task PostLoad()
-  {
-    StockRevisionDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__2();
-    // ISSUE: reference to a compiler-generated method
-    detailsViewModel.Warehouses.Filter = new Func<Warehouse, bool>(detailsViewModel.\u003CPostLoad\u003Eb__64_0);
-    if (detailsViewModel._isLoaded)
-      return;
-    detailsViewModel.AutoReloadLines(detailsViewModel._autoReloadCancellation.Token);
-    detailsViewModel._isLoaded = true;
-  }
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
 
-  private string GetDisplayCurrencyId() => this.DisplayCurrencyId;
+        // Відновлена лямбда фільтрації складів
+        Warehouses.Filter = w => !w.IsDisabled || w.Id == Details.WarehouseId;
+
+        if (_isLoaded)
+            return;
+
+        AutoReloadLines(_autoReloadCancellation.Token);
+        _isLoaded = true;
+    }
+
+    private string GetDisplayCurrencyId() => this.DisplayCurrencyId;
 
   private CurrencyConvertion GetCurrencyConverter(string currencyId)
   {
@@ -642,26 +661,24 @@ public class StockRevisionDetailsViewModel : TransactionDetailsViewModel<StockRe
     return this.NavigationService.Navigate<StockSlipDetailsViewModel, string>(this.Details.DeficitSlipId);
   }
 
-  private static IEnumerable<StockRevisionDetailsViewModel.ItemsExtracted> ExtractItems(
-    IEnumerable<StockRevisionLineInfo> list,
-    int multiplier)
-  {
-    return list.GroupBy(x => new
+    private static IEnumerable<ItemsExtracted> ExtractItems(IEnumerable<StockRevisionLineInfo> list, int multiplier)
     {
-      StockId = x.StockId,
-      StockPrice = x.StockPrice,
-      StockPriceCurrencyId = x.StockPriceCurrencyId
-    }).Select<IGrouping<\u003C\u003Ef__AnonymousType6<string, Decimal, string>, StockRevisionLineInfo>, StockRevisionDetailsViewModel.ItemsExtracted>(g => new StockRevisionDetailsViewModel.ItemsExtracted()
-    {
-      StockId = g.Key.StockId,
-      Price = g.Key.StockPrice,
-      CurrencyId = g.Key.StockPriceCurrencyId,
-      Quantity = g.First<StockRevisionLineInfo>().TotalDifference * (Decimal) multiplier,
-      UnitId = g.First<StockRevisionLineInfo>().UnitId
-    });
-  }
+        return list.GroupBy(x => new
+        {
+            x.StockId,
+            x.StockPrice,
+            x.StockPriceCurrencyId
+        }).Select(g => new ItemsExtracted
+        {
+            StockId = g.Key.StockId,
+            Price = g.Key.StockPrice,
+            CurrencyId = g.Key.StockPriceCurrencyId,
+            Quantity = g.First().TotalDifference * multiplier,
+            UnitId = g.First().UnitId
+        });
+    }
 
-  private async Task<StockSlip> GetStockSlip(
+    private async Task<StockSlip> GetStockSlip(
     StockSlipType type,
     IEnumerable<StockRevisionDetailsViewModel.ItemsExtracted> items,
     string id = null)

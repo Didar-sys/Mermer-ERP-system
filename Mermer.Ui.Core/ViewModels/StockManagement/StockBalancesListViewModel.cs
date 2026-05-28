@@ -121,25 +121,26 @@ public class StockBalancesListViewModel :
     this.StockId = result.Id;
   }
 
-  protected override async Task PreLoad()
-  {
-    StockBalancesListViewModel balancesListViewModel = this;
-    if (!balancesListViewModel._initialized)
+    protected override async Task PreLoad()
     {
-      AppSettings config = balancesListViewModel._configurator.GetConfig<AppSettings>();
-      balancesListViewModel.SelectedWarehouseIds = new System.Collections.Generic.List<object>((IEnumerable<object>) new object[1]
-      {
-        (object) config.DefaultWarehouseId
-      });
-      balancesListViewModel._initialized = true;
-    }
-    if (string.IsNullOrEmpty(balancesListViewModel.StockId))
-      balancesListViewModel.SelectedStockMessage = balancesListViewModel["Showing balances for all stocks", Array.Empty<object>()];
-    // ISSUE: reference to a compiler-generated method
-    await Task.WhenAll(balancesListViewModel.\u003C\u003En__0(), balancesListViewModel.Warehouses.Initialize(), balancesListViewModel.StockSearcher.Initialize());
-  }
+        if (!_initialized)
+        {
+            AppSettings config = _configurator.GetConfig<AppSettings>();
+            SelectedWarehouseIds = new List<object> { config.DefaultWarehouseId };
+            _initialized = true;
+        }
 
-  protected override Task<IEnumerable<StockBalanceByTypeWithBalanceAndData>> GetFilteredListByDateAsync(
+        if (string.IsNullOrEmpty(StockId))
+            SelectedStockMessage = this["Showing balances for all stocks"];
+
+        await Task.WhenAll(
+            base.PreLoad(), // Відновлено
+            Warehouses.Initialize(),
+            StockSearcher.Initialize()
+        );
+    }
+
+    protected override Task<IEnumerable<StockBalanceByTypeWithBalanceAndData>> GetFilteredListByDateAsync(
     DateTime from,
     DateTime till)
   {

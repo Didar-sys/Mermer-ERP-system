@@ -116,7 +116,7 @@
                                hlp:GridExtender.ForceTotalSummaryUpdate="true" AllowEditing="{Binding HasSaveAccess}"/>
               </dxg:GridControl.View>
               <dxg:GridControl.TotalSummary>
-                <dxg:GridSummaryItem FieldName="StockId" SummaryType="Count" DisplayFormat="{0}"/>
+                <dxg:GridSummaryItem FieldName="StockId" SummaryType="Count" DisplayFormat="{}{0}"/>
                 <dxg:GridSummaryItem FieldName="Quantity" SummaryType="Sum" DisplayFormat="#,##0.##"/>
               </dxg:GridControl.TotalSummary>
             </dxg:GridControl>

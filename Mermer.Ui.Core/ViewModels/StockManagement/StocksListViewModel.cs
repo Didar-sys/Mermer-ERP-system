@@ -11,7 +11,6 @@ using Couchbase.Linq.Extensions;
 using MvvmCross.Core.Navigation;
 using MvvmCross.Core.ViewModels;
 using MvvmCross.Plugins.Messenger;
-using Mermer.Core.Couch.Common;
 using Mermer.FundsManagement.Models;
 using Mermer.StockManagement.Models;
 using Mermer.StockManagement.Services;
@@ -28,6 +27,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Payhas.Binyat.Core.Couch.Common;
 
 #nullable disable
 namespace Mermer.Ui.Core.ViewModels.StockManagement;
@@ -122,18 +122,22 @@ public class StocksListViewModel :
     return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Currencies.Initialize());
   }
 
-  protected override async Task OnLoad()
-  {
-    StocksListViewModel stocksListViewModel = this;
-    IEnumerable<StockInfo> infoAsync = await stocksListViewModel._repository.GetInfoAsync(stocksListViewModel.AdditionalPriceCurrencyId, stocksListViewModel.AdditionalPriceGroup);
-    stocksListViewModel.List = infoAsync;
-    if (string.IsNullOrEmpty(stocksListViewModel.ItemId))
-      return;
-    // ISSUE: reference to a compiler-generated method
-    stocksListViewModel.SelectedItem = stocksListViewModel.List.SingleOrDefault<StockInfo>(new Func<StockInfo, bool>(stocksListViewModel.\u003COnLoad\u003Eb__30_0));
-  }
+    protected override async Task OnLoad()
+    {
+        // Получаем данные из репозитория
+        IEnumerable<StockInfo> infoAsync = await _repository.GetInfoAsync(AdditionalPriceCurrencyId, AdditionalPriceGroup);
+        List = infoAsync;
 
-  public ICommand CreateNewCommand
+        // Если передан ItemId (например, при переходе к конкретному товару),
+        // находим его в списке и делаем выделенным.
+        if (!string.IsNullOrEmpty(ItemId))
+        {
+            // Вместо \u003COnLoad\u003Eb__30_0 пишем нормальную лямбду:
+            SelectedItem = List.SingleOrDefault(x => x.Id == ItemId);
+        }
+    }
+
+    public ICommand CreateNewCommand
   {
     get
     {

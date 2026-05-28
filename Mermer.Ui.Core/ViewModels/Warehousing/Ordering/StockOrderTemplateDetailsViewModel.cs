@@ -73,28 +73,31 @@ public class StockOrderTemplateDetailsViewModel :
     return Task.WhenAll(base.PreLoad(), this.StockSearcher.Initialize());
   }
 
-  protected override async Task PostLoad()
-  {
-    StockOrderTemplateDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (detailsViewModel.Details.Lines == null)
+    protected override async Task PostLoad()
     {
-      detailsViewModel.Details.Lines = new ObservableCollection<StockOrderTemplateLine>();
-      if (detailsViewModel._stockLineCopies != null)
-      {
-        foreach (CopyCreateLine stockLineCopy in detailsViewModel._stockLineCopies)
-          detailsViewModel.Details.Lines.Add(new StockOrderTemplateLine()
-          {
-            StockId = stockLineCopy.StockId
-          });
-        detailsViewModel._stockLineCopies = (IEnumerable<CopyCreateLine>) null;
-      }
-    }
-    await detailsViewModel.LoadStocksCache();
-  }
+        await base.PostLoad();
 
-  private async Task LoadStocksCache()
+        if (Details.Lines == null)
+        {
+            Details.Lines = new ObservableCollection<StockOrderTemplateLine>();
+
+            if (_stockLineCopies != null)
+            {
+                foreach (CopyCreateLine stockLineCopy in _stockLineCopies)
+                {
+                    Details.Lines.Add(new StockOrderTemplateLine
+                    {
+                        StockId = stockLineCopy.StockId
+                    });
+                }
+                _stockLineCopies = null;
+            }
+        }
+
+        await LoadStocksCache();
+    }
+
+    private async Task LoadStocksCache()
   {
     StockOrderTemplateDetailsViewModel detailsViewModel = this;
     ObservableCollection<Stock> cache = new ObservableCollection<Stock>();

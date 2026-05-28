@@ -39,31 +39,30 @@ public class TransactionDetailsViewModel<T> : DetailsViewModel<T> where T : clas
     this.CodeGenerationService = codeGentor;
   }
 
-  protected override async Task OnLoad()
-  {
-    TransactionDetailsViewModel<T> detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (!string.IsNullOrEmpty(detailsViewModel.ItemId))
-      return;
-    detailsViewModel.Details.Date = DateTime.Now;
-    detailsViewModel.Details.UserId = detailsViewModel.LoginService.Session.UserId;
-    detailsViewModel.Details.UserName = detailsViewModel.LoginService.Session.Username;
-    T obj = detailsViewModel.Details;
-    obj.Code = await detailsViewModel.CodeGenerationService.GetNextCode();
-    obj = default (T);
-    string name = typeof (T).Name;
-    if (name.EndsWith("Order"))
-      return;
-    if (name.EndsWith("Revision"))
-      return;
-    try
+    protected override async Task OnLoad()
     {
-      detailsViewModel.Authorizer.Authorize((Enum) TransactionAccessLevel.CompleteOwn);
-      detailsViewModel.Details.IsCompleted = true;
+        await base.OnLoad();
+
+        if (!string.IsNullOrEmpty(ItemId))
+            return;
+
+        Details.Date = DateTime.Now;
+        Details.UserId = LoginService.Session.UserId;
+        Details.UserName = LoginService.Session.Username;
+        Details.Code = await CodeGenerationService.GetNextCode();
+
+        string name = typeof(T).Name;
+        if (name.EndsWith("Order") || name.EndsWith("Revision"))
+            return;
+
+        try
+        {
+            Authorizer.Authorize(Mermer.Authorization.Enums.TransactionAccessLevel.CompleteOwn);
+            Details.IsCompleted = true;
+        }
+        catch (Exception)
+        {
+            // Ignored
+        }
     }
-    catch (Exception ex)
-    {
-    }
-  }
 }

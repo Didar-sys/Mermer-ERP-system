@@ -54,27 +54,26 @@ public class ExpenseSlipDetailsViewModel :
 
   protected override Task PreLoad() => Task.WhenAll(base.PreLoad(), this.Expenses.Initialize());
 
-  protected override async Task PostLoad()
-  {
-    ExpenseSlipDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    IEnumerable<string> usedExpenseIds = detailsViewModel.Details.Lines.Select<ExpenseSlipLine, string>((Func<ExpenseSlipLine, string>) (x => x.ExpenseId)).Distinct<string>();
-    detailsViewModel.Expenses.Filter = (Func<Expense, bool>) (x => !x.IsDisabled || usedExpenseIds.Contains<string>(x.Id));
-    detailsViewModel.Details.RaisePropertyChanged("DisplayTotal");
-  }
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
 
-  protected override async Task<bool> OnSaveAsync()
-  {
-    ExpenseSlipDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    if (!await detailsViewModel.\u003C\u003En__1())
-      return false;
-    await detailsViewModel._printingService.PrintExpenseSlip(detailsViewModel.Details);
-    return true;
-  }
+        IEnumerable<string> usedExpenseIds = Details.Lines.Select(x => x.ExpenseId).Distinct();
+        Expenses.Filter = x => !x.IsDisabled || usedExpenseIds.Contains(x.Id);
 
-  public ICommand PrintCommand
+        Details.RaisePropertyChanged("DisplayTotal");
+    }
+
+    protected override async Task<bool> OnSaveAsync()
+    {
+        if (!await base.OnSaveAsync())
+            return false;
+
+        await _printingService.PrintExpenseSlip(Details);
+        return true;
+    }
+
+    public ICommand PrintCommand
   {
     get
     {

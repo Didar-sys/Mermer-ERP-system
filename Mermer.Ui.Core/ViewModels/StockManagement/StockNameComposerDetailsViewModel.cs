@@ -22,13 +22,11 @@ public class StockNameComposerDetailsViewModel(
   IMvxNavigationService navigationService,
   IUserInteractionService userInteractionService) : DetailsViewModel<StockNameComposer>(repository, authorizer, navigationService, userInteractionService)
 {
-  protected override async Task PostLoad()
-  {
-    StockNameComposerDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (detailsViewModel.Details.Values != null)
-      return;
-    detailsViewModel.Details.Values = new ObservableCollection<StockNameComposerValue>();
-  }
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
+
+        if (Details.Values == null)
+            Details.Values = new ObservableCollection<StockNameComposerValue>();
+    }
 }

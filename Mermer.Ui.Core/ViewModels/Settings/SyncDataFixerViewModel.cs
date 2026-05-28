@@ -13,7 +13,6 @@ using MvvmCross.Core.ViewModels;
 using MvvmCross.Plugins.Messenger;
 using Mermer.Authorization.Models;
 using Mermer.Commerce.Models;
-using Mermer.Core.Couch.Common;
 using Mermer.CRM.Models;
 using Mermer.Enterprise.Models;
 using Mermer.Finance.DailyRegistery.Models;
@@ -36,6 +35,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Payhas.Binyat.Core.Couch.Common;
 
 #nullable disable
 namespace Mermer.Ui.Core.ViewModels.Settings;

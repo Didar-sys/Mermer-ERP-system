@@ -48,26 +48,24 @@ public class FundsTransactionDetailsViewModel<T, TLine> : TransactionDetailsView
 
   protected override Task PreLoad() => Task.WhenAll(base.PreLoad(), this.Depositories.Initialize());
 
-  protected override async Task OnLoad()
-  {
-    FundsTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (!string.IsNullOrEmpty(detailsViewModel.ItemId))
-      return;
-    detailsViewModel.Details.DepositoryId = detailsViewModel.AppSettings.DefaultDepositoryId;
-  }
+    protected override async Task OnLoad()
+    {
+        await base.OnLoad();
+        if (!string.IsNullOrEmpty(ItemId))
+            return;
 
-  protected override async Task PostLoad()
-  {
-    FundsTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__1();
-    // ISSUE: reference to a compiler-generated method
-    detailsViewModel.Depositories.Filter = new Func<Depository, bool>(detailsViewModel.\u003CPostLoad\u003Eb__6_0);
-  }
+        Details.DepositoryId = AppSettings.DefaultDepositoryId;
+    }
 
-  public ICommand SelectedLineDeleteCommand
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
+
+        // Відновлена лямбда фільтрації (показуємо активні або вже вибраний)
+        Depositories.Filter = x => !x.IsDisabled || x.Id == Details.DepositoryId;
+    }
+
+    public ICommand SelectedLineDeleteCommand
   {
     get
     {

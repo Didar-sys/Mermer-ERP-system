@@ -33,54 +33,56 @@ public class StockRevisionsListViewModel : TransactionsListViewModel<StockRevisi
   private readonly ILoginService _loginService;
   private readonly ITransactionCodeGenerationService _codeGentor;
 
-  public StockRevisionsListViewModel(
-    IMvxMessenger messenger,
-    ILoginService loginService,
-    Reference<Warehouse> warehouses,
-    IStockRevisionsRepository repository,
-    IListAuthorizer<StockRevision> authorizer,
-    IMvxNavigationService navigationService,
-    ITransactionCodeGenerationService codeGentor,
-    IUserInteractionService userInteractionService)
-    : base((IRepository<StockRevision>) repository, authorizer, messenger, navigationService, userInteractionService)
-  {
-    this._loginService = loginService;
-    this._codeGentor = codeGentor;
-    this.Warehouses = warehouses;
-    this.Filters = (IEnumerable<ListFilter>) new ListFilter[4]
+    public StockRevisionsListViewModel(
+      IMvxMessenger messenger,
+      ILoginService loginService,
+      Reference<Warehouse> warehouses,
+      IStockRevisionsRepository repository,
+      IListAuthorizer<StockRevision> authorizer,
+      IMvxNavigationService navigationService,
+      ITransactionCodeGenerationService codeGentor,
+      IUserInteractionService userInteractionService)
+      : base(repository, authorizer, messenger, navigationService, userInteractionService)
     {
-      new ListFilter()
-      {
-        Title = this["Active", Array.Empty<object>()],
-        Tag = (object) "Active",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((TransactionsListViewModel<StockRevision>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["Completed", Array.Empty<object>()],
-        Tag = (object) "Completed",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((TransactionsListViewModel<StockRevision>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["Deleted", Array.Empty<object>()],
-        Tag = (object) "Deleted",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((TransactionsListViewModel<StockRevision>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["All Records", Array.Empty<object>()],
-        Tag = (object) "All Records",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((TransactionsListViewModel<StockRevision>) this).CountByFilterAsync)
-      }
+        _loginService = loginService;
+        _codeGentor = codeGentor;
+        Warehouses = warehouses;
+
+        // Чистий масив фільтрів без зайвих кастів
+        Filters = new[]
+        {
+        new ListFilter
+        {
+            Title = this["Active"],
+            Tag = "Active",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["Completed"],
+            Tag = "Completed",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["Deleted"],
+            Tag = "Deleted",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["All Records"],
+            Tag = "All Records",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        }
     };
   }
 

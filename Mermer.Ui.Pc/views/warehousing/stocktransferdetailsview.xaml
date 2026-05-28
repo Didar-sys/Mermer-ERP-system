@@ -170,7 +170,7 @@
                 </dxg:TableView>
               </dxg:GridControl.View>
               <dxg:GridControl.TotalSummary>
-                <dxg:GridSummaryItem FieldName="StockId" SummaryType="Count" DisplayFormat="{0}"/>
+                <dxg:GridSummaryItem FieldName="StockId" SummaryType="Count" DisplayFormat="{}{0}"/>
                 <dxg:GridSummaryItem FieldName="Quantity" SummaryType="Sum" DisplayFormat="#,##0.##"/>
                 <dxg:GridSummaryItem FieldName="ReceivedQuantity" SummaryType="Sum" DisplayFormat="#,##0.##"/>
                 <dxg:GridSummaryItem FieldName="DisplayTotal" SummaryType="Sum" DisplayFormat="#,##0.00"/>

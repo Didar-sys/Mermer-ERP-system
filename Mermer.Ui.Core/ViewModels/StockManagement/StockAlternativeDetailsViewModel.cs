@@ -86,17 +86,17 @@ public class StockAlternativeDetailsViewModel : DetailsViewModel<StockAlternativ
     return Task.WhenAll(base.PreLoad(), this.StockSearcher.Initialize());
   }
 
-  protected override async Task PostLoad()
-  {
-    StockAlternativeDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (detailsViewModel.Details.Lines == null)
-      detailsViewModel.Details.Lines = new ObservableCollection<StockAlternativeLine>();
-    await detailsViewModel.LoadStocksCache();
-  }
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
 
-  private async Task LoadStocksCache()
+        if (Details.Lines == null)
+            Details.Lines = new ObservableCollection<StockAlternativeLine>();
+
+        await LoadStocksCache();
+    }
+
+    private async Task LoadStocksCache()
   {
     StockAlternativeDetailsViewModel detailsViewModel = this;
     ObservableCollection<Stock> cache = new ObservableCollection<Stock>();

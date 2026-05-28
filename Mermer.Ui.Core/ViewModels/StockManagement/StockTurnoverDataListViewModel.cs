@@ -35,63 +35,66 @@ public class StockTurnoverDataListViewModel : ListViewModelBaseWithFilter<StockT
   private string _warehouseId;
   private bool _initialized;
 
-  public StockTurnoverDataListViewModel(
-    IMvxMessenger messenger,
-    IConfigurator configurator,
-    Reference<Warehouse> warehouses,
-    IStockTurnoverDataRepository repository,
-    IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService)
-    : base(messenger, navigationService, userInteractionService)
-  {
-    this.Warehouses = warehouses;
-    this._configurator = configurator;
-    this._repository = repository;
-    this.Filters = (IEnumerable<ListFilter>) new ListFilter[5]
+    public StockTurnoverDataListViewModel(
+      IMvxMessenger messenger,
+      IConfigurator configurator,
+      Reference<Warehouse> warehouses,
+      IStockTurnoverDataRepository repository,
+      IMvxNavigationService navigationService,
+      IUserInteractionService userInteractionService)
+      : base(messenger, navigationService, userInteractionService)
     {
-      new ListFilter()
-      {
-        Title = this["Not Selling", Array.Empty<object>()],
-        Tag = (object) "Not Selling",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<StockTurnoverData, StockTurnoverData>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["Bad Selling", Array.Empty<object>()],
-        Tag = (object) "Bad Selling",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<StockTurnoverData, StockTurnoverData>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["Normal Selling", Array.Empty<object>()],
-        Tag = (object) "Normal Selling",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<StockTurnoverData, StockTurnoverData>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["Good Selling", Array.Empty<object>()],
-        Tag = (object) "Good Selling",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<StockTurnoverData, StockTurnoverData>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["All Records", Array.Empty<object>()],
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((ListViewModelBaseWithFilter<StockTurnoverData, StockTurnoverData>) this).CountByFilterAsync)
-      }
-    };
-  }
+        Warehouses = warehouses;
+        _configurator = configurator;
+        _repository = repository;
 
-  public Reference<Warehouse> Warehouses { get; }
+        // Чистий масив фільтрів без кастів декомпілятора
+        Filters = new[]
+        {
+        new ListFilter
+        {
+            Title = this["Not Selling"],
+            Tag = "Not Selling",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["Bad Selling"],
+            Tag = "Bad Selling",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["Normal Selling"],
+            Tag = "Normal Selling",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["Good Selling"],
+            Tag = "Good Selling",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["All Records"],
+            Tag = "All", // Додав стандартний тег
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        }
+    };
+    }
+
+    public Reference<Warehouse> Warehouses { get; }
 
   public IEnumerable<StockTurnoverData> AllItems { get; set; }
 

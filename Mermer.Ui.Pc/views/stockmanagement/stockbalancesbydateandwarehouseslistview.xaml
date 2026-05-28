@@ -119,9 +119,9 @@
                                 Header="{Localize Amount}"/>
               </dxg:GridControlBand>
             </dxg:GridControl.Bands>
-            <dxg:GridControl.TotalSummary>
-              <dxg:GridSummaryItem FieldName="TotalAmount" SummaryType="Sum" DisplayFormat="{0:#,###.00}"/>
-            </dxg:GridControl.TotalSummary>
+                        <dxg:GridControl.TotalSummary>
+                            <dxg:GridSummaryItem FieldName="TotalAmount" SummaryType="Sum" DisplayFormat="{}{0:#,###.00}"/>
+                        </dxg:GridControl.TotalSummary>
           </ctrl:StyledGridControl>
         </dxlc:LayoutGroup>
       </dxlc:LayoutControl>

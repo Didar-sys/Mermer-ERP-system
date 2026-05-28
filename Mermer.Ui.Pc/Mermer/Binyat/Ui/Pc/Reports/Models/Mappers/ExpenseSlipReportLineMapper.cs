@@ -11,19 +11,13 @@ using System.Threading.Tasks;
 #nullable disable
 namespace Mermer.Ui.Pc.Reports.Models.Mappers;
 
-public class ExpenseSlipReportLineMapper(NameHelper nameHelper) : 
-  FundsTransactionReportLineMapper<ExpenseSlipLine, ExpenseSlipReportLine>(nameHelper)
+public class ExpenseSlipReportLineMapper(NameHelper nameHelper) :
+    FundsTransactionReportLineMapper<ExpenseSlipLine, ExpenseSlipReportLine>(nameHelper)
 {
-  public override async Task<ExpenseSlipReportLine> Map(ExpenseSlipLine source)
-  {
-    ExpenseSlipReportLineMapper reportLineMapper = this;
-    // ISSUE: reference to a compiler-generated method
-    ExpenseSlipReportLine destination = await reportLineMapper.\u003C\u003En__0(source);
-    ExpenseSlipReportLine expenseSlipReportLine = destination;
-    expenseSlipReportLine.Expense = await reportLineMapper.NameHelper.GetStockName(source.ExpenseId);
-    expenseSlipReportLine = (ExpenseSlipReportLine) null;
-    ExpenseSlipReportLine expenseSlipReportLine1 = destination;
-    destination = (ExpenseSlipReportLine) null;
-    return expenseSlipReportLine1;
-  }
+    public override async Task<ExpenseSlipReportLine> Map(ExpenseSlipLine source)
+    {
+        ExpenseSlipReportLine destination = await base.Map(source);
+        destination.Expense = await NameHelper.GetStockName(source.ExpenseId);
+        return destination;
+    }
 }

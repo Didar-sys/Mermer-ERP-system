@@ -40,17 +40,17 @@ public class FundsSlipDetailsViewModel(
 
   public void Prepare(FundsSlipType parameter) => this._newSlipType = parameter;
 
-  protected override async Task PostLoad()
-  {
-    FundsSlipDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (!string.IsNullOrEmpty(detailsViewModel.ItemId))
-      return;
-    detailsViewModel.Details.SlipType = detailsViewModel._newSlipType;
-  }
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
 
-  protected override Task<bool> OnSaveAsync()
+        if (!string.IsNullOrEmpty(ItemId))
+            return;
+
+        Details.SlipType = _newSlipType;
+    }
+
+    protected override Task<bool> OnSaveAsync()
   {
     this._newSlipType = this.Details.SlipType;
     return base.OnSaveAsync();

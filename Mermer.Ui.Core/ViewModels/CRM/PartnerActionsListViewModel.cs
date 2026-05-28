@@ -95,33 +95,34 @@ public class PartnerActionsListViewModel :
 
   public void Prepare(PartnerActionsFilter parameter) => this._parameter = parameter;
 
-  protected override async Task PreLoad()
-  {
-    PartnerActionsListViewModel actionsListViewModel = this;
-    if (!actionsListViewModel._loaded && !((IEnumerable<string>) actionsListViewModel.OfficeIds).Any<string>())
+    protected override async Task PreLoad()
     {
-      if (actionsListViewModel._parameter != null)
-      {
-        actionsListViewModel.SelectedOfficeIds = actionsListViewModel._parameter.OfficeIds.Cast<object>().ToList<object>();
-        actionsListViewModel.PartnerId = actionsListViewModel._parameter.PartnerId;
-        actionsListViewModel.DateFilterFrom = actionsListViewModel._parameter.DateFrom;
-        actionsListViewModel.DateFilterTill = actionsListViewModel._parameter.DateTill;
-      }
-      else
-      {
-        AppSettings configAsync = await actionsListViewModel._configurator.GetConfigAsync<AppSettings>();
-        actionsListViewModel.SelectedOfficeIds = new System.Collections.Generic.List<object>((IEnumerable<object>) new object[1]
+        if (!_loaded && !OfficeIds.Any())
         {
-          (object) configAsync.DefaultOfficeId
-        });
-      }
-    }
-    actionsListViewModel._loaded = true;
-    // ISSUE: reference to a compiler-generated method
-    await Task.WhenAll(actionsListViewModel.\u003C\u003En__0(), actionsListViewModel.Offices.Initialize(), actionsListViewModel.Partners.Initialize());
-  }
+            if (_parameter != null)
+            {
+                SelectedOfficeIds = _parameter.OfficeIds.Cast<object>().ToList();
+                PartnerId = _parameter.PartnerId;
+                DateFilterFrom = _parameter.DateFrom;
+                DateFilterTill = _parameter.DateTill;
+            }
+            else
+            {
+                AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
+                SelectedOfficeIds = new List<object> { configAsync.DefaultOfficeId };
+            }
+        }
 
-  protected override Task OnLoad()
+        _loaded = true;
+
+        await Task.WhenAll(
+            base.PreLoad(),
+            Offices.Initialize(),
+            Partners.Initialize()
+        );
+    }
+
+    protected override Task OnLoad()
   {
     if (this._parameter == null)
       return base.OnLoad();

@@ -129,30 +129,34 @@ public class TransactionDetailsViewModel<T, TLine> : TransactionDetailsViewModel
     return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Currencies.Initialize(), Task.Run((Func<Task>) (async () => this.AppSettings = await this.Configurator.GetConfigAsync<AppSettings>())));
   }
 
-  protected override async Task PostLoad()
-  {
-    TransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    detailsViewModel.Details.CurrencyConverterRequested += new Mermer.Transactions.Models.CurrencyConverter(detailsViewModel.CurrencyConverter);
-    detailsViewModel.Details.AmountFormatterRequested += new Mermer.Transactions.Models.AmountFormatter(detailsViewModel.AmountFormatter);
-    detailsViewModel.Details.DefaultCurrencyIdRequested += new CurrencyId(detailsViewModel.DefaultCurrencyIdProvider);
-    detailsViewModel.Details.RaiseChangeEvents = false;
-    detailsViewModel.Details.DisplayCurrencyId = detailsViewModel.DefaultCurrencyIdProvider();
-    detailsViewModel.Details.PropertyChanged += new PropertyChangedEventHandler(detailsViewModel.Details_PropertyChanged);
-    if (detailsViewModel.Details.Lines == null)
-      detailsViewModel.Details.Lines = new WatchedObservableCollection<TLine>();
-    if (detailsViewModel.Details.CurrencyConvertions == null)
-      detailsViewModel.Details.CurrencyConvertions = new WatchedObservableCollection<CurrencyConvertion>();
-    detailsViewModel.Details.RaisePropertyChanged("LinesCount");
-    WatchedObservableCollection<TLine> lines = detailsViewModel.Details.Lines;
-    if (lines != null)
-      lines.FirstOrDefault<TLine>()?.UpdateDisplayCurrencyId(false);
-    IEnumerable<string> usedCurrencyIds = detailsViewModel.Details.Lines.Select<TLine, string>((Func<TLine, string>) (x => x.CurrencyId)).Distinct<string>();
-    detailsViewModel.Currencies.Filter = (Func<Currency, bool>) (x => !x.IsDisabled || usedCurrencyIds.Contains<string>(x.Id));
-  }
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
 
-  protected override Task<bool> OnSaveAsync()
+        Details.CurrencyConverterRequested += CurrencyConverter;
+        Details.AmountFormatterRequested += AmountFormatter;
+        Details.DefaultCurrencyIdRequested += DefaultCurrencyIdProvider;
+        Details.RaiseChangeEvents = false;
+        Details.DisplayCurrencyId = DefaultCurrencyIdProvider();
+        Details.PropertyChanged += Details_PropertyChanged;
+
+        if (Details.Lines == null)
+            Details.Lines = new WatchedObservableCollection<TLine>();
+
+        if (Details.CurrencyConvertions == null)
+            Details.CurrencyConvertions = new WatchedObservableCollection<CurrencyConvertion>();
+
+        Details.RaisePropertyChanged("LinesCount");
+
+        WatchedObservableCollection<TLine> lines = Details.Lines;
+        if (lines != null)
+            lines.FirstOrDefault()?.UpdateDisplayCurrencyId(false);
+
+        IEnumerable<string> usedCurrencyIds = Details.Lines.Select(x => x.CurrencyId).Distinct();
+        Currencies.Filter = x => !x.IsDisabled || usedCurrencyIds.Contains(x.Id);
+    }
+
+    protected override Task<bool> OnSaveAsync()
   {
     this.Details.PropertyChanged -= new PropertyChangedEventHandler(this.Details_PropertyChanged);
     return base.OnSaveAsync();

@@ -119,7 +119,7 @@
                                hlp:GridExtender.ForceTotalSummaryUpdate="true" AllowEditing="{Binding HasSaveAccess}"/>
               </dxg:GridControl.View>
               <dxg:GridControl.TotalSummary>
-                <dxg:GridSummaryItem FieldName="ExpenseId" SummaryType="Count" DisplayFormat="{0}"/>
+                <dxg:GridSummaryItem FieldName="ExpenseId" SummaryType="Count" DisplayFormat="{}{0}"/>
                 <dxg:GridSummaryItem FieldName="DisplayTotal" SummaryType="Sum" DisplayFormat="#,##0.00"/>
               </dxg:GridControl.TotalSummary>
             </dxg:GridControl>

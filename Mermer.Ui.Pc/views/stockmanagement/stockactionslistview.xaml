@@ -130,7 +130,7 @@
           </dxg:GridControlBand>
         </dxg:GridControl.Bands>
         <dxg:GridControl.TotalSummary>
-          <dxg:GridSummaryItem FieldName="TransactionDate" DisplayFormat="{0}" SummaryType="Count"/>
+          <dxg:GridSummaryItem FieldName="TransactionDate" DisplayFormat="{}{0}" SummaryType="Count"/>
           <dxg:GridSummaryItem FieldName="ActionIncome" DisplayFormat="#,##0.##" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="ActionExpense" DisplayFormat="#,##0.##" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="ActionEffect" DisplayFormat="#,##0.##" SummaryType="Sum"/>

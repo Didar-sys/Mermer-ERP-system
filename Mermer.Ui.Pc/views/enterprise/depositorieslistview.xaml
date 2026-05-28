@@ -8,8 +8,9 @@
                 xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
                 xmlns:cnv="clr-namespace:Mermer.Ui.Pc.Converters"
                 xmlns:ctrl="clr-namespace:Mermer.Ui.Pc.Controls"
-                xmlns:menu="clr-namespace:Mermer.Ui.Pc.Controls.MenuItems">
-  <DockPanel>
+                xmlns:menu="clr-namespace:Mermer.Ui.Pc.Controls.MenuItems"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors">
+    <DockPanel>
     <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
       <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
       <menu:ListCreateNew/>
@@ -28,9 +29,9 @@
         <dxg:GridColumn Binding="{Binding Tags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
           <dxg:ColumnBase.EditSettings>
             <dxg:LookUpEditSettings>
-              <BaseEditSettings.StyleSettings>
+              <dxe:BaseEditSettings.StyleSettings>
                 <dxg:TokenLookUpEditStyleSettings/>
-              </BaseEditSettings.StyleSettings>
+              </dxe:BaseEditSettings.StyleSettings>
             </dxg:LookUpEditSettings>
           </dxg:ColumnBase.EditSettings>
         </dxg:GridColumn>

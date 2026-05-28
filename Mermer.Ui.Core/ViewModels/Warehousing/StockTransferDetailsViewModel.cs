@@ -69,44 +69,36 @@ public class StockTransferDetailsViewModel :
     this.Prepare(parameter.Lines);
   }
 
-  protected override async Task OnLoad()
-  {
-    StockTransferDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (!string.IsNullOrEmpty(detailsViewModel.ItemId))
-      return;
-    if (!string.IsNullOrEmpty(detailsViewModel._sourceWarehouseId))
-      detailsViewModel.Details.WarehouseId = detailsViewModel._sourceWarehouseId;
-    if (string.IsNullOrEmpty(detailsViewModel._destinationWarehouseId))
-      return;
-    detailsViewModel.Details.DestinationWarehouseId = detailsViewModel._destinationWarehouseId;
-  }
-
-  protected override async Task PostLoad()
-  {
-    StockTransferDetailsViewModel detailsViewModel = this;
-    IEnumerable<string> usedWarehouseIds = ((IEnumerable<string>) new string[2]
+    protected override async Task OnLoad()
     {
-      detailsViewModel.Details.WarehouseId,
-      detailsViewModel.Details.DestinationWarehouseId
-    }).Distinct<string>();
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__1();
-    detailsViewModel.Warehouses.Filter = (Func<Warehouse, bool>) (x => !x.IsDisabled || usedWarehouseIds.Contains<string>(x.Id));
-  }
+        await base.OnLoad();
 
-  protected override async Task<bool> OnSaveAsync()
-  {
-    StockTransferDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    if (!await detailsViewModel.\u003C\u003En__2())
-      return false;
-    await detailsViewModel._printingService.PrintStockTransfer(detailsViewModel.Details);
-    return true;
-  }
+        if (!string.IsNullOrEmpty(ItemId))
+            return;
 
-  protected override StockTransferLine CreateNewLine(
+        if (!string.IsNullOrEmpty(_sourceWarehouseId))
+            Details.WarehouseId = _sourceWarehouseId;
+        if (!string.IsNullOrEmpty(_destinationWarehouseId))
+            Details.DestinationWarehouseId = _destinationWarehouseId;
+    }
+
+    protected override async Task PostLoad()
+    {
+        var usedWarehouseIds = new[] { Details.WarehouseId, Details.DestinationWarehouseId }.Distinct();
+        await base.PostLoad();
+        Warehouses.Filter = x => !x.IsDisabled || usedWarehouseIds.Contains(x.Id);
+    }
+
+    protected override async Task<bool> OnSaveAsync()
+    {
+        if (!await base.OnSaveAsync())
+            return false;
+
+        await _printingService.PrintStockTransfer(Details);
+        return true;
+    }
+
+    protected override StockTransferLine CreateNewLine(
     Stock stock,
     Decimal? quantity = null,
     string unitId = null,

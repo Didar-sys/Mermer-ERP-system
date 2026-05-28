@@ -30,56 +30,58 @@ public class StockOrdersListViewModel : TransactionsListViewModel<StockOrder>
   private const string FilterCompletedString = "Completed";
   private const string FilterDeletedString = "Deleted";
 
-  public StockOrdersListViewModel(
-    ILoginService loginService,
-    Reference<Warehouse> warehouses,
-    IMvxMessenger messenger,
-    IRepository<StockOrder> repository,
-    IListAuthorizer<StockOrder> authorizer,
-    IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService)
-    : base(repository, authorizer, messenger, navigationService, userInteractionService)
-  {
-    this._loginService = loginService;
-    this.Warehouses = warehouses;
-    this.Filters = (IEnumerable<ListFilter>) new ListFilter[4]
+    public StockOrdersListViewModel(
+      ILoginService loginService,
+      Reference<Warehouse> warehouses,
+      IMvxMessenger messenger,
+      IRepository<StockOrder> repository,
+      IListAuthorizer<StockOrder> authorizer,
+      IMvxNavigationService navigationService,
+      IUserInteractionService userInteractionService)
+      : base(repository, authorizer, messenger, navigationService, userInteractionService)
     {
-      new ListFilter()
-      {
-        Title = this["My Orders", Array.Empty<object>()],
-        Tag = (object) "My Orders",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((TransactionsListViewModel<StockOrder>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["Open", Array.Empty<object>()],
-        Tag = (object) "Open",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((TransactionsListViewModel<StockOrder>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["Completed", Array.Empty<object>()],
-        Tag = (object) "Completed",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((TransactionsListViewModel<StockOrder>) this).CountByFilterAsync)
-      },
-      new ListFilter()
-      {
-        Title = this["Deleted", Array.Empty<object>()],
-        Tag = (object) "Deleted",
-        CanLoad = (Func<ListFilter, bool>) (x => !this.IsBusy),
-        Loader = (Func<ListFilter, Task>) (x => this.LoadByFilterAsync(x)),
-        Counter = new Func<ListFilter, Task<int>>(((TransactionsListViewModel<StockOrder>) this).CountByFilterAsync)
-      }
-    };
-  }
+        _loginService = loginService;
+        Warehouses = warehouses;
 
-  public Reference<Warehouse> Warehouses { get; }
+        // Чистий масив фільтрів
+        Filters = new[]
+        {
+        new ListFilter
+        {
+            Title = this["My Orders"],
+            Tag = "My Orders",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["Open"],
+            Tag = "Open",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["Completed"],
+            Tag = "Completed",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        },
+        new ListFilter
+        {
+            Title = this["Deleted"],
+            Tag = "Deleted",
+            CanLoad = x => !IsBusy,
+            Loader = x => LoadByFilterAsync(x),
+            Counter = CountByFilterAsync
+        }
+    };
+    }
+
+    public Reference<Warehouse> Warehouses { get; }
 
   protected override Task PreLoad() => Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize());
 

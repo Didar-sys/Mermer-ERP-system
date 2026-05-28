@@ -118,55 +118,70 @@ public class StockOrderDetailsViewModel :
     return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Warehouses.Initialize(), this.StockSearcher.Initialize());
   }
 
-  protected override async Task PostLoad()
-  {
-    StockOrderDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (string.IsNullOrEmpty(detailsViewModel.ItemId))
+    protected override async Task PostLoad()
     {
-      AppSettings configAsync = await detailsViewModel._configurator.GetConfigAsync<AppSettings>();
-      detailsViewModel.Details.WarehouseId = configAsync.DefaultWarehouseId;
-    }
-    if (detailsViewModel.Details.Lines == null)
-    {
-      detailsViewModel.Details.Lines = new ObservableCollection<StockOrderLine>();
-      if (detailsViewModel._stockLineCopies != null)
-      {
-        foreach (CopyCreateLine stockLineCopy in detailsViewModel._stockLineCopies)
-          detailsViewModel.Details.Lines.Add(new StockOrderLine()
-          {
-            StockId = stockLineCopy.StockId,
-            Quantity = stockLineCopy.Quantity.GetValueOrDefault(),
-            UnitId = stockLineCopy.UnitId
-          });
-      }
-    }
-    new ObservableCollectionWatcher<StockOrderLine>(detailsViewModel.Details.Lines).ItemPropertyChanged += new ItemPropertyChangedEventHandler(detailsViewModel.Line_PropertyChanged);
-    if (detailsViewModel.Details.StockUnitConvertions == null)
-      detailsViewModel.Details.StockUnitConvertions = new ObservableCollection<StockUnitConvertion>();
-    detailsViewModel.StockSearcher.WarehouseId = detailsViewModel.Details.WarehouseId;
-    detailsViewModel.Details.PropertyChanged += new PropertyChangedEventHandler(detailsViewModel.Details_PropertyChanged);
-    await detailsViewModel.LoadStocksCache();
-    // ISSUE: reference to a compiler-generated method
-    detailsViewModel.Warehouses.Filter = new Func<Warehouse, bool>(detailsViewModel.\u003CPostLoad\u003Eb__20_0);
-  }
+        await base.PostLoad();
 
-  private void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        if (string.IsNullOrEmpty(ItemId))
+        {
+            AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
+            Details.WarehouseId = configAsync.DefaultWarehouseId;
+        }
+
+        if (Details.Lines == null)
+        {
+            Details.Lines = new ObservableCollection<StockOrderLine>();
+            if (_stockLineCopies != null)
+            {
+                foreach (CopyCreateLine stockLineCopy in _stockLineCopies)
+                {
+                    Details.Lines.Add(new StockOrderLine
+                    {
+                        StockId = stockLineCopy.StockId,
+                        Quantity = stockLineCopy.Quantity.GetValueOrDefault(),
+                        UnitId = stockLineCopy.UnitId
+                    });
+                }
+            }
+        }
+
+        var watcher = new ObservableCollectionWatcher<StockOrderLine>(Details.Lines);
+        watcher.ItemPropertyChanged += Line_PropertyChanged;
+
+        if (Details.StockUnitConvertions == null)
+        {
+            Details.StockUnitConvertions = new ObservableCollection<StockUnitConvertion>();
+        }
+
+        StockSearcher.WarehouseId = Details.WarehouseId;
+        Details.PropertyChanged += Details_PropertyChanged;
+
+        await LoadStocksCache();
+
+        // Відновлена лямбда фільтрації
+        Warehouses.Filter = w => !w.IsDisabled || w.Id == Details.WarehouseId;
+    }
+
+    private void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
   {
     if (!(e.PropertyName == "WarehouseId"))
       return;
     this.StockSearcher.WarehouseId = this.Details.WarehouseId;
   }
 
-  private void Line_PropertyChanged(object sender, PropertyChangedEventArgs e)
-  {
-    if (!(e.PropertyName == "UnitId"))
-      return;
-    this.UpdateStockUnitConvertion(sender is StockOrderLine stockOrderLine ? stockOrderLine.StockId : (string) null, stockOrderLine?.UnitId);
-  }
+    private void Line_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != "UnitId")
+            return;
 
-  private async Task LoadStocksCache()
+        // Виправлений синтаксис перевірки типу
+        if (sender is StockOrderLine stockOrderLine)
+        {
+            UpdateStockUnitConvertion(stockOrderLine.StockId, stockOrderLine.UnitId);
+        }
+    }
+
+    private async Task LoadStocksCache()
   {
     StockOrderDetailsViewModel detailsViewModel = this;
     ObservableCollection<Stock> cache = new ObservableCollection<Stock>();
@@ -225,17 +240,16 @@ public class StockOrderDetailsViewModel :
     });
   }
 
-  protected override async Task<bool> OnSaveAsync()
-  {
-    StockOrderDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    if (!await detailsViewModel.\u003C\u003En__1())
-      return false;
-    await detailsViewModel._printingService.PrintStockOrder(detailsViewModel.Details);
-    return true;
-  }
+    protected override async Task<bool> OnSaveAsync()
+    {
+        if (!await base.OnSaveAsync())
+            return false;
 
-  public CopyCreate CopyCreate { get; }
+        await _printingService.PrintStockOrder(Details);
+        return true;
+    }
+
+    public CopyCreate CopyCreate { get; }
 
   public StockSearcher StockSearcher { get; set; }
 
@@ -307,27 +321,30 @@ public class StockOrderDetailsViewModel :
     }
   }
 
-  protected virtual async Task OnSelectedLineEditAsync()
-  {
-    StockOrderDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    Stock stock = detailsViewModel.StocksCache.Single<Stock>(new Func<Stock, bool>(detailsViewModel.\u003COnSelectedLineEditAsync\u003Eb__59_0));
-    IMvxNavigationService navigationService = detailsViewModel.NavigationService;
-    StockOrderDetailsLineEditViewModel.Params @params = new StockOrderDetailsLineEditViewModel.Params();
-    @params.StockCode = stock.Code;
-    @params.StockName = stock.Name;
-    @params.Quantity = detailsViewModel.SelectedLine.Quantity;
-    @params.UnitId = detailsViewModel.SelectedLine.UnitId;
-    @params.Units = (IEnumerable<StockUnit>) stock.Units;
-    CancellationToken cancellationToken = new CancellationToken();
-    StockOrderDetailsLineEditViewModel.Result result = await navigationService.Navigate<StockOrderDetailsLineEditViewModel, StockOrderDetailsLineEditViewModel.Params, StockOrderDetailsLineEditViewModel.Result>(@params, cancellationToken: cancellationToken);
-    if (result == null)
-      return;
-    detailsViewModel.SelectedLine.Quantity = result.Quantity;
-    detailsViewModel.SelectedLine.UnitId = result.UnitId;
-  }
+    protected virtual async Task OnSelectedLineEditAsync()
+    {
+        // Відновлена лямбда пошуку стоку
+        Stock stock = StocksCache.Single(x => x.Id == SelectedLine.StockId);
 
-  public ICommand SelectWarehouseCommand
+        var parameters = new StockOrderDetailsLineEditViewModel.Params
+        {
+            StockCode = stock.Code,
+            StockName = stock.Name,
+            Quantity = SelectedLine.Quantity,
+            UnitId = SelectedLine.UnitId,
+            Units = stock.Units
+        };
+
+        var result = await NavigationService.Navigate<StockOrderDetailsLineEditViewModel, StockOrderDetailsLineEditViewModel.Params, StockOrderDetailsLineEditViewModel.Result>(parameters);
+
+        if (result == null)
+            return;
+
+        SelectedLine.Quantity = result.Quantity;
+        SelectedLine.UnitId = result.UnitId;
+    }
+
+    public ICommand SelectWarehouseCommand
   {
     get
     {

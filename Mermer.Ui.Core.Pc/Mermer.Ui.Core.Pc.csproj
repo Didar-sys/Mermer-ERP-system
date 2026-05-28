@@ -1,66 +1,27 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!--Project was exported from assembly: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.Pc.dll-->
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2457C63E-7078-495D-988A-886ED949B479}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AssemblyName>Mermer.Ui.Core.Pc</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <ApplicationVersion>1.0.0.0</ApplicationVersion>
-    <FileAlignment>512</FileAlignment>
-    <RootNamespace>Mermer.Ui.Core.Pc</RootNamespace>
-    <TargetFrameworkProfile />
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWpf>true</UseWpf>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="MvvmCross.Localization">
-      <HintPath>lib\MvvmCross.Localization.dll</HintPath>
-    </Reference>
-    <Reference Include="MvvmCross.Platform">
-      <HintPath>lib\MvvmCross.Platform.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>lib\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Mermer.Mvvm">
-      <HintPath>lib\Mermer.Mvvm.dll</HintPath>
-    </Reference>
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="WindowsBase" />
+    <ProjectReference Include="..\Mermer.Base\Mermer.csproj" />
+    <ProjectReference Include="..\Mermer.Mvvm\Mermer.Mvvm.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Tools\LocalizeExtension.cs" />
-    <Compile Include="Tools\UpdatableMarkupExtension.cs" />
-    <Compile Include="Tools\PcJsonLocalizationResourceProvider.cs" />
-    <Compile Include="Properties\Resources.cs" />
-    <Compile Include="Properties\Settings.cs" />
-    <Compile Include="AssemblyInfo.cs" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
+
   <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx" />
+    <Reference Include="MvvmCross.Core"><HintPath>..\Mermer.Ui.Pc\lib\MvvmCross.Core.dll</HintPath></Reference>
+    
+    <Reference Include="MvvmCross.Localization"><HintPath>..\Mermer.Ui.Pc\lib\MvvmCross.Localization.dll</HintPath></Reference>
+    <Reference Include="MvvmCross.Platform"><HintPath>..\Mermer.Ui.Pc\lib\MvvmCross.Platform.dll</HintPath></Reference>
+    <Reference Include="MvvmCross.Wpf"><HintPath>..\Mermer.Ui.Pc\lib\MvvmCross.Wpf.dll</HintPath></Reference>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

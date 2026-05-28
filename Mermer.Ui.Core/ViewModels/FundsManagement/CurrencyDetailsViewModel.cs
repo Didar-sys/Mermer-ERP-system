@@ -24,17 +24,17 @@ public class CurrencyDetailsViewModel(
   IMvxNavigationService navigationService,
   IUserInteractionService userInteractionService) : DetailsViewModel<Currency>(repository, authorizer, navigationService, userInteractionService)
 {
-  protected override async Task PostLoad()
-  {
-    CurrencyDetailsViewModel detailsViewModel = this;
-    // ISSUE: reference to a compiler-generated method
-    await detailsViewModel.\u003C\u003En__0();
-    if (detailsViewModel.Details.Rates == null)
-      detailsViewModel.Details.Rates = new ObservableCollection<CurrencyRate>();
-    detailsViewModel.Details.PropertyChanged += new PropertyChangedEventHandler(detailsViewModel.Details_PropertyChanged);
-  }
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
 
-  private void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        if (Details.Rates == null)
+            Details.Rates = new ObservableCollection<CurrencyRate>();
+
+        Details.PropertyChanged += Details_PropertyChanged;
+    }
+
+    private void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
   {
     if (!(e.PropertyName == "IsDefault"))
       return;
