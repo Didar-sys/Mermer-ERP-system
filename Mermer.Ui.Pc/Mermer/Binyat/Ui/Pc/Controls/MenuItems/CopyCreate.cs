@@ -1,59 +1,17 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Pc.Controls.MenuItems.CopyCreate
-// Assembly: Mermer.Ui.Pc, Version=1.4.4.0, Culture=neutral, PublicKeyToken=null
-// MVID: D54C0BF8-E817-4120-9485-68C30ADFDFE4
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Pc.exe
-
-using DevExpress.Xpf.WindowsUI;
-using System;
-using System.CodeDom.Compiler;
-using System.ComponentModel;
-using System.Diagnostics;
+﻿using DevExpress.Xpf.WindowsUI;
 using System.Windows;
-using System.Windows.Markup;
 
-#nullable disable
 namespace Mermer.Ui.Pc.Controls.MenuItems;
 
-public class CopyCreate : AppBarButton, IComponentConnector
+public partial class CopyCreate : AppBarButton
 {
-  public static readonly DependencyProperty OrderOnlyProperty = DependencyProperty.Register(nameof (OrderOnly), typeof (bool), typeof (CopyCreate), new PropertyMetadata((object) false));
-  internal CopyCreate This;
-  private bool _contentLoaded;
+    public static readonly DependencyProperty OrderOnlyProperty = DependencyProperty.Register(nameof(OrderOnly), typeof(bool), typeof(CopyCreate), new PropertyMetadata(false));
 
-  public CopyCreate() => this.InitializeComponent();
+    public CopyCreate() => InitializeComponent();
 
-  public bool OrderOnly
-  {
-    get => (bool) this.GetValue(CopyCreate.OrderOnlyProperty);
-    set => this.SetValue(CopyCreate.OrderOnlyProperty, (object) value);
-  }
-
-  [DebuggerNonUserCode]
-  [GeneratedCode("PresentationBuildTasks", "4.0.0.0")]
-  public void InitializeComponent()
-  {
-    if (this._contentLoaded)
-      return;
-    this._contentLoaded = true;
-    Application.LoadComponent((object) this, new Uri("/Mermer.Ui.Pc;component/controls/menuitems/copycreate.xaml", UriKind.Relative));
-  }
-
-  [DebuggerNonUserCode]
-  [GeneratedCode("PresentationBuildTasks", "4.0.0.0")]
-  internal Delegate _CreateDelegate(Type delegateType, string handler)
-  {
-    return Delegate.CreateDelegate(delegateType, (object) this, handler);
-  }
-
-  [DebuggerNonUserCode]
-  [GeneratedCode("PresentationBuildTasks", "4.0.0.0")]
-  [EditorBrowsable(EditorBrowsableState.Never)]
-  void IComponentConnector.Connect(int connectionId, object target)
-  {
-    if (connectionId == 1)
-      this.This = (CopyCreate) target;
-    else
-      this._contentLoaded = true;
-  }
+    public bool OrderOnly
+    {
+        get => (bool)GetValue(OrderOnlyProperty);
+        set => SetValue(OrderOnlyProperty, value);
+    }
 }

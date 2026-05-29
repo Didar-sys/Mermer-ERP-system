@@ -1,52 +1,46 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Pc.Helpers.TableViewKeyDownBehavior
-// Assembly: Mermer.Ui.Pc, Version=1.4.4.0, Culture=neutral, PublicKeyToken=null
-// MVID: D54C0BF8-E817-4120-9485-68C30ADFDFE4
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Pc.exe
-
-using DevExpress.Mvvm.UI.Interactivity;
+﻿using DevExpress.Mvvm.UI.Interactivity;
 using DevExpress.Xpf.Grid;
 using System.Windows;
 using System.Windows.Input;
+// Вирішуємо конфлікт KeyEventArgs
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
-#nullable disable
 namespace Mermer.Ui.Pc.Helpers;
 
 public class TableViewKeyDownBehavior : Behavior<TableView>
 {
-  public static readonly DependencyProperty KeyProperty = DependencyProperty.Register(nameof (Key), typeof (Key), typeof (TableViewKeyDownBehavior), new PropertyMetadata((object) Key.None));
-  public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof (Command), typeof (ICommand), typeof (TableViewKeyDownBehavior), new PropertyMetadata((PropertyChangedCallback) null));
+    public static readonly DependencyProperty KeyProperty = DependencyProperty.Register(nameof(Key), typeof(Key), typeof(TableViewKeyDownBehavior), new PropertyMetadata(Key.None));
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(TableViewKeyDownBehavior), new PropertyMetadata(null));
 
-  private TableView AssociatedView => this.AssociatedObject;
+    private TableView AssociatedView => AssociatedObject;
 
-  public Key Key
-  {
-    get => (Key) this.GetValue(TableViewKeyDownBehavior.KeyProperty);
-    set => this.SetValue(TableViewKeyDownBehavior.KeyProperty, (object) value);
-  }
+    public Key Key
+    {
+        get => (Key)GetValue(KeyProperty);
+        set => SetValue(KeyProperty, value);
+    }
 
-  public ICommand Command
-  {
-    get => (ICommand) this.GetValue(TableViewKeyDownBehavior.CommandProperty);
-    set => this.SetValue(TableViewKeyDownBehavior.CommandProperty, (object) value);
-  }
+    public ICommand Command
+    {
+        get => (ICommand)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
 
-  protected override void OnAttached()
-  {
-    base.OnAttached();
-    this.AssociatedView.PreviewKeyDown += new KeyEventHandler(this.AssociatedView_PreviewKeyDown);
-  }
+    protected override void OnAttached()
+    {
+        base.OnAttached();
+        AssociatedView.PreviewKeyDown += AssociatedView_PreviewKeyDown;
+    }
 
-  protected override void OnDetaching()
-  {
-    this.AssociatedView.PreviewKeyDown -= new KeyEventHandler(this.AssociatedView_PreviewKeyDown);
-    base.OnDetaching();
-  }
+    protected override void OnDetaching()
+    {
+        AssociatedView.PreviewKeyDown -= AssociatedView_PreviewKeyDown;
+        base.OnDetaching();
+    }
 
-  private void AssociatedView_PreviewKeyDown(object sender, KeyEventArgs e)
-  {
-    if (e.Key != this.Key)
-      return;
-    this.Command?.Execute(this.AssociatedView.DataControl.SelectedItem);
-  }
+    private void AssociatedView_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key) return;
+        Command?.Execute(AssociatedView.DataControl.SelectedItem);
+    }
 }

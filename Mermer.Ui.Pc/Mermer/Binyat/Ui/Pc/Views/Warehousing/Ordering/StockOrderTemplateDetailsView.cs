@@ -1,68 +1,19 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Pc.Views.Warehousing.Ordering.StockOrderTemplateDetailsView
-// Assembly: Mermer.Ui.Pc, Version=1.4.4.0, Culture=neutral, PublicKeyToken=null
-// MVID: D54C0BF8-E817-4120-9485-68C30ADFDFE4
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Pc.exe
-
-using MvvmCross.Wpf.Views;
+﻿using MvvmCross.Wpf.Views;
 using Mermer.Ui.Core.ViewModels.Warehousing.Ordering;
-using Mermer.Ui.Pc.Controls;
-using System;
-using System.CodeDom.Compiler;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Markup;
 
-#nullable disable
 namespace Mermer.Ui.Pc.Views.Warehousing.Ordering;
 
-public class StockOrderTemplateDetailsView : MvxWpfView, IComponentConnector
+public partial class StockOrderTemplateDetailsView : MvxWpfView
 {
-  internal StockLookupEdit FirstFocus;
-  private bool _contentLoaded;
+    public StockOrderTemplateDetailsView() => InitializeComponent();
 
-  public StockOrderTemplateDetailsView() => this.InitializeComponent();
-
-  private void DetectShortCut(object sender, KeyEventArgs e)
-  {
-    if (!(this.DataContext is StockOrderTemplateDetailsViewModel) || e.Key != Key.F3)
-      return;
-    this.FirstFocus.Focus();
-    e.Handled = true;
-  }
-
-  [DebuggerNonUserCode]
-  [GeneratedCode("PresentationBuildTasks", "4.0.0.0")]
-  public void InitializeComponent()
-  {
-    if (this._contentLoaded)
-      return;
-    this._contentLoaded = true;
-    Application.LoadComponent((object) this, new Uri("/Mermer.Ui.Pc;component/views/warehousing.ordering/stockordertemplatedetailsview.xaml", UriKind.Relative));
-  }
-
-  [DebuggerNonUserCode]
-  [GeneratedCode("PresentationBuildTasks", "4.0.0.0")]
-  internal Delegate _CreateDelegate(Type delegateType, string handler)
-  {
-    return Delegate.CreateDelegate(delegateType, (object) this, handler);
-  }
-
-  [DebuggerNonUserCode]
-  [GeneratedCode("PresentationBuildTasks", "4.0.0.0")]
-  [EditorBrowsable(EditorBrowsableState.Never)]
-  void IComponentConnector.Connect(int connectionId, object target)
-  {
-    if (connectionId != 1)
+    private void DetectShortCut(object sender, System.Windows.Input.KeyEventArgs e)
     {
-      if (connectionId == 2)
-        this.FirstFocus = (StockLookupEdit) target;
-      else
-        this._contentLoaded = true;
+        if (!(DataContext is StockOrderTemplateDetailsViewModel) || e.Key != Key.F3)
+            return;
+
+        FirstFocus.Focus();
+        e.Handled = true;
     }
-    else
-      ((UIElement) target).PreviewKeyDown += new KeyEventHandler(this.DetectShortCut);
-  }
 }

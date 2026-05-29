@@ -1,92 +1,92 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Pc.Helpers.GridExtender
-// Assembly: Mermer.Ui.Pc, Version=1.4.4.0, Culture=neutral, PublicKeyToken=null
-// MVID: D54C0BF8-E817-4120-9485-68C30ADFDFE4
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Pc.exe
-
-using DevExpress.Xpf.Grid;
+﻿using DevExpress.Xpf.Grid;
 using System.Windows;
-using System.Windows.Controls.Primitives;
+// Явно вказуємо ButtonBase
+using ButtonBase = System.Windows.Controls.Primitives.ButtonBase;
 
-#nullable disable
 namespace Mermer.Ui.Pc.Helpers;
 
 public static class GridExtender
 {
-  public static readonly DependencyProperty PrintButtonProperty = DependencyProperty.RegisterAttached("PrintButton", typeof (FrameworkElement), typeof (GridExtender), (PropertyMetadata) new UIPropertyMetadata(new PropertyChangedCallback(GridExtender.OnPrintButtonPropertyChanged)));
-  public static readonly DependencyProperty FilterButtonProperty = DependencyProperty.RegisterAttached("FilterButton", typeof (FrameworkElement), typeof (GridExtender), (PropertyMetadata) new UIPropertyMetadata(new PropertyChangedCallback(GridExtender.OnFilterButtonPropertyChanged)));
-  public static readonly DependencyProperty ForceTotalSummaryUpdateProperty = DependencyProperty.RegisterAttached("ForceTotalSummaryUpdate", typeof (bool), typeof (GridExtender), (PropertyMetadata) new UIPropertyMetadata(new PropertyChangedCallback(GridExtender.OnForceTotalSummaryUpdatePropertyChanged)));
+    public static readonly DependencyProperty PrintButtonProperty = DependencyProperty.RegisterAttached("PrintButton", typeof(FrameworkElement), typeof(GridExtender), new UIPropertyMetadata(new PropertyChangedCallback(OnPrintButtonPropertyChanged)));
+    public static readonly DependencyProperty FilterButtonProperty = DependencyProperty.RegisterAttached("FilterButton", typeof(FrameworkElement), typeof(GridExtender), new UIPropertyMetadata(new PropertyChangedCallback(OnFilterButtonPropertyChanged)));
+    public static readonly DependencyProperty ForceTotalSummaryUpdateProperty = DependencyProperty.RegisterAttached("ForceTotalSummaryUpdate", typeof(bool), typeof(GridExtender), new UIPropertyMetadata(new PropertyChangedCallback(OnForceTotalSummaryUpdatePropertyChanged)));
 
-  public static Window MainForm { get; set; }
+    public static Window MainForm { get; set; }
 
-  public static ButtonBase GetPrintButton(DependencyObject obj)
-  {
-    return (ButtonBase) obj.GetValue(GridExtender.PrintButtonProperty);
-  }
-
-  public static void SetPrintButton(DependencyObject obj, ButtonBase value)
-  {
-    obj.SetValue(GridExtender.PrintButtonProperty, (object) value);
-  }
-
-  private static void OnPrintButtonPropertyChanged(
-    DependencyObject d,
-    DependencyPropertyChangedEventArgs e)
-  {
-    ((ButtonBase) e.NewValue).Click += (RoutedEventHandler) ((sender, arg) =>
+    public static ButtonBase GetPrintButton(DependencyObject obj)
     {
-      if (!(d is TableView tableView2))
-        return;
-      tableView2.ShowPrintPreviewDialog(GridExtender.MainForm);
-    });
-  }
+        return (ButtonBase)obj.GetValue(PrintButtonProperty);
+    }
 
-  public static ButtonBase GetFilterButton(DependencyObject obj)
-  {
-    return (ButtonBase) obj.GetValue(GridExtender.FilterButtonProperty);
-  }
-
-  public static void SetFilterButton(DependencyObject obj, ButtonBase value)
-  {
-    obj.SetValue(GridExtender.FilterButtonProperty, (object) value);
-  }
-
-  private static void OnFilterButtonPropertyChanged(
-    DependencyObject d,
-    DependencyPropertyChangedEventArgs e)
-  {
-    ((ButtonBase) e.NewValue).Click += (RoutedEventHandler) ((sender, arg) =>
+    public static void SetPrintButton(DependencyObject obj, ButtonBase value)
     {
-      if (!(d is TableView tableView2))
-        return;
-      tableView2.ShowFilterEditor((ColumnBase) null);
-    });
-  }
+        obj.SetValue(PrintButtonProperty, value);
+    }
 
-  public static bool GetForceTotalSummaryUpdate(DependencyObject obj)
-  {
-    return (bool) obj.GetValue(GridExtender.ForceTotalSummaryUpdateProperty);
-  }
+    private static void OnPrintButtonPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is ButtonBase button)
+        {
+            button.Click += (sender, arg) =>
+            {
+                if (d is TableView tableView)
+                {
+                    tableView.ShowPrintPreviewDialog(MainForm);
+                }
+            };
+        }
+    }
 
-  public static void SetForceTotalSummaryUpdate(DependencyObject obj, bool value)
-  {
-    obj.SetValue(GridExtender.ForceTotalSummaryUpdateProperty, (object) value);
-  }
+    public static ButtonBase GetFilterButton(DependencyObject obj)
+    {
+        return (ButtonBase)obj.GetValue(FilterButtonProperty);
+    }
 
-  private static void OnForceTotalSummaryUpdatePropertyChanged(
-    DependencyObject d,
-    DependencyPropertyChangedEventArgs e)
-  {
-    if (e.OldValue == e.NewValue || !(d is TableView tableView))
-      return;
-    if ((bool) e.NewValue)
-      tableView.CellValueChanged += new CellValueChangedEventHandler(GridExtender.UpdateTotalSummary);
-    else
-      tableView.CellValueChanged -= new CellValueChangedEventHandler(GridExtender.UpdateTotalSummary);
-  }
+    public static void SetFilterButton(DependencyObject obj, ButtonBase value)
+    {
+        obj.SetValue(FilterButtonProperty, value);
+    }
 
-  private static void UpdateTotalSummary(object sender, CellValueChangedEventArgs e)
-  {
-    (sender as TableView).Grid.UpdateTotalSummary();
-  }
+    private static void OnFilterButtonPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is ButtonBase button)
+        {
+            button.Click += (sender, arg) =>
+            {
+                if (d is TableView tableView)
+                {
+                    tableView.ShowFilterEditor(null);
+                }
+            };
+        }
+    }
+
+    public static bool GetForceTotalSummaryUpdate(DependencyObject obj)
+    {
+        return (bool)obj.GetValue(ForceTotalSummaryUpdateProperty);
+    }
+
+    public static void SetForceTotalSummaryUpdate(DependencyObject obj, bool value)
+    {
+        obj.SetValue(ForceTotalSummaryUpdateProperty, value);
+    }
+
+    private static void OnForceTotalSummaryUpdatePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.OldValue == e.NewValue || !(d is TableView tableView))
+            return;
+
+        if ((bool)e.NewValue)
+            tableView.CellValueChanged += UpdateTotalSummary;
+        else
+            tableView.CellValueChanged -= UpdateTotalSummary;
+    }
+
+    private static void UpdateTotalSummary(object sender, CellValueChangedEventArgs e)
+    {
+        if (sender is TableView tableView)
+        {
+            tableView.Grid.UpdateTotalSummary();
+        }
+    }
 }

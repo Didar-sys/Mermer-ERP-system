@@ -1,64 +1,19 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Pc.Views.Warehousing.StockSlipDetailsLineEditView
-// Assembly: Mermer.Ui.Pc, Version=1.4.4.0, Culture=neutral, PublicKeyToken=null
-// MVID: D54C0BF8-E817-4120-9485-68C30ADFDFE4
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Pc.exe
-
-using DevExpress.Xpf.Editors;
-using MvvmCross.Wpf.Views;
-using System;
-using System.CodeDom.Compiler;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Windows;
+﻿using MvvmCross.Wpf.Views;
 using System.Windows.Input;
-using System.Windows.Markup;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
-#nullable disable
 namespace Mermer.Ui.Pc.Views.Warehousing;
 
-public class StockSlipDetailsLineEditView : MvxWpfView, IComponentConnector
+public partial class StockSlipDetailsLineEditView : MvxWpfView
 {
-  internal SpinEdit FirstFocus;
-  internal SpinEdit PriceEdit;
-  private bool _contentLoaded;
+    public StockSlipDetailsLineEditView() => InitializeComponent();
 
-  public StockSlipDetailsLineEditView() => this.InitializeComponent();
-
-  private void FirstFocus_KeyDown(object sender, KeyEventArgs e)
-  {
-    if (e.Key != Key.Return || !this.PriceEdit.IsEnabled)
-      return;
-    this.PriceEdit.Focus();
-    e.Handled = true;
-  }
-
-  [DebuggerNonUserCode]
-  [GeneratedCode("PresentationBuildTasks", "4.0.0.0")]
-  public void InitializeComponent()
-  {
-    if (this._contentLoaded)
-      return;
-    this._contentLoaded = true;
-    Application.LoadComponent((object) this, new Uri("/Mermer.Ui.Pc;component/views/warehousing/stockslipdetailslineeditview.xaml", UriKind.Relative));
-  }
-
-  [DebuggerNonUserCode]
-  [GeneratedCode("PresentationBuildTasks", "4.0.0.0")]
-  [EditorBrowsable(EditorBrowsableState.Never)]
-  void IComponentConnector.Connect(int connectionId, object target)
-  {
-    if (connectionId != 1)
+    private void FirstFocus_KeyDown(object sender, KeyEventArgs e)
     {
-      if (connectionId == 2)
-        this.PriceEdit = (SpinEdit) target;
-      else
-        this._contentLoaded = true;
+        if (e.Key != Key.Return || !PriceEdit.IsEnabled)
+            return;
+
+        PriceEdit.Focus();
+        e.Handled = true;
     }
-    else
-    {
-      this.FirstFocus = (SpinEdit) target;
-      this.FirstFocus.KeyDown += new KeyEventHandler(this.FirstFocus_KeyDown);
-    }
-  }
 }

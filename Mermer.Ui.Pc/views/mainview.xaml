@@ -8,10 +8,10 @@
                 xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
                 xmlns:hlp="clr-namespace:Mermer.Ui.Pc.Helpers"
                 xmlns:cnv="clr-namespace:Mermer.Ui.Pc.Converters"
-                xmlns:com="clr-namespace:Mermer.Commerce.Models;assembly=Mermer"
-                xmlns:warehousing="clr-namespace:Mermer.Warehousing.Models;assembly=Mermer"
-                xmlns:finance="clr-namespace:Mermer.Finance.Models;assembly=Mermer"
-                xmlns:crm="clr-namespace:Mermer.CRM.Models;assembly=Mermer">
+                xmlns:com="clr-namespace:Payhas.Binyat.Commerce.Models;assembly=Payhas.Binyat.Core"
+                xmlns:warehousing="clr-namespace:Payhas.Binyat.Warehousing.Models;assembly=Payhas.Binyat.Core"
+                xmlns:finance="clr-namespace:Payhas.Binyat.Finance.Models;assembly=Payhas.Binyat.Core"
+                xmlns:crm="clr-namespace:Payhas.Binyat.CRM.Models;assembly=Payhas.Binyat.Core">
     <FrameworkElement.Resources>
         <Style x:Key="HeaderCaption" TargetType="{x:Type TextBlock}">
             <Setter Property="TextBlock.Foreground" Value="{StaticResource grayForegroundBrush}"/>

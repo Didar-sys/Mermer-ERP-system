@@ -6,11 +6,11 @@
 
 using DevExpress.Xpf.Core;
 using DevExpress.Xpf.WindowsUI;
-using MvvmCross.Core.ViewModels;
-using MvvmCross.Wpf.Views.Presenters;
-using Mermer.Ui.Core.ViewModels;
 using Mermer.Mvvm.Messages;
 using Mermer.Mvvm.ViewModels;
+using Mermer.Ui.Core.ViewModels;
+using MvvmCross.Core.ViewModels;
+using MvvmCross.Wpf.Views.Presenters;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -49,7 +49,7 @@ public class MainViewPresenter : MvxBaseWpfViewPresenter
       WinUIDialogWindow dialog = winUiDialogWindow;
       dialog.SetValue(ThemeManager.ThemeNameProperty, (object) "Office2013DarkGray;Touch");
       MainViewPresenter.Dialogs.Add(dialog);
-      Task.Run<bool?>((Func<bool?>) (() => Application.Current.Dispatcher.Invoke<bool?>((Func<bool?>) (() => dialog.ShowDialog()))));
+      Task.Run<bool?>((Func<bool?>) (() => System.Windows.Application.Current.Dispatcher.Invoke<bool?>((Func<bool?>) (() => dialog.ShowDialog()))));
     }
     else
     {

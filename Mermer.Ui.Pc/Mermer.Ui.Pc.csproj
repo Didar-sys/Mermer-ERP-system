@@ -19,22 +19,30 @@
     <ProjectReference Include="..\Mermer.Ui.Core\Mermer.Ui.Core.csproj" />
     <ProjectReference Include="..\Mermer.Ui.Core.Pc\Mermer.Ui.Core.Pc.csproj" />
     <ProjectReference Include="..\Mermer.Data.Patcher\Mermer.Data.Patcher.csproj" />
-    <Reference Include="DevExpress.Mvvm.v21.2"><HintPath>lib\DevExpress.Mvvm.v21.2.dll</HintPath></Reference>
     <ProjectReference Include="..\Mermer.Licensing.Client\Mermer.Licensing.Client.csproj" />
-    <Reference Include="DevExpress.Mvvm.v21.2">
-      <HintPath>lib\DevExpress.Mvvm.v21.2.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Autofac">
-      <HintPath>lib\Autofac.dll</HintPath>
+    <Reference Include="Splat">
+      <HintPath>lib\Splat.dll</HintPath>
     </Reference>
-    <Reference Include="Autofac.Extras.MvvmCross">
-      <HintPath>lib\Autofac.Extras.MvvmCross.dll</HintPath>
+    <Reference Include="Payhas.Binyat">
+      <HintPath>lib\Payhas.Binyat.dll</HintPath>
+    </Reference>
+    <Reference Include="Payhas.Binyat.Core">
+      <HintPath>lib\Payhas.Binyat.Core.dll</HintPath>
     </Reference>
     <Reference Include="Couchbase.NetClient">
       <HintPath>lib\Couchbase.NetClient.dll</HintPath>
+    </Reference>
+    <Reference Include="Payhas.Binyat.Core.Couch">
+      <HintPath>lib\Payhas.Binyat.Core.Couch.dll</HintPath>
+    </Reference>
+    <Reference Include="Payhas.Data.Patcher">
+      <HintPath>lib\Payhas.Data.Patcher.dll</HintPath>
+    </Reference>
+    <Reference Include="Payhas.Data.Synchronizer.Core">
+      <HintPath>lib\Payhas.Data.Synchronizer.Core.dll</HintPath>
     </Reference>
 
     <Reference Include="DevExpress.Data.Desktop.v21.2">
@@ -48,6 +56,9 @@
     </Reference>
     <Reference Include="DevExpress.Docs.v21.2">
       <HintPath>lib\DevExpress.Docs.v21.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Mvvm.v21.2">
+      <HintPath>lib\DevExpress.Mvvm.v21.2.dll</HintPath>
     </Reference>
     <Reference Include="DevExpress.Office.v21.2.Core">
       <HintPath>lib\DevExpress.Office.v21.2.Core.dll</HintPath>
@@ -86,18 +97,6 @@
     <Reference Include="Humanizer">
       <HintPath>lib\Humanizer.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration">
-      <HintPath>lib\Microsoft.Extensions.Configuration.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
-      <HintPath>lib\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration.FileExtensions">
-      <HintPath>lib\Microsoft.Extensions.Configuration.FileExtensions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration.Json">
-      <HintPath>lib\Microsoft.Extensions.Configuration.Json.dll</HintPath>
-    </Reference>
     <Reference Include="MvvmCross.Core">
       <HintPath>lib\MvvmCross.Core.dll</HintPath>
     </Reference>
@@ -122,12 +121,11 @@
     <Reference Include="Squirrel">
       <HintPath>lib\Squirrel.dll</HintPath>
     </Reference>
-
-    <Reference Include="Mermer.Core.Couch">
-      <HintPath>lib\Mermer.Core.Couch.dll</HintPath>
+    <Reference Include="AutoMapper">
+      <HintPath>lib\AutoMapper.dll</HintPath>
     </Reference>
-    <Reference Include="Mermer.Data.Mapping">
-      <HintPath>lib\Mermer.Data.Mapping.dll</HintPath>
+    <Reference Include="Autofac.Extras.MvvmCross">
+      <HintPath>lib\Autofac.Extras.MvvmCross.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -139,5 +137,14 @@
 
   <ItemGroup>
     <Folder Include="XamlGeneratedNamespace\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="10.0.8" />
+    <PackageReference Include="Autofac" Version="4.9.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
   </ItemGroup>
 </Project>
