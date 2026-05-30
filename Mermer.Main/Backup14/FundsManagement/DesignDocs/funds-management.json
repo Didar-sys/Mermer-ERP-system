@@ -1,0 +1,12 @@
+﻿{
+    "views": {
+        "funds-actions": {
+          "map": "funds-actions-map.js",
+          "reduce": "_count"
+        },
+        "funds-balances": {
+          "map": "funds-balances-map.js",
+          "reduce": "funds-balances-reduce.js"
+        }
+    }
+}

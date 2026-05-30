@@ -1,60 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!--Project was exported from assembly: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Data.Synchronizer.Core.Couch.dll-->
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{39F704DE-8D97-4795-B910-9684156FCC80}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
     <AssemblyName>Mermer.Data.Synchronizer.Core.Couch</AssemblyName>
-    <ApplicationVersion>0.0.9.0</ApplicationVersion>
     <RootNamespace>Mermer.Data.Synchronizer.Core.Couch</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Couchbase.NetClient">
-      <HintPath>lib\Couchbase.NetClient.dll</HintPath>
-    </Reference>
-    <Reference Include="Mermer.Data.Synchronizer.Core">
-      <HintPath>lib\Mermer.Data.Synchronizer.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="netstandard">
-      <HintPath>lib\netstandard.dll</HintPath>
-    </Reference>
+    <PackageReference Include="CouchbaseNetClient" Version="2.7.27" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Couchbase\Core\BucketExtensions.cs" />
-    <Compile Include="CouchInitializer.cs" />
-    <Compile Include="Services\AuthenticationService.cs" />
-    <Compile Include="Services\ChangesRepositoryService`1.cs" />
-    <Compile Include="Services\UsersRepositoryService.cs" />
-    <Compile Include="Helpers\AssemblyResourceReaderExtension.cs" />
-    <Compile Include="Common\ICouchCluster.cs" />
-    <Compile Include="Common\CouchCluster.cs" />
-    <Compile Include="AssemblyInfo.cs" />
+    <ProjectReference Include="..\Mermer.Data.Synchronizer.Core\Mermer.Data.Synchronizer.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Views\synchronizer.json" />
-    <EmbeddedResource Include="Views\synchronizer\indexes\map.js" />
-    <EmbeddedResource Include="Views\synchronizer\indexes\reduce.js" />
-  </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,0 +1,233 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Project was exported from assembly: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Core.Couch.dll-->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7425C4F5-F101-4521-9C21-FE38BCE8D40C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Mermer.Core.Couch</AssemblyName>
+    <ApplicationVersion>1.0.0.0</ApplicationVersion>
+    <RootNamespace>Mermer.Core.Couch</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AutoMapper">
+      <HintPath>lib\AutoMapper.dll</HintPath>
+    </Reference>
+    <Reference Include="Autofac">
+      <HintPath>lib\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Couchbase.Linq">
+      <HintPath>lib\Couchbase.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="Couchbase.NetClient">
+      <HintPath>lib\Couchbase.NetClient.dll</HintPath>
+    </Reference>
+    <Reference Include="FluentValidation">
+      <HintPath>lib\FluentValidation.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>lib\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Mermer">
+      <HintPath>lib\Mermer.dll</HintPath>
+    </Reference>
+    <Reference Include="Mermer">
+      <HintPath>lib\Mermer.dll</HintPath>
+    </Reference>
+    <Reference Include="Mermer.Core">
+      <HintPath>lib\Mermer.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Mermer.Data.Patcher">
+      <HintPath>lib\Mermer.Data.Patcher.dll</HintPath>
+    </Reference>
+    <Reference Include="Mermer.Data.Synchronizer.Core">
+      <HintPath>lib\Mermer.Data.Synchronizer.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Mermer.Data.Synchronizer.Core.Couch">
+      <HintPath>lib\Mermer.Data.Synchronizer.Core.Couch.dll</HintPath>
+    </Reference>
+    <Reference Include="Mermer.Licensing.Client">
+      <HintPath>lib\Mermer.Licensing.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="netstandard">
+      <HintPath>lib\netstandard.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="System\Reflection\AssemblyResourceReaderExtension.cs" />
+    <Compile Include="BinyatCouchModule.cs" />
+    <Compile Include="CouchDocumentChangeListener.cs" />
+    <Compile Include="Warehousing\Services\StockSlipsRepository.cs" />
+    <Compile Include="Warehousing\Services\StockTransfersRepository.cs" />
+    <Compile Include="Warehousing\Revisioning\RevisioningCouchIndexCreator.cs" />
+    <Compile Include="Warehousing\Revisioning\Services\StockRevisionsRepository.cs" />
+    <Compile Include="Warehousing\Ordering\OrderingCouchViewsCreator.cs" />
+    <Compile Include="Warehousing\Ordering\Services\AggregatedStockOrdersRepository.cs" />
+    <Compile Include="Warehousing\Ordering\Services\StockOrderActionsRepository.cs" />
+    <Compile Include="Warehousing\Ordering\Services\StockOrdersRepository.cs" />
+    <Compile Include="Transactions\TransactionCouchViewsCreator.cs" />
+    <Compile Include="Transactions\Services\TransactionCodeGenerationService.cs" />
+    <Compile Include="StockManagement\StockManagementCouchViewsCreator.cs" />
+    <Compile Include="StockManagement\BucketInfo.cs" />
+    <Compile Include="StockManagement\IndexInfo.cs" />
+    <Compile Include="StockManagement\StockManagementIndexCreator.cs" />
+    <Compile Include="StockManagement\Services\StockActionsRepository.cs" />
+    <Compile Include="StockManagement\Services\StockAlternativesRepository.cs" />
+    <Compile Include="StockManagement\Services\StockBalancesAggregatedRepository.cs" />
+    <Compile Include="StockManagement\Services\StockBalancesRepository.cs" />
+    <Compile Include="StockManagement\Services\StockCodeGenerationService.cs" />
+    <Compile Include="StockManagement\Services\StockRepriceEffectsRepository.cs" />
+    <Compile Include="StockManagement\Services\StockSearchServiceOld.cs" />
+    <Compile Include="StockManagement\Services\WildCharPosition.cs" />
+    <Compile Include="StockManagement\Services\StocksRepository.cs" />
+    <Compile Include="StockManagement\Services\StockTurnoverDataRepository.cs" />
+    <Compile Include="Reporting\Services\AggregatedReportsRepository.cs" />
+    <Compile Include="Reporting\Services\RevenueReportsRepository.cs" />
+    <Compile Include="FundsManagement\FundsManagementCouchViewsCreator.cs" />
+    <Compile Include="FundsManagement\Services\CurrenciesRepository.cs" />
+    <Compile Include="FundsManagement\Services\FundsActionsRepository.cs" />
+    <Compile Include="FundsManagement\Services\FundsBalancesRepository.cs" />
+    <Compile Include="Finance\Services\FundsSlipsRepository.cs" />
+    <Compile Include="Finance\Services\FundsTransfersRepository.cs" />
+    <Compile Include="Finance\Spending\FinanceSpendingCouchViewsCreator.cs" />
+    <Compile Include="Finance\Spending\Services\ExpenseActionsRepository.cs" />
+    <Compile Include="Finance\Spending\Services\ExpenseSlipsRepository.cs" />
+    <Compile Include="Finance\Spending\Services\ExpensesRepository.cs" />
+    <Compile Include="Finance\DailyRegistery\Services\DailyFundsRegisteriesRepository.cs" />
+    <Compile Include="Finance\DailyRegistery\Mappers\DailyFundsRegisteryToInfoMapper.cs" />
+    <Compile Include="Enterprise\EnterpriseCouchViewsCreator.cs" />
+    <Compile Include="Enterprise\Services\DepositoriesRepository.cs" />
+    <Compile Include="Enterprise\Services\OfficesRepository.cs" />
+    <Compile Include="Enterprise\Services\WarehousesRepository.cs" />
+    <Compile Include="CRM\CrmCouchViewsCreator.cs" />
+    <Compile Include="CRM\Services\PartnerActionsRepository.cs" />
+    <Compile Include="CRM\Services\PartnerBalancesRepository.cs" />
+    <Compile Include="CRM\Services\PartnerCodeGenerationService.cs" />
+    <Compile Include="CRM\Services\PartnerSlipsRepository.cs" />
+    <Compile Include="CRM\Services\PartnersRepository.cs" />
+    <Compile Include="CRM\Services\PartnerTransfersRepository.cs" />
+    <Compile Include="Common\CommonCouchIndexCreator.cs" />
+    <Compile Include="Common\CommonCouchViewsCreator.cs" />
+    <Compile Include="Common\ICouchCluster.cs" />
+    <Compile Include="Common\CouchCluster.cs" />
+    <Compile Include="Common\CouchModule.cs" />
+    <Compile Include="Common\CouchReadOnlyRepository`1.cs" />
+    <Compile Include="Common\CouchRepository`1.cs" />
+    <Compile Include="Common\CouchRepositoryWithFacet`1.cs" />
+    <Compile Include="Common\CouchView.cs" />
+    <Compile Include="Common\IServerIdProviderService.cs" />
+    <Compile Include="Common\ServerIdProviderService.cs" />
+    <Compile Include="Commerce\CommerceCouchViewsCreator.cs" />
+    <Compile Include="Commerce\Services\BillsRepository.cs" />
+    <Compile Include="Commerce\Services\InvoicesRepository.cs" />
+    <Compile Include="Commerce\Services\InvoicesInfoView.cs" />
+    <Compile Include="Commerce\Services\InvoicesPaymentsView.cs" />
+    <Compile Include="Commerce\Services\LastPurchasePricesRepository.cs" />
+    <Compile Include="Changes\ChangesCouchViewsCreator.cs" />
+    <Compile Include="Changes\CouchPatch.cs" />
+    <Compile Include="Changes\Services\CouchAuthenticationService.cs" />
+    <Compile Include="Changes\Services\ICouchLocalChangesRepositoryService`1.cs" />
+    <Compile Include="Changes\Services\CouchChangesRepositoryService.cs" />
+    <Compile Include="Authentication\AuthCouchIndexCreator.cs" />
+    <Compile Include="Authentication\AuthInitialDataCreator.cs" />
+    <Compile Include="Authentication\Services\CouchLoginService.cs" />
+    <Compile Include="Authentication\Services\RolesRepository.cs" />
+    <Compile Include="Authentication\Services\UsersRepository.cs" />
+    <Compile Include="Activations\Services\BinyatActivationService.cs" />
+    <Compile Include="Activations\Mappers\ActivationResultMapper.cs" />
+    <Compile Include="Mermer\Binyat\Ui\Core\Services\IMachineIdProviderService.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Changes\DesignDocs\changes.json" />
+    <EmbeddedResource Include="Changes\DesignDocs\synchronizer-doc.json" />
+    <EmbeddedResource Include="Changes\Functions\changes-by-doc-map.js" />
+    <EmbeddedResource Include="Changes\Functions\synchronizer-indexes-map.js" />
+    <EmbeddedResource Include="Changes\Functions\synchronizer-indexes-reduce.js" />
+    <EmbeddedResource Include="Commerce\DesignDocs\commerce.json" />
+    <EmbeddedResource Include="Commerce\DesignDocs\commerce-reporting.json" />
+    <EmbeddedResource Include="Commerce\Functions\invoice-infos-map.js" />
+    <EmbeddedResource Include="Commerce\Functions\invoice-payments-map.js" />
+    <EmbeddedResource Include="Commerce\Functions\last-purchase-prices-map.js" />
+    <EmbeddedResource Include="Commerce\Functions\last-purchase-prices-reduce.js" />
+    <EmbeddedResource Include="Common\DesignDocs\common.json" />
+    <EmbeddedResource Include="Common\Functions\common-facets-reduce.js" />
+    <EmbeddedResource Include="Common\Functions\common-revisions-map.js" />
+    <EmbeddedResource Include="CRM\DesignDocs\crm.json" />
+    <EmbeddedResource Include="CRM\Functions\partner-actions-map.js" />
+    <EmbeddedResource Include="CRM\Functions\partner-balances-by-office-and-id-map.js" />
+    <EmbeddedResource Include="CRM\Functions\partner-balances-by-office-map.js" />
+    <EmbeddedResource Include="CRM\Functions\partner-balances-partial-invoices.js" />
+    <EmbeddedResource Include="CRM\Functions\partner-balances-partial-others.js" />
+    <EmbeddedResource Include="CRM\Functions\partner-balances-reduce.js" />
+    <EmbeddedResource Include="CRM\Functions\partner-facets-map.js" />
+    <EmbeddedResource Include="Enterprise\DesignDocs\enterprise.json" />
+    <EmbeddedResource Include="Enterprise\Functions\depository-facets-map.js" />
+    <EmbeddedResource Include="Enterprise\Functions\office-facets-map.js" />
+    <EmbeddedResource Include="Enterprise\Functions\warehouse-facets-map.js" />
+    <EmbeddedResource Include="Finance\Spending\DesignDocs\finance-spending.json" />
+    <EmbeddedResource Include="Finance\Spending\Functions\expense-actions-map.js" />
+    <EmbeddedResource Include="Finance\Spending\Functions\expense-facets-map.js" />
+    <EmbeddedResource Include="FundsManagement\DesignDocs\funds-management.json" />
+    <EmbeddedResource Include="FundsManagement\Functions\funds-actions-map.js" />
+    <EmbeddedResource Include="FundsManagement\Functions\funds-balances-map.js" />
+    <EmbeddedResource Include="FundsManagement\Functions\funds-balances-reduce.js" />
+    <EmbeddedResource Include="StockManagement\DesignDocs\stock-management.json" />
+    <EmbeddedResource Include="StockManagement\DesignDocs\stock-management-reporting.json" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-actions-by-warehouse-all-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-actions-by-warehouse-and-id-all-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-actions-by-warehouse-and-id-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-actions-by-warehouse-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-actions-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-actions-partial-consts.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-actions-partial-others.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-actions-partial-overheads.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-actions-partial-transfer-destination.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-actions-partial-transfer-source.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-alternatives-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-balances-by-warehouse-and-id-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-balances-by-warehouse-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-balances-reduce.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-facets-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-info-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-repricing-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-tracking-by-lineId-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-tracking-by-lineSourceId-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-tracking-by-transactionId-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-tracking-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-tracking-partial-consts.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-tracking-partial-transfer-destination.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-tracking-partial-transfer-source.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-turnovers-map.js" />
+    <EmbeddedResource Include="StockManagement\Functions\stock-turnovers-reduce.js" />
+    <EmbeddedResource Include="StockManagement\Indexes\bucket-info.json" />
+    <EmbeddedResource Include="StockManagement\Indexes\stock-search-fts.json" />
+    <EmbeddedResource Include="Transactions\DesignDocs\transaction.json" />
+    <EmbeddedResource Include="Transactions\Functions\transaction-facets-map.js" />
+    <EmbeddedResource Include="Transactions\Functions\transaction-list-map.js" />
+    <EmbeddedResource Include="Warehousing\Ordering\DesignDocs\warehousing-ordering.json" />
+    <EmbeddedResource Include="Warehousing\Ordering\Functions\stock-orders-map.js" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

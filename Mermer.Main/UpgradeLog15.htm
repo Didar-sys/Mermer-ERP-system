@@ -1,0 +1,423 @@
+﻿<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+ <html xmlns:msxsl="urn:schemas-microsoft-com:xslt"><head><meta content="en-us" http-equiv="Content-Language" /><meta content="text/html; charset=utf-16" http-equiv="Content-Type" /><title _locID="ConversionReport0">
+          Отчет о переносе
+        </title><style> 
+                    /* Body style, for the entire document */
+                    body
+                    {
+                        background: #F3F3F4;
+                        color: #1E1E1F;
+                        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                        padding: 0;
+                        margin: 0;
+                    }
+
+                    /* Header1 style, used for the main title */
+                    h1
+                    {
+                        padding: 10px 0px 10px 10px;
+                        font-size: 21pt;
+                        background-color: #E2E2E2;
+                        border-bottom: 1px #C1C1C2 solid; 
+                        color: #201F20;
+                        margin: 0;
+                        font-weight: normal;
+                    }
+
+                    /* Header2 style, used for "Overview" and other sections */
+                    h2
+                    {
+                        font-size: 18pt;
+                        font-weight: normal;
+                        padding: 15px 0 5px 0;
+                        margin: 0;
+                    }
+
+                    /* Header3 style, used for sub-sections, such as project name */
+                    h3
+                    {
+                        font-weight: normal;
+                        font-size: 15pt;
+                        margin: 0;
+                        padding: 15px 0 5px 0;
+                        background-color: transparent;
+                    }
+
+                    /* Color all hyperlinks one color */
+                    a
+                    {
+                        color: #1382CE;
+                    }
+
+                    /* Table styles */ 
+                    table
+                    {
+                        border-spacing: 0 0;
+                        border-collapse: collapse;
+                        font-size: 10pt;
+                    }
+
+                    table th
+                    {
+                        background: #E7E7E8;
+                        text-align: left;
+                        text-decoration: none;
+                        font-weight: normal;
+                        padding: 3px 6px 3px 6px;
+                    }
+
+                    table td
+                    {
+                        vertical-align: top;
+                        padding: 3px 6px 5px 5px;
+                        margin: 0px;
+                        border: 1px solid #E7E7E8;
+                        background: #F7F7F8;
+                    }
+
+                    /* Local link is a style for hyperlinks that link to file:/// content, there are lots so color them as 'normal' text until the user mouse overs */
+                    .localLink
+                    {
+                        color: #1E1E1F;
+                        background: #EEEEED;
+                        text-decoration: none;
+                    }
+
+                    .localLink:hover
+                    {
+                        color: #1382CE;
+                        background: #FFFF99;
+                        text-decoration: none;
+                    }
+
+                    /* Center text, used in the over views cells that contain message level counts */ 
+                    .textCentered
+                    {
+                        text-align: center;
+                    }
+
+                    /* The message cells in message tables should take up all avaliable space */
+                    .messageCell
+                    {
+                        width: 100%;
+                    }
+
+                    /* Padding around the content after the h1 */ 
+                    #content 
+                    {
+	                    padding: 0px 12px 12px 12px; 
+                    }
+
+                    /* The overview table expands to width, with a max width of 97% */ 
+                    #overview table
+                    {
+                        width: auto;
+                        max-width: 75%; 
+                    }
+
+                    /* The messages tables are always 97% width */
+                    #messages table
+                    {
+                        width: 97%;
+                    }
+
+                    /* All Icons */
+                    .IconSuccessEncoded, .IconInfoEncoded, .IconWarningEncoded, .IconErrorEncoded
+                    {
+                        min-width:18px;
+                        min-height:18px; 
+                        background-repeat:no-repeat;
+                        background-position:center;
+                    }
+
+                    /* Success icon encoded */
+                    .IconSuccessEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconSuccess#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABcElEQVR4Xq2TsUsCURzHv15g8ZJcBWlyiYYgCIWcb9DFRRwMW5TA2c0/QEFwFkxxUQdxVlBwCYWOi6IhWgQhBLHJUCkhLr/BW8S7gvrAg+N+v8/v+x68Z8MGy+XSCyABQAXgBgHGALoASkIIDWSLeLBetdHryMjd5IxQPWT4rn1c/P7+xxp72Cs9m5SZ0Bq2vPnbPFafK2zDvmNHypdC0BPkLlQhxJsCAhQoZwdZU5mwxh720qGo8MzTxTTKZDPCx2HoVzp6lz0Q9tKhyx0kGs8Ny+TkWRKk8lCROwEduhyg9l/6lunOPSfmH3NUH6uQ0KHLAe7JYvJjevm+DAMGJHToKtigE+vwvIidxLamb8IBY9e+C5LiXREkfho3TSd06HJA13/oh6T51MTsfQbHrsMynQ5dDihFjiK8JJAU9AKIWTp76dCVN7HWHrajmUEGvyF9nkbAE6gLIS7kTUyuf2gscLoJrElZo/Mvj+nPz/kLTmfnEwP3tB0AAAAASUVORK5CYII=);
+                    }
+
+                    /* Information icon encoded */
+                    .IconInfoEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconInformation#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABHElEQVR4Xs2TsUoDQRRF7wwoziokjZUKadInhdhukR9YP8DMX1hYW+QvdsXa/QHBbcXC7W0CamWTQnclFutceIQJwwaWNLlwm5k5d94M76mmaeCrrmsLYOocY12FcxZFUeozCqKqqgYA8uevv1H6VuPxcwlfk5N92KHBxfFeCSAxxswlYAW/Xr989x/mv9gkhtyMDhcAxgzRsp7flj8B/HF1RsMXq+NZMkopaHe7lbKxQUEIGbKsYNoGn969060hZBkQex/W8oRQwsQaW2o3Ago2SVcJUzAgY3N0lTCZZm+zPS8HB51gMmS1DEYyOz9acKO1D8JWTlafKIMxdhvlfdyT94Vv5h7P8Ky7nQzACmhvKq3zk3PjW9asz9D/1oigecsioooAAAAASUVORK5CYII=);
+                    }
+
+                    /* Warning icon encoded */
+                    .IconWarningEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconWarning#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAx0lEQVR4XpWSMQ7CMAxFf4xAyBMLCxMrO8dhaBcuwdCJS3RJBw7SA/QGTCxdWJgiQYWKXJWKIXHIlyw5lqr34tQgEOdcBsCOx5yZK3hCCKdYXneQkh4pEfqzLfu+wVDSyyzFoJjfz9NB+pAF+eizx2Vruts0k15mPgvS6GYvpVtQhB61IB/dk6AF6fS4Ben0uIX5odtFe8Q/eW1KvFeH4e8khT6+gm5B+t3juyDt7n0jpe+CANTd+oTUjN/U3yVaABnSUjFz/gFq44JaVSCXeQAAAABJRU5ErkJggg==);
+                    }
+
+                    /* Error icon encoded */
+                    .IconErrorEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconError#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABQElEQVR4XqWTvUoEQRCE6wYPZUA80AfwAQz23uCMjA7MDRQEIzPBVEyNTQUFIw00vcQTTMzuAh/AxEQQT8HF/3G/oGGnEUGuoNnd6qoZuqltyKEsyzVJq5I6rnUp6SjGeGhESikzzlc1eL7opfuVbrqbU1Zw9NCgtQMaZpY0eNnaaL2fHusvTK5vKu7sjSS1Y4y3QUA6K3e3Mau5UFDyMP7tYF9o8cAHZv68vipoIJg971PZIZ5HiwdvYGGvFVFHmGmZ2MxwmQYPXubPl9Up0tfoMQGetXd6mRbvhBw+boZ6WF7Mbv1+GsHRk0fQmPAH1GfmZirbCfDJ61tw3Px8/8pZsPAG4jlVhcPgZ7adwNWBB68lkRQWFiTgFlbnLY3DGGM7izIJIyT/jjIvEJw6fdJTc6krDzh6aMwMP9bvDH4ADSsa9uSWVJkAAAAASUVORK5CYII=);
+                    }
+                 </style><script type="text/javascript" language="javascript"> 
+          
+            // Startup 
+            // Hook up the the loaded event for the document/window, to linkify the document content
+            var startupFunction = function() { linkifyElement("messages"); };
+            
+            if(window.attachEvent)
+            {
+              window.attachEvent('onload', startupFunction);
+            }
+            else if (window.addEventListener) 
+            {
+              window.addEventListener('load', startupFunction, false);
+            }
+            else 
+            {
+              document.addEventListener('load', startupFunction, false);
+            } 
+            
+            // Toggles the visibility of table rows with the specified name 
+            function toggleTableRowsByName(name)
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  if(!!currentName && currentName.indexOf(name) == 0)
+                  {
+                      var isVisible = allRows[i].style.display == ''; 
+                      isVisible ? allRows[i].style.display = 'none' : allRows[i].style.display = '';
+                  }
+               }
+            }
+            
+            function scrollToFirstVisibleRow(name) 
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  var isVisible = allRows[i].style.display == ''; 
+                  if(!!currentName && currentName.indexOf(name) == 0 && isVisible)
+                  {
+                     allRows[i].scrollIntoView(true); 
+                     return true; 
+                  }
+               }
+               
+               return false;
+            }
+            
+            // Linkifies the specified text content, replaces candidate links with html links 
+            function linkify(text)
+            {
+                 if(!text || 0 === text.length)
+                 {
+                     return text; 
+                 }
+
+                 // Find http, https and ftp links and replace them with hyper links 
+                 var urlLink = /(http|https|ftp)\:\/\/[a-zA-Z0-9\-\.]+(:[a-zA-Z0-9]*)?\/?([a-zA-Z0-9\-\._\?\,\/\\\+&%\$#\=~;\{\}])*/gi;
+                 
+                 return text.replace(urlLink, '<a href="$&">$&</a>') ;
+            }
+            
+            // Linkifies the specified element by ID
+            function linkifyElement(id)
+            {
+                var element = document.getElementById(id);
+                if(!!element)
+                {
+                  element.innerHTML = linkify(element.innerHTML); 
+                }
+            }
+            
+            function ToggleMessageVisibility(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              toggleTableRowsByName("MessageRowClass" + projectName);
+              toggleTableRowsByName('MessageRowHeaderShow' + projectName);
+              toggleTableRowsByName('MessageRowHeaderHide' + projectName); 
+            }
+            
+            function ScrollToFirstVisibleMessage(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              // First try the 'Show messages' row
+              if(!scrollToFirstVisibleRow('MessageRowHeaderShow' + projectName))
+              {
+                // Failed to find a visible row for 'Show messages', try an actual message row 
+                scrollToFirstVisibleRow('MessageRowClass' + projectName); 
+              }
+            }
+           </script></head><body><h1 _locID="ConversionReport">
+          Отчет о миграции - </h1><div id="content"><h2 _locID="OverviewTitle">Обзор</h2><div id="overview"><table><tr><th></th><th _locID="ProjectTableHeader">Проект</th><th _locID="PathTableHeader">Путь</th><th _locID="ErrorsTableHeader">Ошибки</th><th _locID="WarningsTableHeader">Предупреждения</th><th _locID="MessagesTableHeader">Сообщения</th></tr><tr><td class="IconSuccessEncoded" /><td><strong><a href="#Mermer.Core.Couch">Mermer.Core.Couch</a></strong></td><td>..\Mermer.Core.Couch\Mermer.Core.Couch.csproj</td><td class="textCentered"><a>0</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#" onclick="ScrollToFirstVisibleMessage('Mermer.Core.Couch'); return false;">152</a></td></tr></table></div><h2 _locID="SolutionAndProjectsTitle">Решение и проекты</h2><div id="messages"><a name="Mermer.Core.Couch" /><h3>Mermer.Core.Couch</h3><table><tr id="Mermer.Core.CouchHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Сообщение</th></tr><tr name="MessageRowHeaderShowMermer.Core.Couch"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="ShowAdditionalMessages" href="#" name="Mermer.Core.CouchMessage" onclick="ToggleMessageVisibility('Mermer.Core.Couch'); return false;">
+          Показать 152 дополнительные сообщения
+        </a></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Mermer.Core.Couch.csproj:
+        </strong><span>Успешно создана резервная копия файла проекта: C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Mermer.Core.Couch.csproj</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\System\Reflection\AssemblyResourceReaderExtension.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\System\Reflection\AssemblyResourceReaderExtension.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\BinyatCouchModule.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\BinyatCouchModule.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CouchDocumentChangeListener.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CouchDocumentChangeListener.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Warehousing\Services\StockSlipsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Warehousing\Services\StockSlipsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Warehousing\Services\StockTransfersRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Warehousing\Services\StockTransfersRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Warehousing\Revisioning\RevisioningCouchIndexCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Warehousing\Revisioning\RevisioningCouchIndexCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Warehousing\Revisioning\Services\StockRevisionsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Warehousing\Revisioning\Services\StockRevisionsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Warehousing\Ordering\OrderingCouchViewsCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Warehousing\Ordering\OrderingCouchViewsCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Warehousing\Ordering\Services\AggregatedStockOrdersRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Warehousing\Ordering\Services\AggregatedStockOrdersRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Warehousing\Ordering\Services\StockOrderActionsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Warehousing\Ordering\Services\StockOrderActionsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Warehousing\Ordering\Services\StockOrdersRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Warehousing\Ordering\Services\StockOrdersRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Transactions\TransactionCouchViewsCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Transactions\TransactionCouchViewsCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Transactions\Services\TransactionCodeGenerationService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Transactions\Services\TransactionCodeGenerationService.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\StockManagementCouchViewsCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\StockManagementCouchViewsCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\BucketInfo.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\BucketInfo.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\IndexInfo.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\IndexInfo.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\StockManagementIndexCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\StockManagementIndexCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Services\StockActionsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Services\StockActionsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Services\StockAlternativesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Services\StockAlternativesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Services\StockBalancesAggregatedRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Services\StockBalancesAggregatedRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Services\StockBalancesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Services\StockBalancesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Services\StockCodeGenerationService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Services\StockCodeGenerationService.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Services\StockRepriceEffectsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Services\StockRepriceEffectsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Services\StockSearchServiceOld.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Services\StockSearchServiceOld.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Services\WildCharPosition.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Services\WildCharPosition.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Services\StocksRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Services\StocksRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Services\StockTurnoverDataRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Services\StockTurnoverDataRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Reporting\Services\AggregatedReportsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Reporting\Services\AggregatedReportsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Reporting\Services\RevenueReportsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Reporting\Services\RevenueReportsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\FundsManagement\FundsManagementCouchViewsCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\FundsManagement\FundsManagementCouchViewsCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\FundsManagement\Services\CurrenciesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\FundsManagement\Services\CurrenciesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\FundsManagement\Services\FundsActionsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\FundsManagement\Services\FundsActionsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\FundsManagement\Services\FundsBalancesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\FundsManagement\Services\FundsBalancesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Finance\Services\FundsSlipsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Finance\Services\FundsSlipsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Finance\Services\FundsTransfersRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Finance\Services\FundsTransfersRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Finance\Spending\FinanceSpendingCouchViewsCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Finance\Spending\FinanceSpendingCouchViewsCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Finance\Spending\Services\ExpenseActionsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Finance\Spending\Services\ExpenseActionsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Finance\Spending\Services\ExpenseSlipsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Finance\Spending\Services\ExpenseSlipsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Finance\Spending\Services\ExpensesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Finance\Spending\Services\ExpensesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Finance\DailyRegistery\Services\DailyFundsRegisteriesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Finance\DailyRegistery\Services\DailyFundsRegisteriesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Finance\DailyRegistery\Mappers\DailyFundsRegisteryToInfoMapper.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Finance\DailyRegistery\Mappers\DailyFundsRegisteryToInfoMapper.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Enterprise\EnterpriseCouchViewsCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Enterprise\EnterpriseCouchViewsCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Enterprise\Services\DepositoriesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Enterprise\Services\DepositoriesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Enterprise\Services\OfficesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Enterprise\Services\OfficesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Enterprise\Services\WarehousesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Enterprise\Services\WarehousesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\CrmCouchViewsCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\CrmCouchViewsCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Services\PartnerActionsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Services\PartnerActionsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Services\PartnerBalancesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Services\PartnerBalancesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Services\PartnerCodeGenerationService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Services\PartnerCodeGenerationService.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Services\PartnerSlipsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Services\PartnerSlipsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Services\PartnersRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Services\PartnersRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Services\PartnerTransfersRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Services\PartnerTransfersRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\CommonCouchIndexCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\CommonCouchIndexCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\CommonCouchViewsCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\CommonCouchViewsCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\ICouchCluster.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\ICouchCluster.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\CouchCluster.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\CouchCluster.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\CouchModule.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\CouchModule.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\CouchReadOnlyRepository`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\CouchReadOnlyRepository`1.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\CouchRepository`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\CouchRepository`1.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\CouchRepositoryWithFacet`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\CouchRepositoryWithFacet`1.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\CouchView.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\CouchView.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\IServerIdProviderService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\IServerIdProviderService.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\ServerIdProviderService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\ServerIdProviderService.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\CommerceCouchViewsCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\CommerceCouchViewsCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\Services\BillsRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\Services\BillsRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\Services\InvoicesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\Services\InvoicesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\Services\InvoicesInfoView.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\Services\InvoicesInfoView.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\Services\InvoicesPaymentsView.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\Services\InvoicesPaymentsView.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\Services\LastPurchasePricesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\Services\LastPurchasePricesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Changes\ChangesCouchViewsCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Changes\ChangesCouchViewsCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Changes\CouchPatch.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Changes\CouchPatch.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Changes\Services\CouchAuthenticationService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Changes\Services\CouchAuthenticationService.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Changes\Services\ICouchLocalChangesRepositoryService`1.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Changes\Services\ICouchLocalChangesRepositoryService`1.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Changes\Services\CouchChangesRepositoryService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Changes\Services\CouchChangesRepositoryService.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Authentication\AuthCouchIndexCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Authentication\AuthCouchIndexCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Authentication\AuthInitialDataCreator.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Authentication\AuthInitialDataCreator.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Authentication\Services\CouchLoginService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Authentication\Services\CouchLoginService.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Authentication\Services\RolesRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Authentication\Services\RolesRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Authentication\Services\UsersRepository.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Authentication\Services\UsersRepository.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Activations\Services\BinyatActivationService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Activations\Services\BinyatActivationService.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Activations\Mappers\ActivationResultMapper.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Activations\Mappers\ActivationResultMapper.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Mermer\Binyat\Ui\Core\Services\IMachineIdProviderService.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Mermer\Binyat\Ui\Core\Services\IMachineIdProviderService.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\AssemblyInfo.cs:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\AssemblyInfo.cs</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Changes\DesignDocs\changes.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Changes\DesignDocs\changes.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Changes\DesignDocs\synchronizer-doc.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Changes\DesignDocs\synchronizer-doc.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Changes\Functions\changes-by-doc-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Changes\Functions\changes-by-doc-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Changes\Functions\synchronizer-indexes-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Changes\Functions\synchronizer-indexes-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Changes\Functions\synchronizer-indexes-reduce.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Changes\Functions\synchronizer-indexes-reduce.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\DesignDocs\commerce.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\DesignDocs\commerce.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\DesignDocs\commerce-reporting.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\DesignDocs\commerce-reporting.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\Functions\invoice-infos-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\Functions\invoice-infos-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\Functions\invoice-payments-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\Functions\invoice-payments-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\Functions\last-purchase-prices-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\Functions\last-purchase-prices-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Commerce\Functions\last-purchase-prices-reduce.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Commerce\Functions\last-purchase-prices-reduce.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\DesignDocs\common.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\DesignDocs\common.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\Functions\common-facets-reduce.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\Functions\common-facets-reduce.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Common\Functions\common-revisions-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Common\Functions\common-revisions-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\DesignDocs\crm.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\DesignDocs\crm.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Functions\partner-actions-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Functions\partner-actions-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Functions\partner-balances-by-office-and-id-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Functions\partner-balances-by-office-and-id-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Functions\partner-balances-by-office-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Functions\partner-balances-by-office-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Functions\partner-balances-partial-invoices.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Functions\partner-balances-partial-invoices.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Functions\partner-balances-partial-others.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Functions\partner-balances-partial-others.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Functions\partner-balances-reduce.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Functions\partner-balances-reduce.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\CRM\Functions\partner-facets-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\CRM\Functions\partner-facets-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Enterprise\DesignDocs\enterprise.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Enterprise\DesignDocs\enterprise.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Enterprise\Functions\depository-facets-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Enterprise\Functions\depository-facets-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Enterprise\Functions\office-facets-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Enterprise\Functions\office-facets-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Enterprise\Functions\warehouse-facets-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Enterprise\Functions\warehouse-facets-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Finance\Spending\DesignDocs\finance-spending.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Finance\Spending\DesignDocs\finance-spending.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Finance\Spending\Functions\expense-actions-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Finance\Spending\Functions\expense-actions-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Finance\Spending\Functions\expense-facets-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Finance\Spending\Functions\expense-facets-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\FundsManagement\DesignDocs\funds-management.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\FundsManagement\DesignDocs\funds-management.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\FundsManagement\Functions\funds-actions-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\FundsManagement\Functions\funds-actions-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\FundsManagement\Functions\funds-balances-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\FundsManagement\Functions\funds-balances-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\FundsManagement\Functions\funds-balances-reduce.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\FundsManagement\Functions\funds-balances-reduce.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\DesignDocs\stock-management.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\DesignDocs\stock-management.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\DesignDocs\stock-management-reporting.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\DesignDocs\stock-management-reporting.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-actions-by-warehouse-all-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-actions-by-warehouse-all-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-actions-by-warehouse-and-id-all-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-actions-by-warehouse-and-id-all-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-actions-by-warehouse-and-id-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-actions-by-warehouse-and-id-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-actions-by-warehouse-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-actions-by-warehouse-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-actions-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-actions-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-actions-partial-consts.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-actions-partial-consts.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-actions-partial-others.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-actions-partial-others.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-actions-partial-overheads.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-actions-partial-overheads.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-actions-partial-transfer-destination.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-actions-partial-transfer-destination.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-actions-partial-transfer-source.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-actions-partial-transfer-source.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-alternatives-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-alternatives-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-balances-by-warehouse-and-id-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-balances-by-warehouse-and-id-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-balances-by-warehouse-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-balances-by-warehouse-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-balances-reduce.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-balances-reduce.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-facets-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-facets-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-info-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-info-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-repricing-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-repricing-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-tracking-by-lineId-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-tracking-by-lineId-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-tracking-by-lineSourceId-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-tracking-by-lineSourceId-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-tracking-by-transactionId-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-tracking-by-transactionId-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-tracking-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-tracking-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-tracking-partial-consts.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-tracking-partial-consts.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-tracking-partial-transfer-destination.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-tracking-partial-transfer-destination.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-tracking-partial-transfer-source.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-tracking-partial-transfer-source.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-turnovers-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-turnovers-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Functions\stock-turnovers-reduce.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Functions\stock-turnovers-reduce.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Indexes\bucket-info.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Indexes\bucket-info.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\StockManagement\Indexes\stock-search-fts.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\StockManagement\Indexes\stock-search-fts.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Transactions\DesignDocs\transaction.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Transactions\DesignDocs\transaction.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Transactions\Functions\transaction-facets-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Transactions\Functions\transaction-facets-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Transactions\Functions\transaction-list-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Transactions\Functions\transaction-list-map.js</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Warehousing\Ordering\DesignDocs\warehousing-ordering.json:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Warehousing\Ordering\DesignDocs\warehousing-ordering.json</span></td></tr><tr name="MessageRowClassMermer.Core.Couch" style="display: none"><td class="IconInfoEncoded"><a name="Mermer.Core.CouchMessage" /></td><td class="messageCell"><strong>..\Mermer.Core.Couch\Warehousing\Ordering\Functions\stock-orders-map.js:
+        </strong><span>Успешно создана резервная копия файла C:\Users\Maksim\source\repos\mermer_erp_system\Mermer.Main\Backup14\Warehousing\Ordering\Functions\stock-orders-map.js</span></td></tr><tr style="display: none" name="MessageRowHeaderHideMermer.Core.Couch"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="HideAdditionalMessages" href="#" name="Mermer.Core.CouchMessage" onclick="ToggleMessageVisibility('Mermer.Core.Couch'); return false;">
+          Скрыть 152 дополнительные сообщения
+        </a></td></tr></table></div></div></body></html>

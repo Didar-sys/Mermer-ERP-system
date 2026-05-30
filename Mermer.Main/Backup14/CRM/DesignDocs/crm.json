@@ -1,0 +1,20 @@
+﻿{
+    "views": {
+        "partner-facets": {
+            "map": "partner-facets-map.js",
+            "reduce": "common-facets-reduce.js"
+        },
+        "partner-actions": {
+          "map": "partner-actions-map.js",
+          "reduce": "_count"
+        },
+        "partner-balances-by-office": {
+          "map": "partner-balances-by-office-map.js",
+          "reduce": "partner-balances-reduce.js"
+        },
+        "partner-balances-by-office-and-id": {
+          "map": "partner-balances-by-office-and-id-map.js",
+          "reduce": "partner-balances-reduce.js"
+        }
+    }
+}

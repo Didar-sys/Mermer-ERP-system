@@ -1,0 +1,7 @@
+﻿{
+    "views": {
+        "changes-by-doc": {
+          "map": "changes-by-doc-map.js"
+        }
+    }
+}

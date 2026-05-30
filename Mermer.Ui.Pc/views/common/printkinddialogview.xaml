@@ -11,35 +11,34 @@
                 xmlns:vm="clr-namespace:Mermer.Ui.Core.ViewModels.Common;assembly=Mermer.Ui.Core"
                 xmlns:srv="clr-namespace:Mermer.Ui.Core.Services;assembly=Mermer.Ui.Core"
                 xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors">
-  <DockPanel>
-    <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal"
-                dx:ThemeManager.ThemeName="Office2013DarkGray;Touch">
-      <Button IsCancel="true" Margin="10,0,0,0" Content="{Localize Cancel}" Command="{Binding CloseCommand}"/>
-    </StackPanel>
-    <Grid FocusManager.FocusedElement="{Binding ElementName=FirstFocus}">
-      <StackPanel Orientation="Vertical">
-        <dxnav:TileBar Padding="0, 10, 0, 10">
-          <dxnav:TileBarItem CommandParameter="{x:Static srv:PrintKind.Cheque}" Content="{Localize Cheque}"
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal">
+            <Button IsCancel="true" Margin="10,0,0,0" Content="{Localize Cancel}" Command="{Binding CloseCommand}"/>
+        </StackPanel>
+        <Grid FocusManager.FocusedElement="{Binding ElementName=FirstFocus}">
+            <StackPanel Orientation="Vertical">
+                <dxnav:TileBar Padding="0, 10, 0, 10">
+                    <dxnav:TileBarItem Content="{Localize Cheque}"
                              Command="{Binding SelectPrintKindCommand}"
                              Visibility="{Binding CanPrintCheque, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
-          <dxnav:TileBarItem CommandParameter="{x:Static srv:PrintKind.Split}" Content="{Localize Split}"
+                    <dxnav:TileBarItem Content="{Localize Split}"
                              Command="{Binding SelectPrintKindCommand}"
                              Visibility="{Binding CanPrintSplit, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
-          <dxnav:TileBarItem CommandParameter="{x:Static srv:PrintKind.Standard}" Content="{Localize Standard}"
+                    <dxnav:TileBarItem Content="{Localize Standard}"
                              Command="{Binding SelectPrintKindCommand}"
                              Visibility="{Binding CanPrintStandard, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
-          <dxnav:TileBarItem CommandParameter="{x:Static srv:PrintKind.Preview}" Content="{Localize Preview}"
+                    <dxnav:TileBarItem Content="{Localize Preview}"
                              Command="{Binding SelectPrintKindCommand}"
                              Visibility="{Binding CanPrintStandard, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
-        </dxnav:TileBar>
-        <dxe:CheckEdit EditValue="{Binding PrintOnSave, UpdateSourceTrigger=PropertyChanged}"
+                </dxnav:TileBar>
+                <dxe:CheckEdit EditValue="{Binding PrintOnSave, UpdateSourceTrigger=PropertyChanged}"
                        Content="{Localize 'Print On Save'}"/>
-        <dxe:CheckEdit EditValue="{Binding SetAsDefaultPrintKind, UpdateSourceTrigger=PropertyChanged}"
+                <dxe:CheckEdit EditValue="{Binding SetAsDefaultPrintKind, UpdateSourceTrigger=PropertyChanged}"
                        Content="{Localize 'Set As Default Print Kind'}"/>
-      </StackPanel>
-      <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
-        <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
-      </Grid>
-    </Grid>
-  </DockPanel>
+            </StackPanel>
+            <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+                <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
+            </Grid>
+        </Grid>
+    </DockPanel>
 </mvx:MvxWpfView>

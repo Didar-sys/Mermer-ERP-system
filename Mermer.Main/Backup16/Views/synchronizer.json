@@ -1,0 +1,8 @@
+{
+    "views": {
+        "indexes": {
+            "map": "synchronizer.indexes.map.js",
+            "reduce": "synchronizer.indexes.reduce.js"
+        }
+    }
+}

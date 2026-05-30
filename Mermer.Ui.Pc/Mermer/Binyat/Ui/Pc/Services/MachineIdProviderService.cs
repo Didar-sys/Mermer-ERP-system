@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Management;
 using System.Threading.Tasks;
+using IMachineIdProviderService = Mermer.Ui.Core.Services.IMachineIdProviderService;
 
 namespace Mermer.Ui.Pc.Services;
 

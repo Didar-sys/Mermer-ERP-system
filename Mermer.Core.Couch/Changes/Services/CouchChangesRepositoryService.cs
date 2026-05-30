@@ -102,7 +102,23 @@ public sealed class CouchChangesRepositoryService :
     });
   }
 
-  public async Task ApplyPatch<T>(IBucket bucket, CouchPatch patch, DateTime patchDate) where T : class, new()
+    /// --- Виправлені заглушки для реалізації інтерфейсу ---
+    public Task<Dictionary<string, IEnumerable<ChangeIdsRange>>> GetChangesIndexAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<Change<CouchPatch>>> QueryChangesByIndexAsync(Dictionary<string, IEnumerable<ChangeIdsRange>> index, int skip, int take)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task StoreChangesAsync(IEnumerable<Change<CouchPatch>> changes, bool saveIndex)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task ApplyPatch<T>(IBucket bucket, CouchPatch patch, DateTime patchDate) where T : class, new()
   {
     IDocumentResult<T> existingDocument;
     switch (patch.Action)

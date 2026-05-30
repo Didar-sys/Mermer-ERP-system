@@ -1,0 +1,12 @@
+﻿{
+    "views": {
+        "invoice-infos": {
+            "map": "invoice-infos-map.js",
+            "reduce": "_count"
+        },
+        "last-purchase-prices": {
+            "map": "last-purchase-prices-map.js",
+            "reduce": "last-purchase-prices-reduce.js"
+        } 
+    }
+}

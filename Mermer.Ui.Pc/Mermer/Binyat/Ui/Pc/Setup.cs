@@ -1,5 +1,11 @@
-﻿using Autofac;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using Autofac;
+using Autofac.Core;
+using Autofac.Builder;
 using Autofac.Extras.MvvmCross;
+using Castle.DynamicProxy;
 using Microsoft.Extensions.Configuration;
 using MvvmCross.Core.ViewModels;
 using MvvmCross.Platform.IoC;
@@ -20,11 +26,11 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Windows.Threading;
-
-
+using Autofac.Core.Registration;
+using System.Linq;
 
 // Правильні простори імен для старих модулів
-using Payhas.Binyat.Core.Couch;
+using Mermer.Core.Couch;
 
 namespace Mermer.Ui.Pc;
 
@@ -56,26 +62,114 @@ public class Setup : MvxWpfSetup
             builder.RegisterModule(new BinyatCouchModule(config.DatabaseAddress, config.DatabaseName, config.DatabaseUser, config.DatabasePassword));
 
         builder.RegisterModule<CoreUiModule>();
+        // Додаємо ?? "http://localhost:5000", щоб програма не падала через відсутність URL
         builder.RegisterModule(new MermerLicensingClientModule(new ActivationConfiguration
         {
-            ActivationUrl = Configuration["ActivationUrl"],
-            PublicKey = Configuration.GetSection("PublicKey").AsString()
+            ActivationUrl = Configuration["ActivationUrl"] ?? "http://localhost:5000",
+            PublicKey = Configuration.GetSection("PublicKey").AsString() ?? "dummy_key"
         }));
 
-        builder.RegisterInstance<PcJsonLocalizationResourceProvider>(new PcJsonLocalizationResourceProvider(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Localizations"))).As<IJsonLocalizationResourceProvider>().SingleInstance();
+        string locPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Localizations");
+        if (!Directory.Exists(locPath))
+        {
+            Directory.CreateDirectory(locPath);
+        }
+        builder.RegisterInstance(new PcJsonLocalizationResourceProvider(locPath))
+       .As<IJsonLocalizationResourceProvider>()
+       .AsImplementedInterfaces()
+       .AsSelf() // <-- Тепер Autofac знає його в обличчя
+       .SingleInstance();
+
+
+        // --- СУПЕР-УНІВЕРСАЛЬНИЙ СКАНЕР ВСІХ МОДУЛІВ MERMER ---
+        var mermerAssemblies = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "Mermer*.dll")
+            .Select(Assembly.LoadFrom)
+            .ToArray();
+
+        builder.RegisterAssemblyTypes(mermerAssemblies)
+            .Where(t => t.IsClass && !t.IsAbstract
+                        && t.Name != "PcJsonLocalizationResourceProvider"
+                        && t.Name != "App"
+                        && !t.Name.EndsWith("ViewModel")
+                        && !t.Name.EndsWith("View")
+                        && !t.Name.EndsWith("Setup")
+                        && !IsMvxSingletonDeep(t)) // <-- Використовуємо наш новий глибокий захист!
+            .AsImplementedInterfaces()
+            .InstancePerDependency();
+
+        // Реєструємо головний модуль бізнес-логіки (ти показував його раніше)
+        builder.RegisterModule<Mermer.BinyatModule>();
+
+        // Реєструємо менеджер мов для FluentValidation (ОБОВ'ЯЗКОВО!)
+        builder.RegisterType<FluentValidation.Resources.LanguageManager>()
+               .As<FluentValidation.Resources.ILanguageManager>()
+               .SingleInstance();
+
         builder.RegisterAssemblyTypes(GetType().Assembly).Where(t => t.Name.EndsWith("Service")).AsImplementedInterfaces();
         builder.RegisterType<NameHelper>().AsSelf().InstancePerDependency();
         builder.RegisterAssemblyTypes(assembly).Where(x => x.Name.EndsWith("Mapper")).AsSelf().InstancePerDependency();
 
         builder.RegisterModule<AutoMapperModule>();
 
-        // Явне приведення типів, яке вирішує помилку CS0266
-        return (IMvxIoCProvider)new AutofacMvxIocProvider(builder.Build());
+        // !!! ХАК ДЛЯ "ПРИВИДІВ" ЗІ СТАРОЇ БАЗИ ДАНИХ !!!
+        builder.RegisterSource(new OldLocalizationSource());
+
+        var container = builder.Build();
+
+        // --- МЕТОД "КУВАЛДА": ВБИВАЄМО ВИПАДКОВИЙ КОНТЕЙНЕР ---
+        // Якщо якийсь модуль під час реєстрації випадково смикнув Mvx.Resolve,
+        // MvvmCross створив свій дефолтний контейнер, який зараз заблокує нам Autofac.
+        var existingIoC = MvvmCross.Platform.Core.MvxSingleton<IMvxIoCProvider>.Instance;
+        if (existingIoC != null)
+        {
+            // Коректно знищуємо випадковий синглтон
+            if (existingIoC is IDisposable disposableIoc)
+            {
+                disposableIoc.Dispose();
+            }
+
+            // Якщо він опирається — знищуємо через рефлексію
+            var field = typeof(MvvmCross.Platform.Core.MvxSingleton<IMvxIoCProvider>)
+                .GetField("_instance", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+            if (field != null) field.SetValue(null, null);
+        }
+
+        // Тепер шлях вільний! Реєструємо Autofac
+        return (IMvxIoCProvider)new AutofacMvxIocProvider(container);
+    }
+    
+
+
+    // Глибока перевірка всього дерева успадкування
+    private static bool IsMvxSingletonDeep(Type type)
+    {
+        Type current = type;
+        while (current != null)
+        {
+            if (current.Name.Contains("MvxSingleton") || current.Name.Contains("MvxApplication"))
+                return true;
+            current = current.BaseType;
+        }
+        return false;
+    }
+
+    protected override void InitializeDebugServices()
+    {
+        // Якщо логер вже ініціалізований — просто виходимо, нічого не роблячи.
+        // Це врятує нас від помилки "MvxTrace already initialized".
+        if (MvvmCross.Platform.Platform.MvxTrace.Instance != null)
+        {
+            return;
+        }
+
+        // Якщо він порожній — дозволяємо MvvmCross створити його штатно.
+        base.InitializeDebugServices();
     }
 
     public override void Initialize()
     {
-        base.Initialize();
+        base.Initialize(); // Офіційний старт без жодних милиць!
+
         string name = _configurator.GetConfig<AppSettings>()?.Culture ?? "tk-TM";
         CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(name);
         CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(name);
@@ -83,9 +177,56 @@ public class Setup : MvxWpfSetup
         Thread.CurrentThread.CurrentUICulture = new CultureInfo(name);
     }
 
+    protected override void InitializeSingletonCache()
+    {
+        try
+        {
+            // Намагаємося створити кеш офіційно
+            base.InitializeSingletonCache();
+        }
+        catch (MvvmCross.Platform.Exceptions.MvxException)
+        {
+            // Якщо вікно MainWindow вже встигло створити кеш біндінгів до нас —
+            // ми просто проковтуємо цю помилку і дозволяємо завантаженню йти далі!
+        }
+    }
+
     protected override IMvxWpfViewsContainer CreateWpfViewsContainer() => new ViewsContainer();
 
     protected override IMvxApplication CreateApp() => new Mermer.Ui.Core.App();
 
     protected override IMvxTrace CreateDebugTrace() => new DebugTrace();
+}
+
+// --- КЛАСИ ДЛЯ ФЕЙКОВОГО СЕРВІСУ ---
+
+public class OldLocalizationSource : IRegistrationSource
+{
+    public bool IsAdapterForIndividualComponents => false;
+
+    // Зверни увагу на змінений тип: IEnumerable<IComponentRegistration> замість IEnumerable<ServiceRegistration>
+    public IEnumerable<IComponentRegistration> RegistrationsFor(Service service, Func<Service, IEnumerable<IComponentRegistration>> registrationAccessor)
+    {
+        if (service is TypedService typedService && typedService.ServiceType.FullName == "Payhas.Binyat.Common.Services.ILocalizationService")
+        {
+            yield return RegistrationBuilder.ForDelegate((c, p) =>
+            {
+                var proxyGen = new ProxyGenerator();
+                return proxyGen.CreateInterfaceProxyWithoutTarget(typedService.ServiceType, new DummyInterceptor());
+            }).As(typedService.ServiceType).CreateRegistration();
+        }
+    }
+}
+
+public class DummyInterceptor : IInterceptor
+{
+    public void Intercept(IInvocation invocation)
+    {
+        if (invocation.Method.ReturnType == typeof(string))
+            invocation.ReturnValue = "";
+        else if (invocation.Method.ReturnType.IsValueType)
+            invocation.ReturnValue = Activator.CreateInstance(invocation.Method.ReturnType);
+        else
+            invocation.ReturnValue = null;
+    }
 }

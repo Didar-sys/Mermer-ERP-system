@@ -175,8 +175,8 @@ public class BinyatActivationService : IBinyatActivationService
     IEnumerable<ActivationResult> activationResultsAsync = await this.GetActivationResultsAsync(machineId);
     List<ActiveDate> list = this._activationService.GetActiveDates(machineId, applicationId, applicationModuleId, activationResultsAsync).Select<(DateTime, DateTime?), ActiveDate>((Func<(DateTime, DateTime?), ActiveDate>) (x => new ActiveDate()
     {
-      DateValidFrom = x.DateValidFrom,
-      DateValidTill = x.DateValidTill
+      DateValidFrom = x.Item1,
+      DateValidTill = x.Item2
     })).ToList<ActiveDate>();
     return new ActivationStatus()
     {

@@ -9,23 +9,22 @@
                 xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
                 xmlns:vm="clr-namespace:Mermer.Ui.Core.ViewModels.Warehousing;assembly=Mermer.Ui.Core"
                 xmlns:srv="clr-namespace:Mermer.Ui.Core.Services;assembly=Mermer.Ui.Core">
-  <DockPanel>
-    <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal"
-                dx:ThemeManager.ThemeName="Office2013DarkGray;Touch">
-      <Button IsCancel="true" Margin="10,0,0,0" Content="{Localize Cancel}" Command="{Binding CloseCommand}"/>
-    </StackPanel>
-    <Grid FocusManager.FocusedElement="{Binding ElementName=FirstFocus}">
-      <dxnav:TileBar HorizontalAlignment="Center">
-        <dxnav:TileBarItem CommandParameter="{x:Static srv:StockTransferPrintingType.Both}" Content="{Localize 'Both Sides'}"
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal">
+            <Button IsCancel="true" Margin="10,0,0,0" Content="{Localize Cancel}" Command="{Binding CloseCommand}"/>
+        </StackPanel>
+        <Grid FocusManager.FocusedElement="{Binding ElementName=FirstFocus}">
+            <dxnav:TileBar HorizontalAlignment="Center">
+                <dxnav:TileBarItem Content="{Localize 'Both Sides'}"
                            Command="{Binding SelectPrintingTypeCommand}"/>
-        <dxnav:TileBarItem CommandParameter="{x:Static srv:StockTransferPrintingType.SentOnly}"
-                           Content="{Localize 'Sent Sides'}" Command="{Binding SelectPrintingTypeCommand}"/>
-        <dxnav:TileBarItem CommandParameter="{x:Static srv:StockTransferPrintingType.ReceivedOnly}"
-                           Content="{Localize 'Received Sides'}" Command="{Binding SelectPrintingTypeCommand}"/>
-      </dxnav:TileBar>
-      <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
-        <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
-      </Grid>
-    </Grid>
-  </DockPanel>
+                <dxnav:TileBarItem Content="{Localize 'Sent Sides'}" 
+                           Command="{Binding SelectPrintingTypeCommand}"/>
+                <dxnav:TileBarItem Content="{Localize 'Received Sides'}" 
+                           Command="{Binding SelectPrintingTypeCommand}"/>
+            </dxnav:TileBar>
+            <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+                <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
+            </Grid>
+        </Grid>
+    </DockPanel>
 </mvx:MvxWpfView>

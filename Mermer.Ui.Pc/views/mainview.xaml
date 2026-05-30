@@ -5,13 +5,7 @@
                 xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui"
                 xmlns:mvx="clr-namespace:MvvmCross.Wpf.Views;assembly=MvvmCross.Wpf"
                 xmlns:viewModels="clr-namespace:Mermer.Mvvm.ViewModels;assembly=Mermer.Mvvm"
-                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
-                xmlns:hlp="clr-namespace:Mermer.Ui.Pc.Helpers"
-                xmlns:cnv="clr-namespace:Mermer.Ui.Pc.Converters"
-                xmlns:com="clr-namespace:Payhas.Binyat.Commerce.Models;assembly=Payhas.Binyat.Core"
-                xmlns:warehousing="clr-namespace:Payhas.Binyat.Warehousing.Models;assembly=Payhas.Binyat.Core"
-                xmlns:finance="clr-namespace:Payhas.Binyat.Finance.Models;assembly=Payhas.Binyat.Core"
-                xmlns:crm="clr-namespace:Payhas.Binyat.CRM.Models;assembly=Payhas.Binyat.Core">
+                xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm">
     <FrameworkElement.Resources>
         <Style x:Key="HeaderCaption" TargetType="{x:Type TextBlock}">
             <Setter Property="TextBlock.Foreground" Value="{StaticResource grayForegroundBrush}"/>
@@ -101,7 +95,7 @@
             <DataTemplate>
                 <dxwui:HamburgerMenu x:Name="Menu" HeaderHeight="47" Margin="-1,-47,0,-1" IsInitiallyCompact="true"
                              HorizontalHeaderBackground="Transparent"
-                             AvailableViewStates="{Binding Path=IsChecked, ElementName=AutoHideMenu, Converter={cnv:AutoHideMenuToAvailableViewStates TrueAvailableViewStates=Flyout, FalseAvailableViewStates=Overlay}}">
+                             AvailableViewStates="Overlay">
                     <dxwui:HamburgerMenu.Items>
                         <dxwui:HamburgerMenuNavigationButton Glyph="pack://application:,,,/DevExpress.Images.v21.2;component/DevAV/Actions/Buy_32x32.png"
                                                  Content="{Localize Pos}" Command="{Binding ShowPosCommand}"/>
@@ -116,18 +110,15 @@
                             <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'Sales Payment Info'}" Command="{Binding ShowInvoicePaymentDataCommand}"
                                                       Visibility="{Binding AllowReporting, Converter={dx:BooleanToVisibilityConverter}}"/>
                             <dxwui:HamburgerSubMenuNavigationButton Style="{StaticResource Group}" Content="{Localize Sales}"/>
-                            <dxwui:HamburgerSubMenuNavigationButton CommandParameter="{x:Static com:InvoiceType.Sales}" Content="{Localize 'New Sales Invoice'}"
+                            <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Sales Invoice'}"
                                                       Command="{Binding ShowNewInvoiceCommand}"/>
-                            <dxwui:HamburgerSubMenuNavigationButton CommandParameter="{x:Static com:InvoiceType.SalesReturn}"
-                                                      Content="{Localize 'New Sales Return Invoice'}" Command="{Binding ShowNewInvoiceCommand}"/>
-                            <dxwui:HamburgerSubMenuNavigationButton CommandParameter="{x:Static com:BillType.Collection}"
-                                                      Content="{Localize 'New Funds Collection Bill'}" Command="{Binding ShowNewBillCommand}"/>
+                            <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Sales Return Invoice'}" Command="{Binding ShowNewInvoiceCommand}"/>
+                            <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Funds Collection Bill'}" Command="{Binding ShowNewBillCommand}"/>
                             <dxwui:HamburgerSubMenuNavigationButton Style="{StaticResource Group}" Content="{Localize Procurement}"/>
-                            <dxwui:HamburgerSubMenuNavigationButton CommandParameter="{x:Static com:InvoiceType.Purchase}" Content="{Localize 'New Purchase Invoice'}"
+                            <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Purchase Invoice'}"
                                                       Command="{Binding ShowNewInvoiceCommand}"/>
-                            <dxwui:HamburgerSubMenuNavigationButton CommandParameter="{x:Static com:InvoiceType.PurchaseReturn}"
-                                                      Content="{Localize 'New Purchase Return Invoice'}" Command="{Binding ShowNewInvoiceCommand}"/>
-                            <dxwui:HamburgerSubMenuNavigationButton CommandParameter="{x:Static com:BillType.Payment}" Content="{Localize 'New Funds Payment Bill'}"
+                            <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Purchase Return Invoice'}" Command="{Binding ShowNewInvoiceCommand}"/>
+                            <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Funds Payment Bill'}"
                                                       Command="{Binding ShowNewBillCommand}"/>
                         </dxwui:HamburgerSubMenu>
                         <dxwui:HamburgerSubMenu Glyph="pack://application:,,,/DevExpress.Images.v21.2;component/DevAV/View/Customers_32x32.png"
@@ -225,13 +216,12 @@
                                                   IsChecked="{Binding AutoHideMenu}" Content="{Localize 'Menu Always Visible'}"/>
                         <dxwui:HamburgerMenuBottomBarNavigationButton Placement="Left" Content="{Localize 'Check For Updates'}"
                                                           Glyph="{dx:DXImageOffice2013 Image=Download_32x32.png}"/>
-                        <dxwui:HamburgerMenuBottomBarNavigationButton Placement="Right" hlp:ShortcutExtender.Shortcut="Ctrl+L"
+                        <dxwui:HamburgerMenuBottomBarNavigationButton Placement="Right" 
                                                           Glyph="pack://application:,,,/DevExpress.Images.v21.2;component/DevAV/People/Walking_32x32.png"
                                                           Content="{Localize Logout}" Command="{Binding LogoutCommand}"/>
                     </dxwui:HamburgerMenu.BottomBarItems>
                     <ContentControl.Content>
-                        <Grid dx:ThemeManager.ThemeName="HybridApp"
-                  Margin="{Binding Path=IsChecked, ElementName=AutoHideMenu, Converter={cnv:AutoHideMenuToMarginConverter}}">
+                        <Grid Margin="0">
                             <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right">
                                 <TextBlock Style="{StaticResource HeaderCaption}" HorizontalAlignment="Right" Padding="0, 0, 10, 0"
                            Text="{Localize AppCreator, FallBackText='Mermer Creation Studio'}"/>

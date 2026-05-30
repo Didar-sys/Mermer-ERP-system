@@ -1,0 +1,8 @@
+﻿{
+    "views": {
+        "invoice-payments": {
+            "map": "invoice-payments-map.js",
+            "reduce": "_count"
+        }
+    }
+}

@@ -1,18 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <UseWpf>true</UseWpf>
     <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>latest</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>binyat_icon_003_d85_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Mermer.Base\Mermer.csproj" />
+    <ProjectReference Include="..\Mermer.Core.Couch\Mermer.Core.Couch.csproj" />
     <ProjectReference Include="..\Mermer\Mermer.Main.csproj" />
     <ProjectReference Include="..\Mermer.Core\Mermer.Core.csproj" />
     <ProjectReference Include="..\Mermer.Mvvm\Mermer.Mvvm.csproj" />
@@ -23,6 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="DevExpress.Xpf.Themes.Office2013DarkGray.v21.2">
+      <HintPath>lib\DevExpress.Xpf.Themes.Office2013DarkGray.v21.2.dll</HintPath>
+    </Reference>
     <Reference Include="Splat">
       <HintPath>lib\Splat.dll</HintPath>
     </Reference>
@@ -127,6 +131,16 @@
     <Reference Include="Autofac.Extras.MvvmCross">
       <HintPath>lib\Autofac.Extras.MvvmCross.dll</HintPath>
     </Reference>
+
+    <Reference Include="System.Printing" />
+    <Reference Include="ReachFramework" />
+
+    <Reference Include="DevExpress.Xpf.Themes.Office2016Black.v21.2">
+      <HintPath>lib\DevExpress.Xpf.Themes.Office2016Black.v21.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.HybridApp.v21.2">
+      <HintPath>lib\DevExpress.Xpf.Themes.HybridApp.v21.2.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -140,6 +154,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="8.1.1" />
+    <PackageReference Include="CouchbaseNetClient" Version="2.7.27" />
     <PackageReference Include="System.Management" Version="10.0.8" />
     <PackageReference Include="Autofac" Version="4.9.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />

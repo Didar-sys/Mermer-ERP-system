@@ -1,0 +1,21 @@
+﻿{
+  "views": {
+    "stock-repricing": {
+      "map": "stock-repricing-map.js",
+      "reduce": "_count"
+    },
+    "stock-turnovers": {
+      "map": "stock-turnovers-map.js",
+      "reduce": "stock-turnovers-reduce.js"
+    },
+    "stock-tracking-by-lineId": {
+      "map": "stock-tracking-by-lineId-map.js"
+    },
+    "stock-tracking-by-lineSourceId": {
+      "map": "stock-tracking-by-lineSourceId-map.js"
+    },
+    "stock-tracking-by-transactionId": {
+      "map": "stock-tracking-by-transactionId-map.js"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+﻿{
+  "views": {
+    "stock-facets": {
+      "map": "stock-facets-map.js",
+      "reduce": "common-facets-reduce.js"
+    },
+    "stock-info": {
+      "map": "stock-info-map.js"
+    },
+    "stock-alternatives": {
+      "map": "stock-alternatives-map.js"
+    },
+    "stock-actions-by-warehouse": {
+      "map": "stock-actions-by-warehouse-map.js",
+      "reduce": "_count"
+    },
+    "stock-actions-by-warehouse-and-id": {
+      "map": "stock-actions-by-warehouse-and-id-map.js",
+      "reduce": "_count"
+    },
+    "stock-actions-by-warehouse-all": {
+      "map": "stock-actions-by-warehouse-all-map.js",
+      "reduce": "_count"
+    },
+    "stock-actions-by-warehouse-and-id-all": {
+      "map": "stock-actions-by-warehouse-and-id-all-map.js",
+      "reduce": "_count"
+    },
+    "stock-balances-by-warehouse": {
+      "map": "stock-balances-by-warehouse-map.js",
+      "reduce": "stock-balances-reduce.js"
+    },
+    "stock-balances-by-warehouse-and-id": {
+      "map": "stock-balances-by-warehouse-and-id-map.js",
+      "reduce": "stock-balances-reduce.js"
+    }
+  }
+}

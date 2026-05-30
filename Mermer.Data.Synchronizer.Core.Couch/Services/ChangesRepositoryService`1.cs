@@ -56,17 +56,17 @@ public abstract class ChangesRepositoryService<T> :
     IEnumerable<Change<T>> list;
     using (IBucket bucket = this.CouchCluster.OpenDefaultBucket())
     {
-      string[] strArray = new string[7]
-      {
+            string[] strArray = new string[7]
+            {
         "SELECT `",
         this.CouchCluster.Bucket,
         "`.* FROM `",
         this.CouchCluster.Bucket,
         "` WHERE ",
-        string.Join(" OR ", this.ChangeHelper.GenerateChangeIdRanges((await this.AuthService.GetAuthenticatedUserAsync()).Id, changesIndex).Select<(string, string), string>((Func<(string, string), string>) (x => $"(META().id BETWEEN '{x.start}' AND '{x.end}')"))),
+        string.Join(" OR ", this.ChangeHelper.GenerateChangeIdRanges((await this.AuthService.GetAuthenticatedUserAsync()).Id, changesIndex).Select<(string, string), string>((Func<(string, string), string>) (x => $"(META().id BETWEEN '{x.Item1}' AND '{x.Item2}')"))),
         " ORDER BY patchDate ASC OFFSET $offset LIMIT $limit"
-      };
-      list = (IEnumerable<Change<T>>) (await bucket.QueryAsync<ChangeDocument<T>>(new QueryRequest(string.Concat(strArray)).AddNamedParameter("$offset", (object) skip).AddNamedParameter("$limit", (object) take).AdHoc(false))).ToList<ChangeDocument<T>>();
+            };
+            list = (IEnumerable<Change<T>>) (await bucket.QueryAsync<ChangeDocument<T>>(new QueryRequest(string.Concat(strArray)).AddNamedParameter("$offset", (object) skip).AddNamedParameter("$limit", (object) take).AdHoc(false))).ToList<ChangeDocument<T>>();
     }
     return list;
   }

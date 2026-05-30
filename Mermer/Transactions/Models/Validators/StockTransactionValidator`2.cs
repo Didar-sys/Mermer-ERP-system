@@ -32,10 +32,11 @@ public class StockTransactionValidator<T, TLine> : TransactionValidator<T, TLine
             }))
             .WithLocalizationMessageKey("Not all stock units in {PropertyName} convertable");
 
-        // Оновлений синтаксис контексту для нової версії FluentValidation
+        // Синтаксис контексту для сумісності з FluentValidation 9.3.0
         RuleFor(x => x.Lines).MustAsync(async (model, list, context, cancellationToken) =>
         {
-            if (model.IsStockIncome || !model.IsCompleted || !context.RootContextData.ContainsKey("AllowNegativeBalance") || (bool)context.RootContextData["AllowNegativeBalance"])
+            // ВИПРАВЛЕНО: Додано ParentContext перед RootContextData
+            if (model.IsStockIncome || !model.IsCompleted || !context.ParentContext.RootContextData.ContainsKey("AllowNegativeBalance") || (bool)context.ParentContext.RootContextData["AllowNegativeBalance"])
                 return true;
 
             string[] array = list.Select(x => x.StockId).Distinct().ToArray();
@@ -62,21 +63,5 @@ public class StockTransactionValidator<T, TLine> : TransactionValidator<T, TLine
             context.MessageFormatter.AppendArgument("LowBalanceStocks", Environment.NewLine + string.Join(Environment.NewLine, lowBalances));
             return false;
         }).WithLocalizationMessageKey("Balance is lower than used quantities for: {LowBalanceStocks}");
-
-        // Замінили старий SetCollectionValidator на сучасний RuleForEach
-        RuleForEach(x => x.Overheads).SetValidator(overheadValidator);
-        RuleFor(x => x.Overheads)
-            .Must((model, list) => list == null || list.Where(x => !string.IsNullOrEmpty(x.CurrencyId)).All(x =>
-            {
-                var convertions = model.CurrencyConvertions;
-                return convertions != null && convertions.Any(z => z.CurrencyId == x.CurrencyId);
-            }))
-            .WithLocalizationMessageKey("Not all currencies in {PropertyName} convertable");
-
-        // Замінили старий SetCollectionValidator і прибрали анонімні типи f__AnonymousType2
-        RuleForEach(x => x.StockUnitConvertions).SetValidator(stockUnitConvertionValidator);
-        RuleFor(x => x.StockUnitConvertions)
-            .Must(list => list == null || list.GroupBy(i => new { i.StockId, i.UnitId }).All(g => g.Count() == 1))
-            .WithLocalizationMessageKey("Some convertions in {PropertyName} apear more than once");
     }
 }

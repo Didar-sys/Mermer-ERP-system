@@ -218,7 +218,8 @@ public class InMemoryStockSearchService : IStockSearchService, IDisposable
 
         foreach (string str in searchWords.Where(w => !w.Equals("b", StringComparison.OrdinalIgnoreCase)))
         {
-            if (text.Contains(str, StringComparison.OrdinalIgnoreCase))
+            // ВИПРАВЛЕНО: Використовуємо IndexOf >= 0 замість Contains з двома аргументами
+            if (text.IndexOf(str, StringComparison.OrdinalIgnoreCase) >= 0)
                 text = text.ToUpper().Replace(str.ToUpper(), $"<B>{str.ToUpper()}</B>");
         }
         text = text.ToUpper().Replace("<B>", "<B style=\"background-color:yellow;color:black\">");

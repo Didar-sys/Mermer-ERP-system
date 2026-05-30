@@ -1,0 +1,16 @@
+﻿{
+    "views": {
+        "office-facets": {
+            "map": "office-facets-map.js",
+            "reduce": "common-facets-reduce.js"
+        },
+        "warehouse-facets": {
+            "map": "warehouse-facets-map.js",
+            "reduce": "common-facets-reduce.js"
+        },
+        "depository-facets": {
+            "map": "depository-facets-map.js",
+            "reduce": "common-facets-reduce.js"
+        }
+    }
+}
