@@ -56,32 +56,37 @@ public class LoginViewModel : BaseViewModel
     }
   }
 
-  private async Task LoginAsync()
-  {
-    LoginViewModel loginViewModel = this;
-    loginViewModel.IsBusy = true;
-    try
+    private async Task LoginAsync()
     {
-      await Task.WhenAll(loginViewModel._activationService.ValidateClientActivationAsync(), loginViewModel._activationService.ValidateServerActivationAsync());
-      await loginViewModel._loginService.LoginAsync(loginViewModel.Username, loginViewModel.Password);
-      await loginViewModel.NavigationService.Navigate<MainViewModel>();
-    }
-    catch (ApplicationException ex)
-    {
-      loginViewModel.UserInteractionService.ShowMessage(loginViewModel["Application is not activated", Array.Empty<object>()], loginViewModel["Please activate this copy of your application!", Array.Empty<object>()]);
-    }
-    catch (InvalidOperationException ex)
-    {
-      loginViewModel.UserInteractionService.ShowMessage(loginViewModel["Error Logging In", Array.Empty<object>()], loginViewModel["User not exists, or wrong password!", Array.Empty<object>()]);
-    }
-    catch (Exception ex)
-    {
-      loginViewModel.UserInteractionService.ShowExceptionMessage(ex, $"{loginViewModel["Error Logging In!", Array.Empty<object>()]} ({ex.GetType()})");
-    }
-    loginViewModel.IsBusy = false;
-  }
+        LoginViewModel loginViewModel = this;
+        loginViewModel.IsBusy = true;
+        try
+        {
+            // 1. ВИМИКАЄМО ПЕРЕВІРКУ ЛІЦЕНЗІЙ (Режим Бога)
+            // Просто коментуємо цей рядок, щоб програма пропускала цей крок:
+            // await Task.WhenAll(loginViewModel._activationService.ValidateClientActivationAsync(), loginViewModel._activationService.ValidateServerActivationAsync());
 
-  public ICommand ShowSettingsCommand
+            await loginViewModel._loginService.LoginAsync(loginViewModel.Username, loginViewModel.Password);
+
+            // 3. Відкриваємо головне вікно програми
+            await loginViewModel.NavigationService.Navigate<MainViewModel>();
+        }
+        catch (ApplicationException ex)
+        {
+            loginViewModel.UserInteractionService.ShowMessage(loginViewModel["Application is not activated", Array.Empty<object>()], loginViewModel["Please activate this copy of your application!", Array.Empty<object>()]);
+        }
+        catch (InvalidOperationException ex)
+        {
+            loginViewModel.UserInteractionService.ShowMessage(loginViewModel["Error Logging In", Array.Empty<object>()], loginViewModel["User not exists, or wrong password!", Array.Empty<object>()]);
+        }
+        catch (Exception ex)
+        {
+            loginViewModel.UserInteractionService.ShowExceptionMessage(ex, $"{loginViewModel["Error Logging In!", Array.Empty<object>()]} ({ex.GetType()})");
+        }
+        loginViewModel.IsBusy = false;
+    }
+
+    public ICommand ShowSettingsCommand
   {
     get
     {

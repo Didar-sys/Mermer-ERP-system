@@ -58,8 +58,7 @@ public class Setup : MvxWpfSetup
         builder.Register<IConfigurator>(x => _configurator).As<IConfigurator>().SingleInstance();
 
         ConnectionSettings config = _configurator.GetConfig<ConnectionSettings>();
-        if (config.IsDirectModeSelected)
-            builder.RegisterModule(new BinyatCouchModule(config.DatabaseAddress, config.DatabaseName, config.DatabaseUser, config.DatabasePassword));
+       
 
         builder.RegisterModule<CoreUiModule>();
         // Додаємо ?? "http://localhost:5000", щоб програма не падала через відсутність URL
@@ -68,6 +67,16 @@ public class Setup : MvxWpfSetup
             ActivationUrl = Configuration["ActivationUrl"] ?? "http://localhost:5000",
             PublicKey = Configuration.GetSection("PublicKey").AsString() ?? "dummy_key"
         }));
+
+        // --- ДОДАЄМО ГЛОБАЛЬНИЙ HTTP КЛІЄНТ ---
+        // Завдяки цьому всі сервіси (зокрема і авторизація) знатимуть, куди відправляти запити
+        builder.Register(c =>
+        {
+            var client = new System.Net.Http.HttpClient();
+            var apiUrl = Configuration["ApiUrl"] ?? "http://localhost:5000";
+            client.BaseAddress = new Uri(apiUrl);
+            return client;
+        }).AsSelf().SingleInstance();
 
         string locPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Localizations");
         if (!Directory.Exists(locPath))
@@ -114,6 +123,15 @@ public class Setup : MvxWpfSetup
         // !!! ХАК ДЛЯ "ПРИВИДІВ" ЗІ СТАРОЇ БАЗИ ДАНИХ !!!
         builder.RegisterSource(new OldLocalizationSource());
 
+
+        // Тепер ми ігноруємо збережений кеш і завжди підключаємося до чистої бази
+        builder.RegisterModule(new BinyatCouchModule(
+            "http://localhost:8091",
+            "binyat",
+            "binyat", // Наш новий користувач з правами Full Admin
+            "Password123!"
+        ));
+
         var container = builder.Build();
 
         // --- МЕТОД "КУВАЛДА": ВБИВАЄМО ВИПАДКОВИЙ КОНТЕЙНЕР ---
@@ -137,7 +155,7 @@ public class Setup : MvxWpfSetup
         // Тепер шлях вільний! Реєструємо Autofac
         return (IMvxIoCProvider)new AutofacMvxIocProvider(container);
     }
-    
+
 
 
     // Глибока перевірка всього дерева успадкування

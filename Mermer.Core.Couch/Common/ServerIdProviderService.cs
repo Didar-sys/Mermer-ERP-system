@@ -27,8 +27,25 @@ public class ServerIdProviderService : IServerIdProviderService
     using (HttpClient client = new HttpClient())
     {
       client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{this._cluster.Username}:{this._cluster.Password}")));
-      uuid = JsonConvert.DeserializeObject<BucketInfo>(await (await client.GetAsync($"{this._cluster.Url}/pools/default/buckets/{this._cluster.DefaultBucket}")).Content.ReadAsStringAsync()).Uuid;
-    }
+            // --- БЕЗПЕЧНЕ ФОРМУВАННЯ АДРЕСИ COUCHBASE ---
+            string safeUrl = string.IsNullOrWhiteSpace(this._cluster.Url) ? "127.0.0.1" : this._cluster.Url;
+
+            // Якщо адреса не має http://, додаємо його і стандартний порт Couchbase (8091)
+            if (!safeUrl.StartsWith("http"))
+            {
+                safeUrl = safeUrl.Contains(":") ? $"http://{safeUrl}" : $"http://{safeUrl}:8091";
+            }
+
+            string bucketName = string.IsNullOrWhiteSpace(this._cluster.DefaultBucket) ? "default" : this._cluster.DefaultBucket;
+            string requestUri = $"{safeUrl}/pools/default/buckets/{bucketName}";
+
+            // Виконуємо запит за гарантовано правильною адресою
+            var response = await client.GetAsync(requestUri);
+            var contentString = await response.Content.ReadAsStringAsync();
+
+            var bucketInfo = JsonConvert.DeserializeObject<BucketInfo>(contentString);
+            uuid = bucketInfo?.Uuid;
+        }
     return uuid;
   }
 }

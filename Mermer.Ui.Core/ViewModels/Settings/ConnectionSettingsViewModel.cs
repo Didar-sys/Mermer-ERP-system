@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Payhas.Binyat.Core.Couch.Common;
+using Mermer.Core.Couch.Common;
 
 #nullable disable
 namespace Mermer.Ui.Core.ViewModels.Settings;

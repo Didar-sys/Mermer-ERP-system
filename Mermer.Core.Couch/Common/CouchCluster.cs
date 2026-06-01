@@ -25,28 +25,49 @@ public class CouchCluster : ICouchCluster, IDisposable
 
   public ICluster Cluster { get; private set; }
 
-  public void Initialize(string url, string defaultBucket, string username, string password)
-  {
-    this.Cluster?.Dispose();
-    this.Url = url;
-    this.DefaultBucket = defaultBucket;
-    this.Username = username;
-    this.Password = password;
-    try
+    public void Initialize(string url, string defaultBucket, string username, string password)
     {
-      this.Cluster = (ICluster) new Couchbase.Cluster(new ClientConfiguration()
-      {
-        Servers = new List<Uri>() { new Uri(url) },
-        QueryRequestTimeout = 600000U
-      });
-      this.Cluster.Authenticate((IAuthenticator) new PasswordAuthenticator(username, password));
+        this.Cluster?.Dispose();
+
+        // 1. Формуємо безпечну адресу (щоб не падало створення Uri)
+        string safeUrl = string.IsNullOrWhiteSpace(url) ? "127.0.0.1" : url;
+        if (!safeUrl.StartsWith("http"))
+        {
+            safeUrl = safeUrl.Contains(":") ? $"http://{safeUrl}" : $"http://{safeUrl}:8091";
+        }
+
+        // --- ЗАЛІЗОБЕТОННИЙ ХАК ДЛЯ ЛОКАЛЬНОГО ТЕСТУВАННЯ ---
+        // Ігноруємо будь-які старі збережені конфіги з диска
+        this.Url = "http://localhost:8091";
+        this.DefaultBucket = "binyat"; // Ніяких .ymb3!
+        this.Username = "binyat";
+        this.Password = "Password123!";
+
+        try
+        {
+            this.Cluster = (ICluster)new Couchbase.Cluster(new ClientConfiguration()
+            {
+                Servers = new List<Uri>() { new Uri(this.Url) },
+                QueryRequestTimeout = 600000U
+            });
+            this.Cluster.Authenticate((IAuthenticator)new PasswordAuthenticator(this.Username, this.Password));
+        }
+        catch (Exception ex)
+        {
+            // Замість того, щоб ковтати помилку і робити Cluster = null, 
+            // ми жбурляємо її наверх із детальним описом!
+            throw new Exception($"КРИТИЧНА ПОМИЛКА COUCHBASE: {ex.Message} --- Деталі: {ex.InnerException?.Message}", ex);
+        }
     }
-    catch (Exception ex)
+
+    public IBucket OpenDefaultBucket()
     {
+        if (this.Cluster == null)
+        {
+            throw new InvalidOperationException("Неможливо відкрити бакет, тому що Cluster дорівнює null (ініціалізація бази провалилася).");
+        }
+        return this.Cluster.OpenBucket(this.DefaultBucket);
     }
-  }
 
-  public IBucket OpenDefaultBucket() => this.Cluster.OpenBucket(this.DefaultBucket);
-
-  public void Dispose() => this.Cluster?.Dispose();
+    public void Dispose() => this.Cluster?.Dispose();
 }

@@ -8,6 +8,14 @@
     <RootNamespace>Mermer.Core</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Localization\ru.json" />
+    <None Remove="Localization\tm.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\ru.json" />
+    <EmbeddedResource Include="Localization\tm.json" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Mermer.Base\Mermer.csproj" />
@@ -15,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Castle.Core" Version="4.4.1" />
     <PackageReference Include="System.Text.Json" Version="8.0.3" />
   </ItemGroup>
   

@@ -114,19 +114,23 @@ public class MainViewModel : BaseViewModel
     }
   }
 
-  public override async Task Initialize()
-  {
-    await base.Initialize();
-    this.CurrentUser = this._loginService.Session.Username;
-    this.IsAdmin = this._loginService.Session.IsAdmin;
-    AppSettings config = this._configurator.GetConfig<AppSettings>();
-    this.OpenPosOnLoad = config.OpenPosOnLoad;
-    this.AutoHideMenu = config.AutoHideMenu;
-    this.AllowReporting = this._configurator.GetConfig<ConnectionSettings>().AllowReporting;
-    this._changeListener.Start();
-  }
+    public override async Task Initialize()
+    {
+        await base.Initialize();
+        this.CurrentUser = this._loginService.Session.Username;
+        this.IsAdmin = this._loginService.Session.IsAdmin;
 
-  public ICommand LogoutCommand
+        AppSettings config = this._configurator.GetConfig<AppSettings>();
+        this.OpenPosOnLoad = config?.OpenPosOnLoad ?? false;
+        this.AutoHideMenu = config?.AutoHideMenu ?? false;
+
+        var connectionSettings = this._configurator.GetConfig<ConnectionSettings>();
+        this.AllowReporting = connectionSettings?.AllowReporting ?? true;
+
+        this._changeListener?.Start();
+    }
+
+    public ICommand LogoutCommand
   {
     get
     {

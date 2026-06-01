@@ -14,15 +14,29 @@ namespace System.Reflection;
 
 public static class AssemblyResourceReaderExtension
 {
-  public static async Task<string> ReadResourceAsync(this Assembly assembly, string resourceName)
-  {
-    string[] resources = assembly.GetManifestResourceNames();
-    string str1;
-    using (Stream stream = assembly.GetManifestResourceStream(((IEnumerable<string>) resources).Single<string>((Func<string, bool>) (x => x.EndsWith(resourceName)))))
+    public static async Task<string> ReadResourceAsync(this Assembly assembly, string resourceName)
     {
-      using (StreamReader reader = new StreamReader(stream))
-        str1 = await reader.ReadToEndAsync();
-    }
+        string[] resources = assembly.GetManifestResourceNames();
+
+        // БЕЗПЕЧНИЙ ПОШУК РЕСУРСУ
+        string targetResource = resources.FirstOrDefault(x => x.EndsWith(resourceName));
+
+        // Якщо файл не знайдено, викидаємо зрозумілу помилку з іменем файлу
+        if (targetResource == null)
+        {
+            throw new FileNotFoundException(
+                $"[УВАГА] Не знайдено вбудований ресурс: '{resourceName}'. " +
+                "Знайдіть цей файл у Solution Explorer, натисніть F4 і встановіть " +
+                "'Действие при сборке' (Build Action) на 'Внедренный ресурс' (Embedded Resource).");
+        }
+
+        string str1;
+        using (Stream stream = assembly.GetManifestResourceStream(targetResource))
+        {
+            using (StreamReader reader = new StreamReader(stream))
+                str1 = await reader.ReadToEndAsync();
+        }
+
     string[] strArray = resources;
     for (int index = 0; index < strArray.Length; ++index)
     {

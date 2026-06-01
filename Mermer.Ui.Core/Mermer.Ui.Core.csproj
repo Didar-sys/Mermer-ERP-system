@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mermer.Base\Mermer.csproj" />
+    <ProjectReference Include="..\Mermer.Core.Couch\Mermer.Core.Couch.csproj" />
     <ProjectReference Include="..\Mermer\Mermer.Main.csproj" />
     <ProjectReference Include="..\Mermer.Core\Mermer.Core.csproj" />
     <ProjectReference Include="..\Mermer.Mvvm\Mermer.Mvvm.csproj" />
@@ -57,5 +58,9 @@
     <Content Include="Localizations\default.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Castle.Core" Version="4.4.1" />
   </ItemGroup>
 </Project>
