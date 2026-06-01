@@ -20,10 +20,11 @@ public class BinyatCouchModule : BinyatCoreModule
 
     public BinyatCouchModule(string url, string bucket, string username, string password)
     {
-        _url = "http://localhost:8091";
-        _bucket = "binyat.ymb3";
-        _username = "admin";
-        _password = "PwdAdm321";
+        // Присвоюємо ті значення, які приходять у параметрах
+        _url = url;
+        _bucket = bucket;
+        _username = username;
+        _password = password;
     }
 
     protected override void Load(ContainerBuilder builder)
