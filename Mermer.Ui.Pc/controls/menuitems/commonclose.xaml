@@ -8,4 +8,4 @@
                     xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui"
                     HorizontalAlignment="Right" hlp:ShortcutExtender.Shortcut="Ctrl+Q"
                     Style="{StaticResource AppBarButtonBaseStyle}" Label="{Localize Close}"
-                    Command="{Binding CloseCommand}" Glyph="{dx:DXImageGrayscale Image=Close_32x32.png}"/>
+                    Command="{Binding ForceCloseCommand}" Glyph="{dx:DXImageGrayscale Image=Close_32x32.png}"/>

@@ -36,9 +36,6 @@
     <Reference Include="Payhas.Binyat.Core">
       <HintPath>lib\Payhas.Binyat.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Couchbase.NetClient">
-      <HintPath>lib\Couchbase.NetClient.dll</HintPath>
-    </Reference>
     <Reference Include="Payhas.Binyat.Core.Couch">
       <HintPath>lib\Payhas.Binyat.Core.Couch.dll</HintPath>
     </Reference>
@@ -98,9 +95,7 @@
       <HintPath>lib\DevExpress.XtraReports.v21.2.dll</HintPath>
     </Reference>
 
-    <Reference Include="Humanizer">
-      <HintPath>lib\Humanizer.dll</HintPath>
-    </Reference>
+    
     <Reference Include="MvvmCross.Core">
       <HintPath>lib\MvvmCross.Core.dll</HintPath>
     </Reference>
@@ -152,10 +147,16 @@
   <ItemGroup>
     <None Remove="appsettings.json" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <EmbeddedResource Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Mermer\Binyat\Ui\Pc\Reports\InvoiceStandard.resx">
+      <LogicalName>Mermer.Ui.Pc.Reports.InvoiceStandard.resources</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 
@@ -164,6 +165,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Humanizer" Version="2.14.1" />
     <PackageReference Include="AutoMapper" Version="8.1.1" />
     <PackageReference Include="Castle.Core" Version="4.4.1" />
     <PackageReference Include="CouchbaseNetClient" Version="2.7.27" />

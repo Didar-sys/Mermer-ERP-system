@@ -3,9 +3,9 @@ using Couchbase.Core;
 using Mermer.Authorization.Services;
 using Mermer.Data.Patcher;
 using Newtonsoft.Json;
-using Payhas.Binyat.Core.Couch.Changes;
-using Payhas.Binyat.Core.Couch.Changes.Services;
-using Payhas.Binyat.Core.Couch.Common;
+using Mermer.Core.Couch.Changes;
+using Mermer.Core.Couch.Changes.Services;
+using Mermer.Core.Couch.Common;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

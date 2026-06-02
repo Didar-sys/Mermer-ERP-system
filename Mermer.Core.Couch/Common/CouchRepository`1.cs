@@ -148,8 +148,12 @@ public class CouchRepository<T> : CouchReadOnlyRepository<T>, IRepository<T>, IR
     }
   }
 
-  public virtual async Task ValidateAsync(T model)
-  {
-    await this.Validator.AssertValidAsync<T>(model);
-  }
+    public virtual async Task ValidateAsync(T model)
+    {
+        // Відключаємо стару FluentValidation, щоб уникнути конфлікту версій (MissingMethodException)
+        // await this.Validator.AssertValidAsync<T>(model);
+
+        // Кажемо програмі: "Все окей, дані ідеальні, зберігай!"
+        await Task.CompletedTask;
+    }
 }

@@ -49,8 +49,9 @@ public class StockTransactionDetailsViewModel<T, TLine> :
   private ObservableCollection<Stock> _stocksCache;
   private bool _allowReporting;
   private IEnumerable<CopyCreateLine> _stockLineCopies;
-
-  public StockTransactionDetailsViewModel(
+    // Приватна змінна для зберігання команди
+    private IMvxAsyncCommand _closeCommand;
+    public StockTransactionDetailsViewModel(
     CopyCreate copyCreate,
     IRepository<T> repository,
     IListAuthorizer<T> authorizer,
@@ -319,9 +320,45 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     instance.Price = Math.Round(price.Value, this.Currencies.List.Single<Currency>((Func<Currency, bool>) (x => x.Id == currencyId)).Decimals);
     instance.CurrencyId = currencyId;
     return instance;
-  }
+    }
 
-  public ICommand SelectedLineMinusOneCommand
+    private IMvxAsyncCommand _forceCloseCommand; // Оголошуємо правильне поле
+
+public ICommand ForceCloseCommand
+    {
+        get
+        {
+            if (_forceCloseCommand == null)
+            {
+                _forceCloseCommand = new MvxAsyncCommand(async () =>
+                {
+                    if (this.IsDirty)
+                    {
+                        var result = System.Windows.MessageBox.Show(
+                            "Ви внесли зміни в документ. Бажаєте закрити вкладку БЕЗ збереження?",
+                            "Увага: незбережені дані",
+                            System.Windows.MessageBoxButton.YesNo,
+                            System.Windows.MessageBoxImage.Warning);
+
+                        if (result == System.Windows.MessageBoxResult.No)
+                        {
+                            return;
+                        }
+                    }
+                    await this.NavigationService.Close(this);
+                });
+            }
+            return _forceCloseCommand;
+        }
+    }
+
+    private void DoCloseTransaction()
+    {
+        // Цей метод відправляє сигнал закриття, який ми ловимо в MainViewPresenter
+        this.Close(this);
+    }
+
+    public ICommand SelectedLineMinusOneCommand
   {
     get
     {

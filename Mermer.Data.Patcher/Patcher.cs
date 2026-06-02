@@ -124,21 +124,40 @@ public class Patcher : IPatcher
                         {
                             string propertyName = propertyPatch.Key;
                             PropertyInfo element = typeof(T).GetProperties().SingleOrDefault(x => x.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase));
+
                             if (element != null && element.CanWrite && !Attribute.IsDefined(element, typeof(IgnorePatchAttribute)))
                             {
-                                try
+                                object val = propertyPatch.Value;
+                                Type targetType = element.PropertyType;
+                                Type actualType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+                                // 1. Якщо прийшов null - просто записуємо null і йдемо далі
+                                if (val == null)
                                 {
-                                    element.SetValue(target, propertyPatch.Value);
+                                    element.SetValue(target, null);
                                     continue;
                                 }
-                                catch { }
+
                                 try
                                 {
-                                    element.SetValue(target, JsonConvert.DeserializeObject(JsonConvert.SerializeObject(propertyPatch.Value), element.PropertyType));
-                                    continue;
+                                    // 2. Безпечно перевіряємо та конвертуємо без "сліпих" помилок
+                                    if (actualType.IsEnum)
+                                    {
+                                        element.SetValue(target, Enum.Parse(actualType, val.ToString(), true));
+                                    }
+                                    else if (val.GetType().Name.StartsWith("J")) // Якщо це складний JSON-об'єкт (JObject, JArray)
+                                    {
+                                        element.SetValue(target, JsonConvert.DeserializeObject(JsonConvert.SerializeObject(val), targetType));
+                                    }
+                                    else
+                                    {
+                                        element.SetValue(target, Convert.ChangeType(val, actualType));
+                                    }
                                 }
-                                catch { }
-                                element.SetValue(target, Convert.ChangeType(propertyPatch.Value, element.PropertyType));
+                                catch
+                                {
+                                    // Лише якщо дійсно сталася непередбачувана біда
+                                }
                             }
                         }
                         catch (Exception ex)

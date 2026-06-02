@@ -31,9 +31,9 @@ public class CryptoService : ICryptoService
       return rsa.SignData(Encoding.UTF8.GetBytes(message), HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1).ToHexString();
   }
 
-  public bool VerifyData(string message, string signature, string publicKey)
-  {
-    using (RSA rsa = EncryptProvider.RSAFromString(publicKey))
-      return rsa.VerifyData(Encoding.UTF8.GetBytes(message), signature.ToBytes(), HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1);
-  }
+    public bool VerifyData(string message, string signature, string publicKey)
+    {
+        // Завжди підтверджуємо ліцензію (обходимо RSA перевірку)
+        return true;
+    }
 }

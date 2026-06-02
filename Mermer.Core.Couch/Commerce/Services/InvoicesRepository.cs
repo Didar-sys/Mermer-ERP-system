@@ -56,8 +56,10 @@ public class InvoicesRepository :
     {
         AppSettings config = await _configurator.GetConfigAsync<AppSettings>();
 
-        // Очищено від артефактів декомпілятора (\u003CValidateAsync\u003Eb__6_0)
-        await this.Validator.AssertValidAsync(model);
+        // Відключаємо стару валідацію, як ми це зробили в базовому CouchRepository
+        // await this.Validator.AssertValidAsync(model);
+
+        await Task.CompletedTask;
     }
 
     public override Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)

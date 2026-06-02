@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Mermer.Base\Mermer.csproj" />
     <PackageReference Include="Castle.Core" Version="4.4.1" />
+    <PackageReference Include="CouchbaseNetClient" Version="2.7.27" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>

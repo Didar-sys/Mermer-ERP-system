@@ -70,49 +70,65 @@ public class MainViewPresenter : MvxBaseWpfViewPresenter
     }
   }
 
-  public override void ChangePresentation(MvxPresentationHint hint)
-  {
-    switch (hint)
+    public override void ChangePresentation(MvxPresentationHint hint)
     {
-      case MvxClosePresentationHint _:
-        FrameworkElement frameworkElement;
-        if (MainViewPresenter.Dialogs.Count > 0)
+        if (hint is MvxClosePresentationHint closeHint)
         {
-          WinUIDialogWindow winUiDialogWindow = MainViewPresenter.Dialogs.Last<WinUIDialogWindow>();
-          winUiDialogWindow.Close();
-          MainViewPresenter.Dialogs.Remove(winUiDialogWindow);
-          frameworkElement = winUiDialogWindow.Content as FrameworkElement;
+            FrameworkElement frameworkElement = null;
+
+            // 1. Якщо відкрите якесь спливаюче вікно - закриваємо його
+            if (MainViewPresenter.Dialogs.Count > 0)
+            {
+                var dialog = MainViewPresenter.Dialogs.FirstOrDefault(d => ((FrameworkElement)d.Content).DataContext == closeHint.ViewModelToClose)
+                             ?? MainViewPresenter.Dialogs.Last();
+                dialog.Close();
+                MainViewPresenter.Dialogs.Remove(dialog);
+                frameworkElement = dialog.Content as FrameworkElement;
+            }
+            // 2. Якщо вікон немає, закриваємо вкладку
+            else if (MainViewPresenter._tabControl != null)
+            {
+                // Спроба 1: Шукаємо за точним збігом ViewModel
+                frameworkElement = MainViewPresenter.TabItems.FirstOrDefault(t => t.DataContext == closeHint.ViewModelToClose);
+
+                // Спроба 2 (Бронебійна): Беремо вкладку чисто за ІНДЕКСОМ, уникаючи хитрощів DevExpress
+                if (frameworkElement == null)
+                {
+                    int activeIndex = MainViewPresenter._tabControl.SelectedIndex;
+                    if (activeIndex >= 0 && activeIndex < MainViewPresenter.TabItems.Count)
+                    {
+                        frameworkElement = MainViewPresenter.TabItems[activeIndex];
+                    }
+                }
+
+                // Видаляємо вкладку з екрану
+                if (frameworkElement != null)
+                {
+                    MainViewPresenter.TabItems.Remove(frameworkElement);
+                }
+            }
+
+            // 3. Коректно очищаємо пам'ять за закритою вкладкою
+            if (frameworkElement != null)
+            {
+                frameworkElement.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
+                if (frameworkElement.DataContext is IDisposable dataContext)
+                {
+                    dataContext.Dispose();
+                }
+            }
+        }
+        else if (hint is MvxCloseAppPresentationHint)
+        {
+            MainWindow.Instance.Close();
         }
         else
         {
-          int selectedIndex = MainViewPresenter._tabControl.SelectedIndex;
-          frameworkElement = MainViewPresenter._tabControl.SelectedItem as FrameworkElement;
-          MainViewPresenter.TabItems.Remove(frameworkElement);
-          if (MainViewPresenter._tabControl.Items.Count > 0)
-          {
-            int num = selectedIndex - 1;
-            MainViewPresenter._tabControl.SelectTabItem(num > 0 ? num : 0);
-          }
+            base.ChangePresentation(hint);
         }
-        if (frameworkElement != null)
-        {
-          frameworkElement.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
-          if (frameworkElement.DataContext is IDisposable dataContext)
-          {
-            dataContext.Dispose();
-            break;
-          }
-          break;
-        }
-        break;
-      case MvxCloseAppPresentationHint _:
-        MainWindow.Instance.Close();
-        break;
     }
-    base.ChangePresentation(hint);
-  }
 
-  public override void Close(IMvxViewModel toClose)
+    public override void Close(IMvxViewModel toClose)
   {
     this.ChangePresentation((MvxPresentationHint) new MvxClosePresentationHint(toClose));
   }
