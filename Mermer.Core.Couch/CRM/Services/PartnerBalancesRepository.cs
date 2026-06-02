@@ -62,7 +62,11 @@ public class PartnerBalancesRepository : CouchView, IPartnerBalancesRepository
         if (dateFrom >= dateTill) throw new ArgumentException("From date should be lower than or equal to till date");
 
         officeIds = officeIds?.Where(x => !string.IsNullOrEmpty(x)).ToArray();
-        if (officeIds == null || !officeIds.Any()) throw new ArgumentException("Offices should not be empty");
+        // Замість того, щоб "впускати" програму, просто повертаємо пустий список (нульовий баланс), якщо офісів немає
+        if (officeIds == null || !officeIds.Any())
+        {
+            return Array.Empty<PartnerBalanceByTypeWithBalance>();
+        }
 
         if (!_loginService.Session.IsAdmin)
         {

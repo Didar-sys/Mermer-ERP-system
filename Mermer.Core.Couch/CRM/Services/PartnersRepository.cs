@@ -62,7 +62,7 @@ public class PartnersRepository(
     {
       BucketContext context = new BucketContext(bucket1);
       IQueryable<Bill> source1 = context.Query<Bill>();
-      Expression<Func<Bill, bool>> predicate1 = (Expression<Func<Bill, bool>>) (x => x.DocType == "Bill" && mergeItemIds.Contains<string>(x.PartnerId));
+      Expression<Func<Bill, bool>> predicate1 = x => x.DocType == "Bill" && mergeItemIds.Contains(x.PartnerId);
       foreach (Bill item in await source1.Where<Bill>(predicate1).ExecuteAsync<Bill>())
       {
         item.PartnerId = mainItemId;
@@ -90,7 +90,7 @@ public class PartnersRepository(
         });
       }
       IQueryable<Invoice> source2 = context.Query<Invoice>();
-      Expression<Func<Invoice, bool>> predicate2 = (Expression<Func<Invoice, bool>>) (x => x.DocType == "Invoice" && mergeItemIds.Contains<string>(x.PartnerId));
+      Expression<Func<Invoice, bool>> predicate2 = x => x.DocType == "Invoice" && mergeItemIds.Contains(x.PartnerId);
       foreach (Invoice item in await source2.Where<Invoice>(predicate2).ExecuteAsync<Invoice>())
       {
         item.PartnerId = mainItemId;
@@ -118,7 +118,7 @@ public class PartnersRepository(
         });
       }
       IQueryable<PartnerSlip> source3 = context.Query<PartnerSlip>();
-      Expression<Func<PartnerSlip, bool>> predicate3 = (Expression<Func<PartnerSlip, bool>>) (x => x.DocType == "PartnerSlip" && x.Lines.Any<PartnerSlipLine>((Func<PartnerSlipLine, bool>) (i => mergeItemIds.Contains<string>(i.PartnerId))));
+      Expression<Func<PartnerSlip, bool>> predicate3 = x => x.DocType == "PartnerSlip" && x.Lines.Any(i => mergeItemIds.Contains(i.PartnerId));
       foreach (PartnerSlip item in await source3.Where<PartnerSlip>(predicate3).ExecuteAsync<PartnerSlip>())
       {
         CouchPatch couchPatch1 = new CouchPatch();
@@ -162,8 +162,8 @@ public class PartnersRepository(
         });
       }
       IQueryable<PartnerTransfer> source4 = context.Query<PartnerTransfer>();
-      Expression<Func<PartnerTransfer, bool>> predicate4 = (Expression<Func<PartnerTransfer, bool>>) (x => x.DocType == "PartnerTransfer" && x.Lines.Any<PartnerTransferLine>((Func<PartnerTransferLine, bool>) (i => mergeItemIds.Contains<string>(i.PartnerId))));
-      foreach (PartnerTransfer item in await source4.Where<PartnerTransfer>(predicate4).ExecuteAsync<PartnerTransfer>())
+            Expression<Func<PartnerTransfer, bool>> predicate4 = x => x.DocType == "PartnerTransfer" && x.Lines.Any(i => mergeItemIds.Contains(i.PartnerId));
+            foreach (PartnerTransfer item in await source4.Where<PartnerTransfer>(predicate4).ExecuteAsync<PartnerTransfer>())
       {
         CouchPatch couchPatch3 = new CouchPatch();
         couchPatch3.Id = item.Id;
@@ -180,8 +180,8 @@ public class PartnersRepository(
         CouchPatch couchPatch4 = couchPatch3;
         foreach (PartnerTransferLine line in (Collection<PartnerTransferLine>) item.Lines)
         {
-          if (((IEnumerable<string>) mergeItemIds).Contains<string>(line.PartnerId))
-            line.PartnerId = mainItemId;
+                    if (mergeItemIds.Contains(line.PartnerId))
+                        line.PartnerId = mainItemId;
           couchPatch4.SubListPatches["Lines"].Add(new Patch()
           {
             Id = line.Id,
