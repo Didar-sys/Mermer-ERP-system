@@ -51,9 +51,10 @@
       <menu:TransactionMoreOptions/>
       <menu:CopyCreate/>
             <dxwui:AppBarButton HorizontalAlignment="Right" hlp:ShortcutExtender.Shortcut="Ctrl+Q"
-                    Label="{Localize Close}"
-                    Command="{Binding DataContext.ForceCloseCommand, ElementName=RootView}" 
-                    Glyph="{dx:DXImageGrayscale Image=Close_32x32.png}"/>
+            Label="{Localize Close}"
+            Click="CloseButton_Click"
+            Focusable="False"
+            Glyph="{dx:DXImageGrayscale Image=Close_32x32.png}"/>
         </dxwui:AppBar>
     <Grid>
       <dxlc:LayoutControl Margin="10,20,10,10" IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">

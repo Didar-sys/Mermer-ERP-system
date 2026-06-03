@@ -21,7 +21,10 @@ public partial class MainView : MvxWpfView
 {
     private HamburgerMenu _menu;
 
-    public MainView() => InitializeComponent();
+    public MainView()
+    {
+        InitializeComponent();
+    }
 
     private void VersionTextLoaded(object sender, RoutedEventArgs e)
     {

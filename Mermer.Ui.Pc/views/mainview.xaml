@@ -237,7 +237,7 @@
             </DataTemplate>
         </dx:DXTabControl.ContentHostTemplate>
         <dx:DXTabControl.View>
-            <dx:TabControlStretchView HideButtonShowMode="InActiveTab" RemoveTabItemsOnHiding="true"/>
+            <dx:TabControlStretchView HideButtonShowMode="InActiveTab" />
         </dx:DXTabControl.View>
     </dx:DXTabControl>
 </mvx:MvxWpfView>

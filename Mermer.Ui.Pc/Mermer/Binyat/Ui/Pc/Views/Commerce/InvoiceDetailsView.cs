@@ -1,7 +1,9 @@
 ﻿using MvvmCross.Wpf.Views;
 using Mermer.Ui.Core.ViewModels.Commerce;
 using System.Windows.Input;
+using System.Windows;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using Mermer.Ui.Pc.Helpers; // ДОДАЙ ЦЕЙ РЯДОК, якщо helper в іншій папці
 
 namespace Mermer.Ui.Pc.Views.Commerce;
 
@@ -38,5 +40,13 @@ public partial class InvoiceDetailsView : MvxWpfView
                 e.Handled = true;
                 break;
         }
+    }
+
+    // ========================================================
+    // ВСЕ, ЩО ТОБІ ТЕПЕР ПОТРІБНО ДЛЯ ЗАКРИТТЯ
+    // ========================================================
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        TabNavigationHelper.ForceCloseTab(this);
     }
 }

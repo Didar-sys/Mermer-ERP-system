@@ -20,7 +20,9 @@ namespace Mermer.Mvvm.ViewModels;
 
 public abstract class BaseViewModel : MvxViewModel, IDisposable
 {
-  protected readonly IMvxNavigationService NavigationService;
+    // Глобальний тригер для жорсткого закриття
+    public static Action<MvxViewModel> RequestComponentCloseAction { get; set; }
+    protected readonly IMvxNavigationService NavigationService;
   protected readonly IUserInteractionService UserInteractionService;
   private string _caption;
   private string _subCaption;
@@ -28,7 +30,7 @@ public abstract class BaseViewModel : MvxViewModel, IDisposable
   private bool _isBusy;
   private bool _suspendLoading;
 
-  protected BaseViewModel(
+    protected BaseViewModel(
     IMvxNavigationService navigationService,
     IUserInteractionService userInteractionService)
   {

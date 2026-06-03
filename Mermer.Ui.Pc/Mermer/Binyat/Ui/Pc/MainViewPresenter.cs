@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Pc.MainViewPresenter
-// Assembly: Mermer.Ui.Pc, Version=1.4.4.0, Culture=neutral, PublicKeyToken=null
-// MVID: D54C0BF8-E817-4120-9485-68C30ADFDFE4
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Pc.exe
-
-using DevExpress.Xpf.Core;
+﻿using DevExpress.Xpf.Core;
 using DevExpress.Xpf.WindowsUI;
 using Mermer.Mvvm.Messages;
 using Mermer.Mvvm.ViewModels;
@@ -12,134 +6,179 @@ using Mermer.Ui.Core.ViewModels;
 using MvvmCross.Core.ViewModels;
 using MvvmCross.Wpf.Views.Presenters;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
-#nullable disable
-namespace Mermer.Ui.Pc;
-
-public class MainViewPresenter : MvxBaseWpfViewPresenter
+namespace Mermer.Ui.Pc
 {
-  private readonly ContentControl _contentControl;
-  private static DXTabControl _tabControl;
-  private static readonly ObservableCollection<FrameworkElement> TabItems = new ObservableCollection<FrameworkElement>();
-  private static readonly List<WinUIDialogWindow> Dialogs = new List<WinUIDialogWindow>();
-
-  public MainViewPresenter(ContentControl contentControl) => this._contentControl = contentControl;
-
-  public static void SetTabControl(DXTabControl tabControl)
-  {
-    MainViewPresenter._tabControl = tabControl;
-    MainViewPresenter._tabControl.ItemsSource = (IEnumerable) MainViewPresenter.TabItems;
-  }
-
-  public override void Present(FrameworkElement frameworkElement)
-  {
-    object dataContext = frameworkElement.DataContext;
-    if (dataContext is IDialogViewModel dialogViewModel)
+    public class MainViewPresenter : MvxBaseWpfViewPresenter
     {
-      frameworkElement.SetValue(ThemeManager.ThemeNameProperty, (object) "HybridApp");
-      WinUIDialogWindow winUiDialogWindow = new WinUIDialogWindow(dialogViewModel.Caption ?? dataContext.GetType().Name);
-      winUiDialogWindow.Content = (object) frameworkElement;
-      WinUIDialogWindow dialog = winUiDialogWindow;
-      dialog.SetValue(ThemeManager.ThemeNameProperty, (object) "Office2013DarkGray;Touch");
-      MainViewPresenter.Dialogs.Add(dialog);
-      Task.Run<bool?>((Func<bool?>) (() => System.Windows.Application.Current.Dispatcher.Invoke<bool?>((Func<bool?>) (() => dialog.ShowDialog()))));
-    }
-    else
-    {
-      if (MainViewPresenter._tabControl != null)
-      {
-        switch (dataContext)
+        private readonly ContentControl _contentControl;
+        private static DXTabControl _tabControl;
+        private static readonly ObservableCollection<FrameworkElement> TabItems = new ObservableCollection<FrameworkElement>();
+        private static readonly List<WinUIDialogWindow> Dialogs = new List<WinUIDialogWindow>();
+
+        public MainViewPresenter(ContentControl contentControl) => this._contentControl = contentControl;
+
+        public static void SetTabControl(DXTabControl tabControl)
         {
-          case LoginViewModel _:
-          case MainViewModel _:
-            break;
-          default:
-            MainViewPresenter.TabItems.Insert(MainViewPresenter._tabControl.SelectedIndex + 1, frameworkElement);
-            MainViewPresenter._tabControl.SelectNext();
-            return;
+            MainViewPresenter._tabControl = tabControl;
+            MainViewPresenter._tabControl.ItemsSource = MainViewPresenter.TabItems;
         }
-      }
-      this._contentControl.Content = (object) frameworkElement;
-    }
-  }
 
-    public override void ChangePresentation(MvxPresentationHint hint)
-    {
-        if (hint is MvxClosePresentationHint closeHint)
+        public override void Present(FrameworkElement frameworkElement)
         {
-            FrameworkElement frameworkElement = null;
-
-            // 1. Якщо відкрите якесь спливаюче вікно - закриваємо його
-            if (MainViewPresenter.Dialogs.Count > 0)
+            object dataContext = frameworkElement.DataContext;
+            if (dataContext is IDialogViewModel dialogViewModel)
             {
-                var dialog = MainViewPresenter.Dialogs.FirstOrDefault(d => ((FrameworkElement)d.Content).DataContext == closeHint.ViewModelToClose)
-                             ?? MainViewPresenter.Dialogs.Last();
-                dialog.Close();
-                MainViewPresenter.Dialogs.Remove(dialog);
-                frameworkElement = dialog.Content as FrameworkElement;
+                frameworkElement.SetValue(ThemeManager.ThemeNameProperty, "HybridApp");
+                WinUIDialogWindow dialog = new WinUIDialogWindow(dialogViewModel.Caption ?? dataContext.GetType().Name);
+                dialog.Content = frameworkElement;
+                dialog.SetValue(ThemeManager.ThemeNameProperty, "Office2013DarkGray;Touch");
+                MainViewPresenter.Dialogs.Add(dialog);
+                Task.Run(() => Application.Current.Dispatcher.Invoke(() => dialog.ShowDialog()));
             }
-            // 2. Якщо вікон немає, закриваємо вкладку
-            else if (MainViewPresenter._tabControl != null)
+            else
             {
-                // Спроба 1: Шукаємо за точним збігом ViewModel
-                frameworkElement = MainViewPresenter.TabItems.FirstOrDefault(t => t.DataContext == closeHint.ViewModelToClose);
-
-                // Спроба 2 (Бронебійна): Беремо вкладку чисто за ІНДЕКСОМ, уникаючи хитрощів DevExpress
-                if (frameworkElement == null)
+                if (MainViewPresenter._tabControl != null)
                 {
-                    int activeIndex = MainViewPresenter._tabControl.SelectedIndex;
-                    if (activeIndex >= 0 && activeIndex < MainViewPresenter.TabItems.Count)
+                    if (dataContext is LoginViewModel || dataContext is MainViewModel) return;
+                    MainViewPresenter.TabItems.Insert(MainViewPresenter._tabControl.SelectedIndex + 1, frameworkElement);
+                    MainViewPresenter._tabControl.SelectedIndex = MainViewPresenter._tabControl.SelectedIndex + 1;
+                    return;
+                }
+                this._contentControl.Content = frameworkElement;
+            }
+        }
+
+        // ==========================================
+        // РАДАР: Шукає конкретну форму на всьому екрані
+        // ==========================================
+        private static FrameworkElement FindElementByDataContext(DependencyObject root, object dataContext)
+        {
+            if (root == null || dataContext == null) return null;
+
+            if (root is FrameworkElement fe && fe.DataContext == dataContext)
+            {
+                // Нам потрібна саме форма (UserControl), а не дрібні елементи типу кнопок
+                if (fe is UserControl || fe is Page || fe.GetType().Name.Contains("View"))
+                    return fe;
+            }
+
+            // Шукаємо у візуальному дереві
+            int childrenCount = VisualTreeHelper.GetChildrenCount(root);
+            for (int i = 0; i < childrenCount; i++)
+            {
+                var child = VisualTreeHelper.GetChild(root, i);
+                var result = FindElementByDataContext(child, dataContext);
+                if (result != null) return result;
+            }
+
+            // Шукаємо у логічному дереві (іноді DevExpress ховає форми там)
+            foreach (var logicalChild in LogicalTreeHelper.GetChildren(root))
+            {
+                if (logicalChild is DependencyObject depChild)
+                {
+                    var result = FindElementByDataContext(depChild, dataContext);
+                    if (result != null) return result;
+                }
+            }
+
+            return null;
+        }
+
+        public override void ChangePresentation(MvxPresentationHint hint)
+        {
+            if (hint is MvxClosePresentationHint closeHint)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    try
                     {
-                        frameworkElement = MainViewPresenter.TabItems[activeIndex];
+                        // 1. ДІАЛОГИ
+                        if (MainViewPresenter.Dialogs.Count > 0)
+                        {
+                            var dialog = MainViewPresenter.Dialogs.Last();
+                            dialog.Close();
+                            MainViewPresenter.Dialogs.Remove(dialog);
+                            return;
+                        }
+
+                        // 2. УНІВЕРСАЛЬНИЙ КІЛЕР ВКЛАДОК
+                        var mainWindow = Application.Current.MainWindow;
+                        if (mainWindow != null)
+                        {
+                            // Радар шукає саму форму накладної
+                            FrameworkElement viewToKill = FindElementByDataContext(mainWindow, closeHint.ViewModelToClose);
+
+                            if (viewToKill != null)
+                            {
+                                // Знаходимо того, хто тримає цю форму (Контейнер DevExpress)
+                                var parent = VisualTreeHelper.GetParent(viewToKill) ?? LogicalTreeHelper.GetParent(viewToKill);
+
+                                if (parent != null)
+                                {
+                                    // Б'ємо по всіх можливих типах контейнерів
+                                    if (parent is ItemsControl itemsControl)
+                                    {
+                                        if (itemsControl.ItemsSource is System.Collections.IList list)
+                                            list.Remove(viewToKill.DataContext ?? viewToKill);
+                                        else
+                                            itemsControl.Items.Remove(viewToKill);
+                                    }
+                                    else if (parent is ContentControl contentControl)
+                                    {
+                                        contentControl.Content = null;
+                                    }
+                                    else if (parent is Panel panel)
+                                    {
+                                        panel.Children.Remove(viewToKill);
+                                    }
+                                    else
+                                    {
+                                        // Якщо DevExpress заблокував усе - просто приховуємо форму
+                                        viewToKill.Visibility = Visibility.Collapsed;
+                                    }
+
+                                    // Очищаємо ресурси
+                                    viewToKill.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
+                                    if (viewToKill.DataContext is IDisposable disposable)
+                                    {
+                                        disposable.Dispose();
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
-
-                // Видаляємо вкладку з екрану
-                if (frameworkElement != null)
-                {
-                    MainViewPresenter.TabItems.Remove(frameworkElement);
-                }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Помилка універсального закриття: " + ex.Message);
+                    }
+                });
             }
-
-            // 3. Коректно очищаємо пам'ять за закритою вкладкою
-            if (frameworkElement != null)
+            else if (hint is MvxCloseAppPresentationHint)
             {
-                frameworkElement.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
-                if (frameworkElement.DataContext is IDisposable dataContext)
-                {
-                    dataContext.Dispose();
-                }
+                Application.Current.MainWindow?.Close();
+            }
+            else
+            {
+                base.ChangePresentation(hint);
             }
         }
-        else if (hint is MvxCloseAppPresentationHint)
+
+        public override void Close(IMvxViewModel toClose)
         {
-            MainWindow.Instance.Close();
+            this.ChangePresentation(new MvxClosePresentationHint(toClose));
         }
-        else
+
+        public bool CloseAll(MvxCloseAllPresentationHint hint)
         {
-            base.ChangePresentation(hint);
+            return true;
         }
     }
-
-    public override void Close(IMvxViewModel toClose)
-  {
-    this.ChangePresentation((MvxPresentationHint) new MvxClosePresentationHint(toClose));
-  }
-
-  public bool CloseAll(MvxCloseAllPresentationHint hint)
-  {
-    for (int index = MainViewPresenter.TabItems.Count - 1; index >= 0; --index)
-    {
-      if (MainViewPresenter.TabItems[index].DataContext is BaseViewModel dataContext && !dataContext.OnCloseAsync().GetAwaiter().GetResult())
-        throw new Exception("Operation canceled by user!");
-    }
-    return true;
-  }
 }

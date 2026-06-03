@@ -150,23 +150,26 @@ public class DetailsViewModel<T> : BaseViewModel, IMvxViewModel<string>, IMvxVie
 
     public ICommand SaveAndNewCommand => new MvxAsyncCommand(OnSaveAndNewAsync, () => CanSave() && HasCreateAccess);
 
-    private Task OnSaveAndNewAsync()
+    private async Task OnSaveAndNewAsync()
     {
-        return OnSaveAsync().ContinueWith(t =>
+        bool saved = await this.OnSaveAsync();
+        if (saved)
         {
-            if (!t.Result)
-                return Task.CompletedTask;
-            ItemId = string.Empty;
-            Details = default(T);
-            return Initialize();
-        });
+            this.ItemId = string.Empty;
+            this.Details = default(T);
+            await this.Initialize();
+        }
     }
 
     public ICommand SaveAndCloseCommand => new MvxAsyncCommand(OnSaveAndCloseAsync, CanSave);
 
-    private Task OnSaveAndCloseAsync()
+    private async Task OnSaveAndCloseAsync()
     {
-        return OnSaveAsync().ContinueWith(t => t.Result ? OnCloseAsync() : Task.CompletedTask);
+        bool saved = await this.OnSaveAsync();
+        if (saved)
+        {
+            await this.OnCloseAsync();
+        }
     }
 
     public ICommand ReloadCommand => new MvxAsyncCommand(OnReloadAsync, () => !IsBusy);
@@ -186,18 +189,20 @@ public class DetailsViewModel<T> : BaseViewModel, IMvxViewModel<string>, IMvxVie
 
     public override async Task<bool> OnCloseAsync()
     {
+
         if (IsDirty)
         {
             bool? nullable = UserInteractionService.ShowMessage(this["Closing"], this["Would you like to save?"], UserInteractionType.YesNoCancel);
-            if (!nullable.HasValue)
-                return false;
+            if (!nullable.HasValue) return false;
+
             if (nullable.Value)
             {
-                if (!await OnSaveAsync())
-                    return false;
+                if (!await OnSaveAsync()) return false;
             }
         }
 
-        return await base.OnCloseAsync(); // Виправлено кашу декомпілятора (\u003C\u003En__1)
+        // Відправляємо сигнал у Презентер
+        BaseViewModel.RequestComponentCloseAction?.Invoke(this);
+        return true;
     }
 }
