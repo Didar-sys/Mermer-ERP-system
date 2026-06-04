@@ -26,24 +26,26 @@ namespace Mermer.Ui.Core.ViewModels.Common;
 
 public abstract class TransactionsListViewModel<T> : ListViewModel<T> where T : class, ITransactionModel, INotifyPropertyChanged
 {
-  private IEnumerable<ListFilter> _filters;
-  private ListFilter _selectedFilter;
-  private DateTime _dateFilterFrom;
-  private DateTime _dateFilterTill;
+    private IEnumerable<ListFilter> _filters;
+    private ListFilter _selectedFilter;
 
-  protected TransactionsListViewModel(
-    IRepository<T> repository,
-    IListAuthorizer<T> authorizer,
-    IMvxMessenger messenger,
-    IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService)
-    : base(repository, authorizer, messenger, navigationService, userInteractionService)
-  {
-    this.InitFilters();
-    this.Types = new LocalizedTransactionTypes(this.TextSource, Array.Empty<string>());
-  }
+    // Жорстко прив'язуємо сьогоднішню дату до полів пам'яті
+    private DateTime _dateFilterFrom = DateTime.Today;
+    private DateTime _dateFilterTill = DateTime.Today;
 
-  public IEnumerable<ListFilter> Filters
+    protected TransactionsListViewModel(
+      IRepository<T> repository,
+      IListAuthorizer<T> authorizer,
+      IMvxMessenger messenger,
+      IMvxNavigationService navigationService,
+      IUserInteractionService userInteractionService)
+      : base(repository, authorizer, messenger, navigationService, userInteractionService)
+    {
+        this.InitFilters();
+        this.Types = new LocalizedTransactionTypes(this.TextSource, Array.Empty<string>());
+    }
+
+    public IEnumerable<ListFilter> Filters
   {
     get => this._filters;
     set => this.SetProperty<IEnumerable<ListFilter>>(ref this._filters, value, nameof (Filters));

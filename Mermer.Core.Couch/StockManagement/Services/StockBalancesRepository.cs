@@ -164,8 +164,11 @@ public class StockBalancesRepository : CouchView, IStockBalancesRepository
     {
         _authorizer.Authorize();
 
-        if (!warehouseIds.Any()) throw new ArgumentNullException(nameof(warehouseIds));
-        if (!stockIds.Any()) throw new ArgumentNullException(nameof(stockIds));
+        // ВИПРАВЛЕНО: М'яка перевірка на null замість throw new ArgumentNullException
+        if (warehouseIds == null || !warehouseIds.Any() || stockIds == null || !stockIds.Any())
+        {
+            return Array.Empty<StockBalance>();
+        }
 
         if (!_loginService.Session.IsAdmin)
         {
@@ -202,8 +205,11 @@ public class StockBalancesRepository : CouchView, IStockBalancesRepository
     {
         _authorizer.Authorize();
 
-        if (!warehouseIds.Any()) throw new ArgumentNullException(nameof(warehouseIds));
-        if (!stockBalanceDates.Any()) throw new ArgumentNullException(nameof(stockBalanceDates));
+        // ВИПРАВЛЕНО: М'яка перевірка на null замість throw new ArgumentNullException
+        if (warehouseIds == null || !warehouseIds.Any() || stockBalanceDates == null || !stockBalanceDates.Any())
+        {
+            return Array.Empty<StockBalance>();
+        }
 
         if (!_loginService.Session.IsAdmin)
         {
@@ -242,7 +248,7 @@ public class StockBalancesRepository : CouchView, IStockBalancesRepository
             warehouseIds = warehouseIds.Where(accounts.Contains).ToArray();
         }
 
-        if (!warehouseIds.Any()) return Array.Empty<StockBalanceByTypeWithBalanceAndData>();
+        if (warehouseIds == null || !warehouseIds.Any()) return Array.Empty<StockBalanceByTypeWithBalanceAndData>();
 
         List<StockBalance> startingBalances;
         List<StockBalanceByType> changingBalances;

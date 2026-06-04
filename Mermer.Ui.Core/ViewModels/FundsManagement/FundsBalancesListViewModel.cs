@@ -119,22 +119,25 @@ public class FundsBalancesListViewModel :
     });
   }
 
-  protected override Expression<Func<FundsBalanceByTypeWithBalance, bool>> GetDateFilter(
-    DateTime from,
-    DateTime till)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Expression<Func<FundsBalanceByTypeWithBalance, bool>> GetDateFilter(
+      DateTime from,
+      DateTime till)
+    {
+        // Повертаємо вираз, який завжди істинний, щоб фільтрація не падала
+        return x => true;
+    }
 
-  protected override Task<int> CountListAsync(
+    protected override Task<int> CountListAsync(
     params Expression<Func<FundsBalanceByTypeWithBalance, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
+    {
+        // Повертаємо 0, якщо не знаємо, як рахувати, або реалізуй логіку, якщо потрібно
+        return Task.FromResult(0);
+    }
 
-  protected override Task<IEnumerable<FundsBalanceByTypeWithBalance>> GetListAsync(
+    protected override Task<IEnumerable<FundsBalanceByTypeWithBalance>> GetListAsync(
     params Expression<Func<FundsBalanceByTypeWithBalance, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
+    {
+        // Замість порожнього списку просимо репозиторій віддати всі баланси для поточної каси
+        return this._repository.GetByTypeAsync(this.DepositoryId, null, null);
+    }
 }

@@ -29,14 +29,15 @@
     <dxlc:LayoutControl Margin="0" Orientation="Vertical">
       <dxlc:LayoutGroup Orientation="Vertical" Margin="10, 10, 10, 0">
         <dxlc:LayoutItem HorizontalAlignment="Left" Width="300" Label="{Localize Warehouse}">
-          <dxe:ComboBoxEdit ShowCustomItems="True" DisplayMember="Name" ValueMember="Id"
-                            EditValue="{Binding SelectedWarehouseIds, UpdateSourceTrigger=PropertyChanged}"
-                            ItemsSource="{Binding Warehouses.List}">
-            <dxe:BaseEdit.StyleSettings>
-              <dxe:CheckedComboBoxStyleSettings/>
-            </dxe:BaseEdit.StyleSettings>
-          </dxe:ComboBoxEdit>
-        </dxlc:LayoutItem>
+                    <dxe:ComboBoxEdit DisplayMember="Name" ValueMember="Id"
+                  EditValue="{Binding SelectedWarehouseIds, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding Warehouses.List}"
+                  IsTextEditable="False">
+                        <dxe:BaseEdit.StyleSettings>
+                            <dxe:CheckedComboBoxStyleSettings/>
+                        </dxe:BaseEdit.StyleSettings>
+                    </dxe:ComboBoxEdit>
+                </dxlc:LayoutItem>
         <dxlc:LayoutItem HorizontalAlignment="Left" Width="730" Label="{Localize Stock}">
           <ctrl:StockLookupEdit DataContext="{Binding StockSearcher}"/>
         </dxlc:LayoutItem>

@@ -1,4 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
+﻿ // Decompiled with JetBrains decompiler
 // Type: Mermer.Core.Couch.Finance.Services.FundsTransfersRepository
 // Assembly: Mermer.Core.Couch, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
 // MVID: 1349257C-46CD-4839-9154-FBCC3222CF25

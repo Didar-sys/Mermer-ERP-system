@@ -198,7 +198,10 @@ public class StockActionsRepository : CouchView, IStockActionsRepository
     private async Task<IEnumerable<T>> GetRecordsAsync<T>(DateTime? startDate, DateTime? endDate, string[] warehouseIds, string stockId, bool reduce = false, Func<ViewRow<object>, T> projectorAll = null, Func<ViewRow<object>, T> projectorOwn = null)
     {
         _authorizer.Authorize();
-        if (!warehouseIds.Any()) throw new ArgumentNullException(nameof(warehouseIds));
+        if (warehouseIds == null || !warehouseIds.Any())
+        {
+            return new List<T>();
+        }
 
         var types = Enum.GetValues(typeof(InvoiceType)).Cast<Enum>().Union(Enum.GetValues(typeof(StockSlipType)).Cast<Enum>()).ToArray();
         List<string> ownActions;

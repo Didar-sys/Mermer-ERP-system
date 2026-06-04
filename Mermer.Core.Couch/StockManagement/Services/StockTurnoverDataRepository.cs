@@ -41,16 +41,29 @@ public class StockTurnoverDataRepository : CouchView, IStockTurnoverDataReposito
         })).ToArray();
 
         var stockIds = list.Select(x => x.StockId).Distinct().ToArray();
-        var stocks = (await _stocksRepository.GetListAsync(stockIds)).ToDictionary(x => x.Id, x => x);
+
+        // 1. БЕЗОПАСНЫЙ СЛОВАРЬ: отбрасываем null-значения перед конвертацией
+        var stocks = (await _stocksRepository.GetListAsync(stockIds))
+            .Where(x => x != null)
+            .ToDictionary(x => x.Id, x => x);
 
         return list.Select(x =>
         {
-            var stock = stocks[x.StockId];
-            x.StockCode = stock.Code;
-            x.StockName = stock.Name;
-            x.StockGroup = stock.Group;
-            x.StockType = stock.Type;
-            x.StockTags = stock.Tags;
+            // 2. БЕЗОПАСНОЕ ПРИСВОЕНИЕ: проверяем, нашелся ли товар
+            if (stocks.TryGetValue(x.StockId, out var stock))
+            {
+                x.StockCode = stock.Code;
+                x.StockName = stock.Name;
+                x.StockGroup = stock.Group;
+                x.StockType = stock.Type;
+                x.StockTags = stock.Tags;
+            }
+            else
+            {
+                // Если товара больше нет в базе, чтобы таблица не была пустой:
+                x.StockCode = "N/A";
+                x.StockName = "Удаленный товар";
+            }
             return x;
         });
     }

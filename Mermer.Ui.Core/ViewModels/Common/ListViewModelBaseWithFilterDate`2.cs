@@ -22,9 +22,9 @@ namespace Mermer.Ui.Core.ViewModels.Common;
 public abstract class ListViewModelBaseWithFilterDate<TList, TFilter> : 
   ListViewModelBaseWithFilter<TList, TFilter>
 {
-  private DateTime _dateFilterFrom;
-  private DateTime _dateFilterTill;
-  private bool _isCustomDateFilter;
+    private DateTime _dateFilterFrom = DateTime.Today;
+    private DateTime _dateFilterTill = DateTime.Today;
+    private bool _isCustomDateFilter;
 
     protected ListViewModelBaseWithFilterDate(
       IMvxMessenger messenger,

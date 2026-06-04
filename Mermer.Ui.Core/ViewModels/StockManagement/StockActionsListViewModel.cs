@@ -39,8 +39,8 @@ public class StockActionsListViewModel :
   private readonly IStockActionsRepository _repository;
   private readonly IRepository<Stock> _stocksRepository;
   private readonly MvxSubscriptionToken _messageToken;
-  private System.Collections.Generic.List<object> _selectedWarehouseIds;
-  private string _stockId;
+    private List<object> _selectedWarehouseIds = new List<object>();
+    private string _stockId;
   private string _selectedStockMessage;
   private StockActionsFilter _parameter;
   private bool _loaded;
@@ -146,7 +146,16 @@ public class StockActionsListViewModel :
             else
             {
                 AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
-                SelectedWarehouseIds = new List<object> { configAsync.DefaultWarehouseId };
+
+                // ВИПРАВЛЕНО: Захищаємо список від null-елемента
+                if (configAsync != null && !string.IsNullOrEmpty(configAsync.DefaultWarehouseId))
+                {
+                    SelectedWarehouseIds = new List<object> { configAsync.DefaultWarehouseId };
+                }
+                else
+                {
+                    SelectedWarehouseIds = new List<object>(); // Чистий порожній список
+                }
             }
         }
 
@@ -156,7 +165,7 @@ public class StockActionsListViewModel :
             SelectedStockMessage = this["Showing actions for all stocks"];
 
         await Task.WhenAll(
-            base.PreLoad(), // Відновлено
+            base.PreLoad(),
             Warehouses.Initialize(),
             StockSearcher.Initialize()
         );
@@ -192,26 +201,22 @@ public class StockActionsListViewModel :
     return this._repository.GetAsync(new DateTime?(), new DateTime?(), this.StockId, this.WarehouseIds);
   }
 
-  protected override Task<int> CountListAsync(
-    params Expression<Func<StockActionWithData, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Task<int> CountListAsync(params Expression<Func<StockActionWithData, bool>>[] predicates)
+    {
+        return Task.FromResult(0);
+    }
 
-  protected override Task<IEnumerable<StockActionWithData>> GetListAsync(
-    params Expression<Func<StockActionWithData, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Task<IEnumerable<StockActionWithData>> GetListAsync(params Expression<Func<StockActionWithData, bool>>[] predicates)
+    {
+        return this._repository.GetAsync(null, null, this.StockId, this.WarehouseIds);
+    }
 
-  protected override Expression<Func<StockActionWithData, bool>> GetDateFilter(
-    DateTime from,
-    DateTime till)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Expression<Func<StockActionWithData, bool>> GetDateFilter(DateTime from, DateTime till)
+    {
+        return x => true;
+    }
 
-  public ICommand RemoveSelectedStockId
+    public ICommand RemoveSelectedStockId
   {
     get
     {

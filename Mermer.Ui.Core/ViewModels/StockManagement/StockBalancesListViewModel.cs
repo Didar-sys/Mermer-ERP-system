@@ -211,22 +211,25 @@ public class StockBalancesListViewModel :
     });
   }
 
-  protected override Task<int> CountListAsync(
-    params Expression<Func<StockBalanceByTypeWithBalanceAndData, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Task<int> CountListAsync(
+       params Expression<Func<StockBalanceByTypeWithBalanceAndData, bool>>[] predicates)
+    {
+        // Повертаємо 0, щоб уникнути помилки підрахунку
+        return Task.FromResult(0);
+    }
 
-  protected override Expression<Func<StockBalanceByTypeWithBalanceAndData, bool>> GetDateFilter(
-    DateTime from,
-    DateTime till)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Expression<Func<StockBalanceByTypeWithBalanceAndData, bool>> GetDateFilter(
+      DateTime from,
+      DateTime till)
+    {
+        // Повертаємо вираз, який завжди істинний, бо фільтрацію робить сам репозиторій
+        return x => true;
+    }
 
-  protected override Task<IEnumerable<StockBalanceByTypeWithBalanceAndData>> GetListAsync(
-    params Expression<Func<StockBalanceByTypeWithBalanceAndData, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Task<IEnumerable<StockBalanceByTypeWithBalanceAndData>> GetListAsync(
+      params Expression<Func<StockBalanceByTypeWithBalanceAndData, bool>>[] predicates)
+    {
+        // Завантажуємо всі дані без обмежень по датах (для вкладки "AD" / Усі записи)
+        return this._repository.GetByTypeAsync(this.WarehouseIds, this.StockId, DateTime.MinValue, DateTime.MaxValue, this.AggregateWarehouses);
+    }
 }

@@ -27,7 +27,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Payhas.Binyat.Core.Couch.Common;
+using Mermer.Core.Couch.Common;
 
 #nullable disable
 namespace Mermer.Ui.Core.ViewModels.StockManagement;
@@ -318,35 +318,51 @@ public class StocksListViewModel :
     }
   }
 
-  private async Task OnFixSynchIssuesAsync()
-  {
-    StocksListViewModel stocksListViewModel = this;
-    stocksListViewModel.IsBusy = true;
-    try
+    private async Task OnFixSynchIssuesAsync()
     {
-      using (IBucket bucket = stocksListViewModel._couchCluster.OpenDefaultBucket())
-      {
-        IQueryable<Stock> source = new BucketContext(bucket).Query<Stock>();
-        Expression<Func<Stock, bool>> predicate = (Expression<Func<Stock, bool>>) (x => x.DocType == "Stock" && x.Id == N1QlFunctions.Key(x) && x.Prices.Any<StockPrice>((Func<StockPrice, bool>) (p => p.CurrencyId == default (string))));
-        foreach (Stock stock in await source.Where<Stock>(predicate).ExecuteAsync<Stock>())
+        StocksListViewModel stocksListViewModel = this;
+        stocksListViewModel.IsBusy = true;
+        try
         {
-          stock.Prices = new WatchedObservableCollection<StockPrice>(stock.Prices.Where<StockPrice>((Func<StockPrice, bool>) (x => !string.IsNullOrEmpty(x.CurrencyId))));
-          IDocumentResult<Stock> documentResult = await bucket.ReplaceAsync<Stock>((IDocument<Stock>) new Document<Stock>()
-          {
-            Id = stock.Id,
-            Content = stock
-          });
-        }
-      }
-    }
-    catch (Exception ex)
-    {
-      stocksListViewModel.UserInteractionService.ShowExceptionMessage(ex);
-    }
-    stocksListViewModel.IsBusy = false;
-  }
+            using (IBucket bucket = stocksListViewModel._couchCluster.OpenDefaultBucket())
+            {
+                var context = new BucketContext(bucket);
 
-  public class StockImport
+                // ОЧИЩЕНИЙ ЗАПИТ: без зайвих кастів. 
+                // C# сам зрозуміє, що це Expression Tree, і Couchbase легко перекладе це в N1QL
+                var query = context.Query<Stock>().Where(x =>
+                    x.DocType == "Stock" &&
+                    x.Id == N1QlFunctions.Key(x) &&
+                    x.Prices.Any(p => p.CurrencyId == null)); // default(string) — це просто null
+
+                foreach (Stock stock in await query.ExecuteAsync<Stock>())
+                {
+                    // Очищаємо ціни від тих, де CurrencyId пустий
+                    stock.Prices = new WatchedObservableCollection<StockPrice>(
+                        stock.Prices.Where(x => !string.IsNullOrEmpty(x.CurrencyId))
+                    );
+
+                    // Оновлюємо документ у Couchbase
+                    await bucket.ReplaceAsync(new Document<Stock>()
+                    {
+                        Id = stock.Id,
+                        Content = stock
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            stocksListViewModel.UserInteractionService.ShowExceptionMessage(ex);
+        }
+        finally
+        {
+            // Перенесено в finally, щоб завжди знімати блокування інтерфейсу
+            stocksListViewModel.IsBusy = false;
+        }
+    }
+
+    public class StockImport
   {
     public string Code { get; set; }
 

@@ -1,13 +1,31 @@
-﻿using System;
-using System.Windows;
-using MvvmCross.Core.ViewModels;
+﻿using MvvmCross.Core.ViewModels;
 using MvvmCross.Platform;
 using MvvmCross.Wpf.Views.Presenters;
+using System;
+using System.Globalization;
+using System.Threading;
+using System.Windows;
+using System.Windows.Markup;
 
 namespace Mermer.Ui.Pc
 {
     public partial class App : Application
     {
+        // Створюємо конструктор, який запуститься найпершим
+        public App()
+        {
+            // Встановлюємо українську локаль (дасть формат ДД.ММ.РРРР та правильні роздільники сум)
+            var culture = new CultureInfo("uk-UA");
+
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+
+            // Змушуємо WPF інтерфейс використовувати цю локаль для всіх елементів (календарі, таблиці)
+            FrameworkElement.LanguageProperty.OverrideMetadata(
+                typeof(FrameworkElement),
+                new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(culture.IetfLanguageTag)));
+        }
+
         //protected override void OnStartup(StartupEventArgs e)
         //{
         //    base.OnStartup(e);
