@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mermer.Base\Mermer.csproj" />
+    <ProjectReference Include="..\Mermer.Core\Mermer.Core.csproj" />
     <ProjectReference Include="..\Mermer.Mvvm\Mermer.Mvvm.csproj" />
   </ItemGroup>
 

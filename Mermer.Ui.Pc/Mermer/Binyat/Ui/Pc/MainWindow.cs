@@ -11,6 +11,8 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using MvvmCross.Core.ViewModels;
 using Orientation = System.Windows.Controls.Orientation;
 
 namespace Mermer.Ui.Pc;
@@ -40,37 +42,61 @@ public partial class MainWindow : DXTabbedWindow
     {
         try
         {
-            MvxLanguageBinder localizer = new MvxLanguageBinder(GetType());
+            // ВИКОРИСТОВУЄМО НОВИЙ МЕНЕДЖЕР ЗАМІСТЬ СТАРОГО BINDER'А
+            var localizer = Mermer.Mvvm.Tools.LocalizationManager.Instance;
+
             bool? hasUpdates = await AppUpdaterService.CheckForUpdatesAsync();
 
             if (!hasUpdates.HasValue)
             {
                 if (report)
                 {
-                    ShowMessage(localizer.GetText("Error Checking For Updates"), localizer.GetText("An error ocured while checking for updates, try again later!"));
+                    ShowMessage(
+                        localizer.Get("Error Checking For Updates"),
+                        localizer.Get("An error ocured while checking for updates, try again later!")
+                    );
                 }
             }
             else
             {
                 if (hasUpdates.Value)
                 {
-                    bool? doUpdate = ShowMessage(localizer.GetText("Update Available"), localizer.GetText($"An updated version of this application is available.{Environment.NewLine}Would you like to update now?{Environment.NewLine}{Environment.NewLine}New Version: {{0}}", new object[] { AppUpdaterService.UpdateVersion }), MessageBoxButton.YesNo);
+                    // Твій менеджер підтримує передачу параметрів (args), тому це виглядає дуже чисто!
+                    string updatePrompt = localizer.Get(
+                        "An updated version of this application is available.\nWould you like to update now?\n\nNew Version: {0}",
+                        AppUpdaterService.UpdateVersion
+                    );
+
+                    bool? doUpdate = ShowMessage(
+                        localizer.Get("Update Available"),
+                        updatePrompt,
+                        System.Windows.MessageBoxButton.YesNo
+                    );
 
                     if (doUpdate.HasValue && doUpdate.Value)
                     {
                         ReleaseEntry releaseEntry = await AppUpdaterService.UpdateAsync();
-                        ShowMessage(localizer.GetText("Application Updated"), localizer.GetText($"Application has been updated to version: {{0}}{Environment.NewLine}You must restart application for changes to take effect.", new object[] { releaseEntry.Version }));
+
+                        string successMessage = localizer.Get(
+                            "Application has been updated to version: {0}\nYou must restart application for changes to take effect.",
+                            releaseEntry.Version
+                        );
+
+                        ShowMessage(localizer.Get("Application Updated"), successMessage);
                     }
                 }
                 else if (report)
                 {
-                    ShowMessage(localizer.GetText("No Updates Available"), localizer.GetText("No updates found, Application is up to date!"));
+                    ShowMessage(
+                        localizer.Get("No Updates Available"),
+                        localizer.Get("No updates found, Application is up to date!")
+                    );
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Ignore
+            ShowMessage("Update Error", $"Failed to check for updates.\nDetails: {ex.Message}");
         }
     }
 

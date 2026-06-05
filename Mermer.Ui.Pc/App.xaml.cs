@@ -18,7 +18,7 @@ namespace Mermer.Ui.Pc
             var culture = new CultureInfo("uk-UA");
 
             Thread.CurrentThread.CurrentCulture = culture;
-            Thread.CurrentThread.CurrentUICulture = culture;
+            //Thread.CurrentThread.CurrentUICulture = culture;
 
             // Змушуємо WPF інтерфейс використовувати цю локаль для всіх елементів (календарі, таблиці)
             FrameworkElement.LanguageProperty.OverrideMetadata(

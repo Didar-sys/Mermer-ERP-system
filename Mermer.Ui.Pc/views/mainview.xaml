@@ -78,7 +78,7 @@
                 <Grid x:Name="TopPlaceHolder" Margin="47,0,10,0" Height="47">
                     <StackPanel Orientation="Vertical">
                         <Label Foreground="White" VerticalAlignment="Top" VerticalContentAlignment="Top" FontSize="16"
-                   Margin="0,5,0,0" Padding="0" FontWeight="Bold" Content="{Localize AppName}"/>
+                   Margin="0,5,0,0" Padding="0" FontWeight="Bold" Content="{Localize Mermer}"/>
                         <Label Foreground="White" VerticalAlignment="Top" VerticalContentAlignment="Top"
                    HorizontalContentAlignment="Center" FontSize="12" Margin="0" Padding="0"
                    Content="{Binding CurrentUser}"/>
@@ -93,12 +93,23 @@
         </dx:DXTabControl.ControlBoxRightTemplate>
         <dx:DXTabControl.ContentHostTemplate>
             <DataTemplate>
-                <dxwui:HamburgerMenu x:Name="Menu" HeaderHeight="47" Margin="-1,-47,0,-1" IsInitiallyCompact="true"
-                             HorizontalHeaderBackground="Transparent"
-                             AvailableViewStates="Overlay">
+                <dxwui:HamburgerMenu x:Name="Menu" HeaderHeight="47" Margin="-1,-47,0,-1"
+                     HorizontalHeaderBackground="Transparent">
+
+                    <dxwui:HamburgerMenu.Style>
+                        <Style TargetType="dxwui:HamburgerMenu">
+                            <Setter Property="ViewState" Value="Overlay"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding AutoHideMenu}" Value="True">
+                                    <Setter Property="ViewState" Value="Inline"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </dxwui:HamburgerMenu.Style>
+
                     <dxwui:HamburgerMenu.Items>
                         <dxwui:HamburgerMenuNavigationButton Glyph="pack://application:,,,/DevExpress.Images.v21.2;component/DevAV/Actions/Buy_32x32.png"
-                                                 Content="{Localize Pos}" Command="{Binding ShowPosCommand}"/>
+                                             Content="{Localize Pos}" Command="{Binding ShowPosCommand}"/>
                         <dxwui:HamburgerMenuItemSeparator/>
                         <dxwui:HamburgerSubMenu Glyph="pack://application:,,,/DevExpress.Images.v21.2;component/DevAV/Sales/SalesAnalysis_32x32.png"
                                     Content="{Localize Commerce}" FlyoutHeader="{Localize Commerce}">
@@ -199,7 +210,8 @@
                             <dxwui:HamburgerSubMenuNavigationButton Content="{Localize PrinterConfiguration}" Command="{Binding ShowPrinterConfigCommand}"/>
                             <dxwui:HamburgerSubMenuNavigationButton Content="{Localize BarcodeConfiguration}" Command="{Binding ShowBarcodeConfigCommand}"/>
                             <dxwui:HamburgerSubMenuNavigationButton Content="{Localize PrintLayoutConfiguration}"
-                                                      Visibility="{Binding IsAdmin, Converter={dx:BooleanToVisibilityConverter}}"/>
+                                        Visibility="{Binding IsAdmin, Converter={dx:BooleanToVisibilityConverter}}"
+                                        Click="ShowPrintLayoutConfig"/>
                             <dxwui:HamburgerSubMenuNavigationButton Style="{StaticResource Group}" Content="{Localize Mocking}"
                                                       Visibility="{Binding IsInDebugMode, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
                             <dxwui:HamburgerSubMenuNavigationButton Visibility="{Binding IsInDebugMode, Converter={dxmvvm:BooleanToVisibilityConverter}}"
@@ -212,10 +224,12 @@
                     </dxwui:HamburgerMenu.Items>
                     <dxwui:HamburgerMenu.BottomBarItems>
                         <dxwui:HamburgerMenuBottomBarCheckBox x:Name="AutoHideMenu" Visibility="Visible" Width="44" Placement="Left"
-                                                  Glyph="pack://application:,,,/DevExpress.Images.v21.2;component/DevAV/Actions/HideProduct_32x32.png"
-                                                  IsChecked="{Binding AutoHideMenu}" Content="{Localize 'Menu Always Visible'}"/>
+                                                        Glyph="pack://application:,,,/DevExpress.Images.v21.2;component/DevAV/Actions/HideProduct_32x32.png"
+                                                        IsChecked="{Binding AutoHideMenu, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                        Content="{Localize 'Menu Always Visible'}"/>
                         <dxwui:HamburgerMenuBottomBarNavigationButton Placement="Left" Content="{Localize 'Check For Updates'}"
-                                                          Glyph="{dx:DXImageOffice2013 Image=Download_32x32.png}"/>
+                                              Click="CheckUpdatesBtn_Click"
+                                              Glyph="{dx:DXImageOffice2013 Image=Download_32x32.png}"/>
                         <dxwui:HamburgerMenuBottomBarNavigationButton Placement="Right" 
                                                           Glyph="pack://application:,,,/DevExpress.Images.v21.2;component/DevAV/People/Walking_32x32.png"
                                                           Content="{Localize Logout}" Command="{Binding LogoutCommand}"/>
@@ -226,7 +240,7 @@
                                 <TextBlock Style="{StaticResource HeaderCaption}" HorizontalAlignment="Right" Padding="0, 0, 10, 0"
                            Text="{Localize AppCreator, FallBackText='Mermer Creation Studio'}"/>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <TextBlock Style="{StaticResource WelcomeMessage}" Text="{Localize AppName}"/>
+                                    <TextBlock Style="{StaticResource WelcomeMessage}" Text="{Localize Mermer}"/>
                                     <TextBlock Style="{StaticResource WelcomeMessage}"/>
                                 </StackPanel>
                             </StackPanel>

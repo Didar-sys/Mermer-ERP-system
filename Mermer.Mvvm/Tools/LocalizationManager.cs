@@ -6,7 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace Mermer.Core.Localization;
+
+namespace Mermer.Mvvm.Tools;
 
 /// <summary>
 /// Localization manager that loads JSON locale files and provides key-based access

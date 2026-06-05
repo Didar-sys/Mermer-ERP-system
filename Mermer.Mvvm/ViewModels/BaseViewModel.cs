@@ -126,30 +126,42 @@ public abstract class BaseViewModel : MvxViewModel, IDisposable
     }
   }
 
-  public IMvxLanguageBinder TextSource
-  {
-    get
+    public IMvxLanguageBinder TextSource
     {
-      return (IMvxLanguageBinder) new MvxLanguageBinder(this.GetType().Namespace, this.GetType().Name);
+        get
+        {
+            // Повертаємо null, щоб відключити старий механізм MvvmCross.
+            // Ми тепер покладаємось виключно на наш LocalizationManager.
+            return null;
+        }
     }
-  }
 
-  public string this[string textName, params object[] args]
-  {
-    get
+    public string this[string textName, params object[] args]
     {
-      try
-      {
-        return this.TextSource.GetText(textName, args);
-      }
-      catch
-      {
-        return string.Format("#" + textName, args);
-      }
-    }
-  }
+        get
+        {
+            try
+            {
+                // ЗВЕРТАЄМОСЯ НАПРЯМУ ДО ТВОГО МЕНЕДЖЕРА!
+                string text = Mermer.Mvvm.Tools.LocalizationManager.Instance.Get(textName, args);
 
-  public virtual void Dispose()
+                // Якщо перекладу немає (повернувся сам ключ), малюємо решітку, як було в оригіналі
+                if (text == textName)
+                {
+                    return args != null && args.Length > 0 ? string.Format("#" + textName, args) : "#" + textName;
+                }
+
+                return text;
+            }
+            catch
+            {
+                // Захист від битих аргументів форматування
+                return string.Format("#" + textName, args);
+            }
+        }
+    }
+
+    public virtual void Dispose()
   {
     string str = this["SourceUpdateTrigger-jnfdh762bkjsd864bhsd56s52", Array.Empty<object>()];
   }

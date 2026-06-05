@@ -26,104 +26,111 @@ namespace Mermer.Ui.Core.ViewModels.Settings;
 
 public class ApplicationSettingsViewModel : DialogViewModel
 {
-  private readonly IConfigurator _configurator;
-  private readonly IStocksRepository _stocksRepository;
-  private AppSettings _config;
-  private string[] _priceGroupNames;
+    private readonly IConfigurator _configurator;
+    private readonly IStocksRepository _stocksRepository;
+    private AppSettings _config;
+    private string[] _priceGroupNames;
 
-  public ApplicationSettingsViewModel(
-    IConfigurator configurator,
-    IMvxMessenger messenger,
-    Reference<Office> officeReference,
-    IStocksRepository stocksRepository,
-    Reference<Currency> currenciesReference,
-    Reference<Warehouse> warehouseReference,
-    Reference<Depository> depositoryReference,
-    IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService)
-    : base(messenger, navigationService, userInteractionService)
-  {
-    this._configurator = configurator;
-    this.Offices = officeReference;
-    this.Currencies = currenciesReference;
-    this.Warehouses = warehouseReference;
-    this.Depositories = depositoryReference;
-    this.Languages = new List<ListHelper<string>>()
+    public ApplicationSettingsViewModel(
+      IConfigurator configurator,
+      IMvxMessenger messenger,
+      Reference<Office> officeReference,
+      IStocksRepository stocksRepository,
+      Reference<Currency> currenciesReference,
+      Reference<Warehouse> warehouseReference,
+      Reference<Depository> depositoryReference,
+      IMvxNavigationService navigationService,
+      IUserInteractionService userInteractionService)
+      : base(messenger, navigationService, userInteractionService)
+    {
+        this._configurator = configurator;
+        this.Offices = officeReference;
+        this.Currencies = currenciesReference;
+        this.Warehouses = warehouseReference;
+        this.Depositories = depositoryReference;
+        this.Languages = new List<ListHelper<string>>()
     {
       new ListHelper<string>("en-US", "English"),
       new ListHelper<string>("ru-RU", "Русский"),
       new ListHelper<string>("tk-TM", "Türkmençe")
     };
-    this._stocksRepository = stocksRepository;
-  }
-
-  public virtual AppSettings Config
-  {
-    get => this._config;
-    set => this.SetProperty<AppSettings>(ref this._config, value, nameof (Config));
-  }
-
-  public Reference<Office> Offices { get; }
-
-  public Reference<Currency> Currencies { get; }
-
-  public Reference<Warehouse> Warehouses { get; set; }
-
-  public Reference<Depository> Depositories { get; set; }
-
-  public List<ListHelper<string>> Languages { get; set; }
-
-  public virtual string[] PriceGroupNames
-  {
-    get => this._priceGroupNames;
-    set => this.SetProperty<string[]>(ref this._priceGroupNames, value, nameof (PriceGroupNames));
-  }
-
-  protected async Task LoadFacetsAsync()
-  {
-    this.PriceGroupNames = (await this._stocksRepository.GetFacets("PriceGroupNames"))["PriceGroupNames"].Select<KeyValuePair<string, int>, string>((Func<KeyValuePair<string, int>, string>) (x => x.Key)).ToArray<string>();
-  }
-
-  protected override Task PreLoad()
-  {
-    return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Offices.Initialize(), this.Currencies.Initialize(), this.Warehouses.Initialize(), this.Depositories.Initialize());
-  }
-
-  protected override async Task OnLoad()
-  {
-    this.Config = await this._configurator.GetConfigAsync<AppSettings>();
-  }
-
-  protected override async Task PostLoad()
-  {
-    await base.PostLoad();
-    this.Offices.Filter = (Func<Office, bool>) (x => !x.IsDisabled);
-    this.Currencies.Filter = (Func<Currency, bool>) (x => !x.IsDisabled);
-    this.Warehouses.Filter = (Func<Warehouse, bool>) (x => !x.IsDisabled);
-    this.Depositories.Filter = (Func<Depository, bool>) (x => !x.IsDisabled);
-  }
-
-  public ICommand SaveCommand
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSaveAsync), (Func<bool>) (() => !this.IsBusy));
+        this._stocksRepository = stocksRepository;
     }
-  }
 
-  private async Task OnSaveAsync()
-  {
-    ApplicationSettingsViewModel settingsViewModel = this;
-    settingsViewModel.IsBusy = true;
-    try
+    public virtual AppSettings Config
     {
-      await settingsViewModel._configurator.SetConfigAsync<AppSettings>(settingsViewModel.Config);
-      int num = await settingsViewModel.OnCloseAsync() ? 1 : 0;
+        get => this._config;
+        set => this.SetProperty<AppSettings>(ref this._config, value, nameof(Config));
     }
-    catch (Exception ex)
+
+    public Reference<Office> Offices { get; }
+
+    public Reference<Currency> Currencies { get; }
+
+    public Reference<Warehouse> Warehouses { get; set; }
+
+    public Reference<Depository> Depositories { get; set; }
+
+    public List<ListHelper<string>> Languages { get; set; }
+
+    public virtual string[] PriceGroupNames
     {
-      settingsViewModel.UserInteractionService.ShowExceptionMessage(ex);
+        get => this._priceGroupNames;
+        set => this.SetProperty<string[]>(ref this._priceGroupNames, value, nameof(PriceGroupNames));
     }
-    settingsViewModel.IsBusy = false;
-  }
+
+    protected async Task LoadFacetsAsync()
+    {
+        this.PriceGroupNames = (await this._stocksRepository.GetFacets("PriceGroupNames"))["PriceGroupNames"].Select<KeyValuePair<string, int>, string>((Func<KeyValuePair<string, int>, string>)(x => x.Key)).ToArray<string>();
+    }
+
+    protected override Task PreLoad()
+    {
+        return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Offices.Initialize(), this.Currencies.Initialize(), this.Warehouses.Initialize(), this.Depositories.Initialize());
+    }
+
+    protected override async Task OnLoad()
+    {
+        this.Config = await this._configurator.GetConfigAsync<AppSettings>();
+
+        // Якщо мова ще ніколи не зберігалася, ставимо дефолт
+        if (string.IsNullOrEmpty(this.Config?.Culture))
+        {
+            this.Config.Culture = "en-US";
+        }
+    }
+
+    protected override async Task PostLoad()
+    {
+        await base.PostLoad();
+        this.Offices.Filter = (Func<Office, bool>)(x => !x.IsDisabled);
+        this.Currencies.Filter = (Func<Currency, bool>)(x => !x.IsDisabled);
+        this.Warehouses.Filter = (Func<Warehouse, bool>)(x => !x.IsDisabled);
+        this.Depositories.Filter = (Func<Depository, bool>)(x => !x.IsDisabled);
+    }
+
+    public ICommand SaveCommand
+    {
+        get
+        {
+            return (ICommand)new MvxAsyncCommand(new Func<Task>(this.OnSaveAsync), (Func<bool>)(() => !this.IsBusy));
+        }
+    }
+
+    private async Task OnSaveAsync()
+    {
+        ApplicationSettingsViewModel settingsViewModel = this;
+        settingsViewModel.IsBusy = true;
+        try
+        {
+            // БІЛЬШЕ НІЧОГО НЕ ПЕРЕЗАПИСУЄМО! Інтерфейс сам оновив Config.Culture
+            await settingsViewModel._configurator.SetConfigAsync<AppSettings>(settingsViewModel.Config);
+            int num = await settingsViewModel.OnCloseAsync() ? 1 : 0;
+        }
+        catch (Exception ex)
+        {
+            settingsViewModel.UserInteractionService.ShowExceptionMessage(ex);
+        }
+        settingsViewModel.IsBusy = false;
+    }
 }

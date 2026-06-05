@@ -96,6 +96,15 @@ public partial class MainView : MvxWpfView
         _menu = (HamburgerMenu)sender;
     }
 
+    private async void CheckUpdatesBtn_Click(object sender, System.Windows.RoutedEventArgs e)
+    {
+        // Викликаємо наш готовий метод із головного вікна
+        if (Mermer.Ui.Pc.MainWindow.Instance != null)
+        {
+            await Mermer.Ui.Pc.MainWindow.Instance.CheckForUpdates(true);
+        }
+    }
+
     private void OnSubMenuClick(object sender, RoutedEventArgs e)
     {
         if (!_menu.IsInitiallyCompact || _menu.IsCompact) return;

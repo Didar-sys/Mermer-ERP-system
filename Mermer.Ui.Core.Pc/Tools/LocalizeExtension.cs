@@ -9,9 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Markup;
-using MvvmCross.Localization;
-using MvvmCross.Platform;
-using Mermer.Mvvm.ViewModels;
+using Mermer.Mvvm.Tools;
 
 // Атрибут має бути ТУТ, одразу після всіх using
 [assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "Mermer.Ui.Core.Pc.Tools")]
@@ -22,19 +20,12 @@ namespace Mermer.Ui.Core.Pc.Tools
     [MarkupExtensionReturnType(typeof(string))]
     public class LocalizeExtension : UpdatableMarkupExtension
     {
-        private readonly IMvxTextProvider _textProvicer;
+        // ВИДАЛЕНО: private readonly IMvxTextProvider _textProvicer;
         private string _fallBackText;
 
         public LocalizeExtension()
         {
-            try
-            {
-                _textProvicer = Mvx.Resolve<IMvxTextProvider>();
-            }
-            catch
-            {
-                _textProvicer = null;
-            }
+            // ВИДАЛЕНО: весь блок try-catch з Mvx.Resolve, він нам більше не потрібен!
         }
 
         public LocalizeExtension(string text) : this()
@@ -94,18 +85,22 @@ namespace Mermer.Ui.Core.Pc.Tools
                 .ToArray();
         }
 
-        private string GetDefaultText()
-        {
-            string text = _textProvicer?.GetText(null, null, Text, GetParams());
-            return !string.IsNullOrEmpty(text) ? text : FallBackText;
-        }
-
+        // ЄДИНИЙ МЕТОД, ЯКИЙ НАМ ТЕПЕР ПОТРІБЕН ДЛЯ ОТРИМАННЯ ТЕКСТУ
         private string GetText()
         {
-            if (!(TargetObject is FrameworkElement targetObject) || !(targetObject.DataContext is BaseViewModel dataContext))
-                return GetDefaultText();
+            if (string.IsNullOrEmpty(Text)) return string.Empty;
 
-            return dataContext.TextSource.GetText(Text);
+            // ЗВЕРТАЄМОСЯ НАПРЯМУ ДО ТВОГО МЕНЕДЖЕРА!
+            // Якщо ключ не знайдено, твій менеджер повертає сам ключ (наприклад, "common.save").
+            string text = LocalizationManager.Instance.Get(Text, GetParams());
+
+            // Якщо повернувся сам ключ (перекладу немає) і в нас є FallBackText, використовуємо FallBack
+            if (text == Text && !string.IsNullOrEmpty(_fallBackText))
+            {
+                return string.Format(_fallBackText, GetParams());
+            }
+
+            return text;
         }
 
         protected override object ProvideValueInternal(IServiceProvider serviceProvider)

@@ -78,18 +78,6 @@ public class Setup : MvxWpfSetup
             return client;
         }).AsSelf().SingleInstance();
 
-        string locPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Localizations");
-        if (!Directory.Exists(locPath))
-        {
-            Directory.CreateDirectory(locPath);
-        }
-        builder.RegisterInstance(new PcJsonLocalizationResourceProvider(locPath))
-       .As<IJsonLocalizationResourceProvider>()
-       .AsImplementedInterfaces()
-       .AsSelf() // <-- Тепер Autofac знає його в обличчя
-       .SingleInstance();
-
-
         // --- СУПЕР-УНІВЕРСАЛЬНИЙ СКАНЕР ВСІХ МОДУЛІВ MERMER ---
         var mermerAssemblies = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "Mermer*.dll")
             .Select(Assembly.LoadFrom)
@@ -186,13 +174,23 @@ public class Setup : MvxWpfSetup
 
     public override void Initialize()
     {
-        base.Initialize(); // Офіційний старт без жодних милиць!
+        base.Initialize(); // Офіційний старт
 
-        string name = _configurator.GetConfig<AppSettings>()?.Culture ?? "tk-TM";
-        CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(name);
-        CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(name);
-        Thread.CurrentThread.CurrentCulture = new CultureInfo(name);
-        Thread.CurrentThread.CurrentUICulture = new CultureInfo(name);
+        // 1. Жорстко фіксуємо англійську культуру для потоків
+        // Це поверне стандартне відображення дат та чисел (крапки замість ком тощо)
+        CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
+        CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
+        Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+
+        // 2. Ініціалізуємо менеджер, але примусово кажемо йому використовувати "en"
+        string locPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Localization");
+        if (Directory.Exists(locPath))
+        {
+            // Ставимо defaultLocale і fallbackLocale на "en"
+            Mermer.Mvvm.Tools.LocalizationManager.Instance.Initialize(locPath, "en", "en");
+            Mermer.Mvvm.Tools.LocalizationManager.Instance.CurrentLocale = "en";
+        }
     }
 
     protected override void InitializeSingletonCache()

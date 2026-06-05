@@ -51,31 +51,40 @@ public class MainViewModel : BaseViewModel
   private readonly IConfigurator _configurator;
   private readonly IAuthorizationService _authService;
   private readonly IDocumentChangeListener _changeListener;
-  private readonly IJsonLocalizationResourceProvider _localizationResourceProvider;
+  
   private bool _isAdmin;
   private string _currentUser;
   private bool _openPostOnLoad;
   private bool _allowReporting;
   private bool _autoHideMenu;
-
-  public MainViewModel(
+    private static bool _isLanguageMetadataOverridden = false;
+    public MainViewModel(
     ILoginService loginService,
     IConfigurator configurator,
     IAuthorizationService authService,
     IDocumentChangeListener changeListener,
     IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService,
-    IJsonLocalizationResourceProvider localizationResourceProvider)
+    IUserInteractionService userInteractionService)
     : base(navigationService, userInteractionService)
-  {
-    this._loginService = loginService;
-    this._configurator = configurator;
-    this._authService = authService;
-    this._changeListener = changeListener;
-    this._localizationResourceProvider = localizationResourceProvider;
-  }
+    {
+        this._loginService = loginService;
+        this._configurator = configurator;
+        this._authService = authService;
+        this._changeListener = changeListener;
+        try
+        {
+            AppSettings config = configurator.GetConfig<AppSettings>();
+            if (config != null && !string.IsNullOrEmpty(config.Culture))
+            {
+                var culture = new System.Globalization.CultureInfo(config.Culture);
+                System.Threading.Thread.CurrentThread.CurrentCulture = culture;
+                System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
+            }
+        }
+        catch { }
+    }
 
-  public bool IsInDebugMode => false;
+    public bool IsInDebugMode => false;
 
   public bool IsAdmin
   {
@@ -138,26 +147,25 @@ public class MainViewModel : BaseViewModel
     }
   }
 
-  private async Task LogoutAsync()
-  {
-    MainViewModel mainViewModel = this;
-    try
+    private async Task LogoutAsync()
     {
-      if (!mainViewModel.ChangePresentation((MvxPresentationHint) new MvxCloseAllPresentationHint()))
-        return;
-      if (mainViewModel.IsInDebugMode)
-        mainViewModel._localizationResourceProvider.UpdateResources();
-      await mainViewModel._loginService.LogoutAsync();
-      mainViewModel._changeListener.Stop();
-      await mainViewModel.NavigationService.Navigate<LoginViewModel>();
-    }
-    catch (Exception ex)
-    {
-      mainViewModel.UserInteractionService.ShowExceptionMessage(ex);
-    }
-  }
+        MainViewModel mainViewModel = this;
+        try
+        {
+            if (!mainViewModel.ChangePresentation((MvxPresentationHint)new MvxCloseAllPresentationHint()))
+                return;
 
-  public ICommand ShowAboutCommand
+            await mainViewModel._loginService.LogoutAsync();
+            mainViewModel._changeListener.Stop();
+            await mainViewModel.NavigationService.Navigate<LoginViewModel>();
+        }
+        catch (Exception ex)
+        {
+            mainViewModel.UserInteractionService.ShowExceptionMessage(ex);
+        }
+    }
+
+    public ICommand ShowAboutCommand
   {
     get
     {

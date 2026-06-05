@@ -35,7 +35,8 @@ public class AppSettings : BindableObject
     this.OpenEditorWhenAdding = true;
   }
 
-  public virtual string Culture
+
+    public virtual string Culture
   {
     get => this._culture;
     set => this.SetProperty<string>(ref this._culture, value, nameof (Culture));
