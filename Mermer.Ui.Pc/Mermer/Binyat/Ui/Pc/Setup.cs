@@ -174,22 +174,60 @@ public class Setup : MvxWpfSetup
 
     public override void Initialize()
     {
-        base.Initialize(); // Офіційний старт
+        base.Initialize(); // Базова ініціалізація MvvmCross
 
-        // 1. Жорстко фіксуємо англійську культуру для потоків
-        // Це поверне стандартне відображення дат та чисел (крапки замість ком тощо)
-        CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
-        CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
-        Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-        Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+        // 1. Задаємо мову за замовчуванням
+        string cultureName = "ru-RU";
+        string shortLocale = "ru";
 
-        // 2. Ініціалізуємо менеджер, але примусово кажемо йому використовувати "en"
-        string locPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Localization");
-        if (Directory.Exists(locPath))
+        // 2. Намагаємося дістати збережену мову з налаштувань
+        try
         {
-            // Ставимо defaultLocale і fallbackLocale на "en"
+            var configurator = MvvmCross.Platform.Mvx.Resolve<Mermer.Services.IConfigurator>();
+            var config = configurator.GetConfig<Mermer.Common.Settings.AppSettings>();
+
+            if (config != null && !string.IsNullOrEmpty(config.Culture))
+            {
+                cultureName = config.Culture;
+                // Витягуємо перші 2 літери ("ru", "en", "tm") і переводимо в нижній регістр
+                shortLocale = cultureName.Length >= 2 ? cultureName.Substring(0, 2).ToLowerInvariant() : "en";
+
+                if (shortLocale == "tk") shortLocale = "tm";
+            }
+        }
+        catch
+        {
+            // Якщо файлу конфігурації ще немає, залишається дефолтна мова
+        }
+
+        // 3. БЕЗПЕЧНЕ встановлення системної культури (для дат і чисел)
+        System.Globalization.CultureInfo culture;
+        try
+        {
+            // В .NET туркменська має код "tk-TM". 
+            // Якщо в налаштуваннях зберігся нестандартний "tm-TM" або "tm", створюємо культуру в try-catch
+            culture = new System.Globalization.CultureInfo(cultureName);
+        }
+        catch
+        {
+            // Якщо система не розпізнала код культури, безпечно відкочуємось на англійську або російську
+            culture = new System.Globalization.CultureInfo("ru-RU");
+        }
+
+        System.Globalization.CultureInfo.DefaultThreadCurrentCulture = culture;
+        System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = culture;
+        System.Threading.Thread.CurrentThread.CurrentCulture = culture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
+
+        // 4. Ініціалізуємо кастомний LocalizationManager
+        string locPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Localization");
+        if (System.IO.Directory.Exists(locPath))
+        {
+            // ВАЖЛИВО: Default і Fallback тепер ЗАВЖДИ "en" (англійська)
             Mermer.Mvvm.Tools.LocalizationManager.Instance.Initialize(locPath, "en", "en");
-            Mermer.Mvvm.Tools.LocalizationManager.Instance.CurrentLocale = "en";
+
+            // Встановлюємо поточну мову динамічно ("ru", "en", "tm")
+            Mermer.Mvvm.Tools.LocalizationManager.Instance.CurrentLocale = shortLocale;
         }
     }
 

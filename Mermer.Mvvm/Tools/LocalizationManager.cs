@@ -89,7 +89,7 @@ public sealed class LocalizationManager
     /// <param name="localesDirectory">Path to directory containing locale .json files</param>
     /// <param name="defaultLocale">Default locale code (default: "ru")</param>
     /// <param name="fallbackLocale">Fallback locale when key is not found (default: "ru")</param>
-    public void Initialize(string localesDirectory, string defaultLocale = "ru", string fallbackLocale = "ru")
+    public void Initialize(string localesDirectory, string defaultLocale = "en", string fallbackLocale = "en")
     {
         if (!Directory.Exists(localesDirectory))
             throw new DirectoryNotFoundException($"Locales directory not found: {localesDirectory}");
