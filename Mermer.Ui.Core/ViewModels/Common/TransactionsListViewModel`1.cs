@@ -42,7 +42,7 @@ public abstract class TransactionsListViewModel<T> : ListViewModel<T> where T : 
       : base(repository, authorizer, messenger, navigationService, userInteractionService)
     {
         this.InitFilters();
-        this.Types = new LocalizedTransactionTypes(this.TextSource, Array.Empty<string>());
+        this.Types = new LocalizedTransactionTypes("Repricing");
     }
 
     public IEnumerable<ListFilter> Filters

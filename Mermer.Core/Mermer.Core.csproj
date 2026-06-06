@@ -9,13 +9,10 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Localization\tm.json" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Localization\ru.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Localization\tm.json">
+    <EmbeddedResource Include="Localization\tk.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

@@ -51,11 +51,8 @@ public class AggregatedReportViewModel : BaseViewModel
     this._printingService = printingService;
     this._repository = repository;
     this.Offices = offices;
-    this.Types = new LocalizedTransactionTypes(this.TextSource, new string[1]
-    {
-      "Repricing"
-    });
-  }
+        this.Types = new LocalizedTransactionTypes("Repricing");
+    }
 
   public Reference<Office> Offices { get; }
 

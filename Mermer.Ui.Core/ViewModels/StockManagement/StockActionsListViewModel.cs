@@ -63,7 +63,7 @@ public class StockActionsListViewModel :
     this.Warehouses = warehouses;
     this.StockSearcher = stockSearcher;
     this.StockSearcher.ResultSelected += new SearchResultSelected(this.StockSearcher_ResultSelected);
-    this.Types = new LocalizedTransactionTypes(this.TextSource, Array.Empty<string>());
+    this.Types = new LocalizedTransactionTypes("Repricing");
   }
 
   public System.Collections.Generic.List<object> SelectedWarehouseIds

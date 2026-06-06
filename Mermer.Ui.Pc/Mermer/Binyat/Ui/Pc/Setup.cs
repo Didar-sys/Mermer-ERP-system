@@ -191,8 +191,6 @@ public class Setup : MvxWpfSetup
                 cultureName = config.Culture;
                 // Витягуємо перші 2 літери ("ru", "en", "tm") і переводимо в нижній регістр
                 shortLocale = cultureName.Length >= 2 ? cultureName.Substring(0, 2).ToLowerInvariant() : "en";
-
-                if (shortLocale == "tk") shortLocale = "tm";
             }
         }
         catch

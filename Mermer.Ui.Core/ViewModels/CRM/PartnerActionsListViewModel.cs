@@ -53,7 +53,7 @@ public class PartnerActionsListViewModel :
     this._repository = repository;
     this.Offices = offices;
     this.Partners = partners;
-    this.Types = new LocalizedTransactionTypes(this.TextSource, Array.Empty<string>());
+    this.Types = new LocalizedTransactionTypes("Repricing");
   }
 
   public System.Collections.Generic.List<object> SelectedOfficeIds

@@ -48,8 +48,8 @@ public class ExpenseActionsListViewModel : ListViewModelBaseWithFilterDate<Expen
     this._repository = repository;
     this.Expenses = expenses;
     this.Depositories = depositories;
-    this.Types = new LocalizedTransactionTypes(this.TextSource, Array.Empty<string>());
-  }
+        this.Types = new LocalizedTransactionTypes("Repricing");
+    }
 
   public System.Collections.Generic.List<object> SelectedDepositoryIds
   {

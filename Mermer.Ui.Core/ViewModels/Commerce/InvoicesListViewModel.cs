@@ -48,7 +48,7 @@ public class InvoicesListViewModel : ListViewModelBaseWithFilterDate<InvoiceInfo
     this.Partners = partners;
     this.Warehouses = warehouses;
     this.Depositories = depositories;
-    this.Types = new LocalizedTransactionTypes(this.TextSource, Array.Empty<string>());
+    this.Types = new LocalizedTransactionTypes("Repricing");
   }
 
   public override string Caption => this["Invoices", Array.Empty<object>()];

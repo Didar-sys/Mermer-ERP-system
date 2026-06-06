@@ -55,8 +55,8 @@ public class FundsActionsListViewModel :
     this._repository = repository;
     this.Partners = partners;
     this.Depositories = depositories;
-    this.Types = new LocalizedTransactionTypes(this.TextSource, Array.Empty<string>());
-  }
+        this.Types = new LocalizedTransactionTypes("Repricing");
+    }
 
   public System.Collections.Generic.List<object> SelectedDepositoryIds
   {
