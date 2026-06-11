@@ -10,7 +10,17 @@ namespace Mermer.Core.Authorization.Services;
 
 public abstract class LoginService : ILoginService
 {
-    public UserSession? Session { get; set; }
+    // --- ГЕНІАЛЬНИЙ ФІКС: РОБИМО СЕСІЮ СТАТИЧНОЮ ---
+    // Тепер усі екземпляри сервісу будуть використовувати одну спільну сесію.
+    // DI-контейнери більше не зможуть "згубити" твій логін.
+    private static UserSession? _staticSession;
+
+    public UserSession? Session
+    {
+        get => _staticSession;
+        set => _staticSession = value;
+    }
+    // ----------------------------------------------
 
     public virtual bool IsLoggedIn => this.Session != null;
 
@@ -34,7 +44,6 @@ public abstract class LoginService : ILoginService
             else
                 roles = await this.GetRoles(user.Roles);
 
-            // Замінили __nonvirtual на нормальне привласнення
             this.Session = new UserSession()
             {
                 UserId = user.Id,
@@ -45,14 +54,12 @@ public abstract class LoginService : ILoginService
                            .GroupBy(x => x.Key)
                            .ToDictionary(
                                g => g.Key,
-                               // Замінили проблемний AddBit на стандартне бітове об'єднання прав
                                g => g.Select(x => x.Value).Aggregate((current, next) => current | next)
                            )
             };
         }
         catch (Exception)
         {
-            // Замінили __nonvirtual
             this.Session = null;
             throw;
         }

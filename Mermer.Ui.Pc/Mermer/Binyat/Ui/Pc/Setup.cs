@@ -31,6 +31,7 @@ using System.Linq;
 
 // Правильні простори імен для старих модулів
 using Mermer.Core.Couch;
+using Mermer.Authorization.Services;
 
 namespace Mermer.Ui.Pc;
 
@@ -58,7 +59,6 @@ public class Setup : MvxWpfSetup
         builder.Register<IConfigurator>(x => _configurator).As<IConfigurator>().SingleInstance();
 
         ConnectionSettings config = _configurator.GetConfig<ConnectionSettings>();
-       
 
         builder.RegisterModule<CoreUiModule>();
         // Додаємо ?? "http://localhost:5000", щоб програма не падала через відсутність URL
@@ -87,14 +87,15 @@ public class Setup : MvxWpfSetup
             .Where(t => t.IsClass && !t.IsAbstract
                         && t.Name != "PcJsonLocalizationResourceProvider"
                         && t.Name != "App"
+                        && !typeof(ILoginService).IsAssignableFrom(t) // Надійно виключаємо логін-сервіс (коротке ім'я)
                         && !t.Name.EndsWith("ViewModel")
                         && !t.Name.EndsWith("View")
                         && !t.Name.EndsWith("Setup")
-                        && !IsMvxSingletonDeep(t)) // <-- Використовуємо наш новий глибокий захист!
+                        && !IsMvxSingletonDeep(t))
             .AsImplementedInterfaces()
             .InstancePerDependency();
 
-        // Реєструємо головний модуль бізнес-логіки (ти показував його раніше)
+        // Реєструємо головний модуль бізнес-логіки
         builder.RegisterModule<Mermer.BinyatModule>();
 
         // Реєструємо менеджер мов для FluentValidation (ОБОВ'ЯЗКОВО!)
@@ -111,8 +112,7 @@ public class Setup : MvxWpfSetup
         // !!! ХАК ДЛЯ "ПРИВИДІВ" ЗІ СТАРОЇ БАЗИ ДАНИХ !!!
         builder.RegisterSource(new OldLocalizationSource());
 
-
-        // Тепер ми ігноруємо збережений кеш і завжди підключаємося до чистої бази
+        // Підключаємося до чистої бази
         builder.RegisterModule(new BinyatCouchModule(
             "http://localhost:8091",
             "binyat",
@@ -120,21 +120,37 @@ public class Setup : MvxWpfSetup
             "Password123!"
         ));
 
+        // --- АБСОЛЮТНИЙ ФІКС ДЛЯ СЕСІЇ (LOGIN SERVICE) ---
+        // 1. Безпечно шукаємо реальний клас сервісу авторизації
+        var loginServiceType = mermerAssemblies
+            .SelectMany(a => {
+                try { return a.GetTypes(); }
+                catch { return new Type[0]; } // Захист від помилок рефлексії
+            })
+            .LastOrDefault(t => t.IsClass && !t.IsAbstract &&
+                                typeof(ILoginService).IsAssignableFrom(t) &&
+                                !t.Name.Contains("Mock"));
+
+        // 2. Жорстко реєструємо знайдений клас як Одинака (Singleton)
+        if (loginServiceType != null)
+        {
+            builder.RegisterType(loginServiceType)
+                   .As<ILoginService>()
+                   .SingleInstance();
+        }
+        // --------------------------------------------------
+
         var container = builder.Build();
 
         // --- МЕТОД "КУВАЛДА": ВБИВАЄМО ВИПАДКОВИЙ КОНТЕЙНЕР ---
-        // Якщо якийсь модуль під час реєстрації випадково смикнув Mvx.Resolve,
-        // MvvmCross створив свій дефолтний контейнер, який зараз заблокує нам Autofac.
         var existingIoC = MvvmCross.Platform.Core.MvxSingleton<IMvxIoCProvider>.Instance;
         if (existingIoC != null)
         {
-            // Коректно знищуємо випадковий синглтон
             if (existingIoC is IDisposable disposableIoc)
             {
                 disposableIoc.Dispose();
             }
 
-            // Якщо він опирається — знищуємо через рефлексію
             var field = typeof(MvvmCross.Platform.Core.MvxSingleton<IMvxIoCProvider>)
                 .GetField("_instance", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
             if (field != null) field.SetValue(null, null);
@@ -143,8 +159,6 @@ public class Setup : MvxWpfSetup
         // Тепер шлях вільний! Реєструємо Autofac
         return (IMvxIoCProvider)new AutofacMvxIocProvider(container);
     }
-
-
 
     // Глибока перевірка всього дерева успадкування
     private static bool IsMvxSingletonDeep(Type type)
@@ -161,14 +175,10 @@ public class Setup : MvxWpfSetup
 
     protected override void InitializeDebugServices()
     {
-        // Якщо логер вже ініціалізований — просто виходимо, нічого не роблячи.
-        // Це врятує нас від помилки "MvxTrace already initialized".
         if (MvvmCross.Platform.Platform.MvxTrace.Instance != null)
         {
             return;
         }
-
-        // Якщо він порожній — дозволяємо MvvmCross створити його штатно.
         base.InitializeDebugServices();
     }
 
@@ -189,7 +199,6 @@ public class Setup : MvxWpfSetup
             if (config != null && !string.IsNullOrEmpty(config.Culture))
             {
                 cultureName = config.Culture;
-                // Витягуємо перші 2 літери ("ru", "en", "tm") і переводимо в нижній регістр
                 shortLocale = cultureName.Length >= 2 ? cultureName.Substring(0, 2).ToLowerInvariant() : "en";
             }
         }
@@ -202,13 +211,10 @@ public class Setup : MvxWpfSetup
         System.Globalization.CultureInfo culture;
         try
         {
-            // В .NET туркменська має код "tk-TM". 
-            // Якщо в налаштуваннях зберігся нестандартний "tm-TM" або "tm", створюємо культуру в try-catch
             culture = new System.Globalization.CultureInfo(cultureName);
         }
         catch
         {
-            // Якщо система не розпізнала код культури, безпечно відкочуємось на англійську або російську
             culture = new System.Globalization.CultureInfo("ru-RU");
         }
 
@@ -221,10 +227,7 @@ public class Setup : MvxWpfSetup
         string locPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Localization");
         if (System.IO.Directory.Exists(locPath))
         {
-            // ВАЖЛИВО: Default і Fallback тепер ЗАВЖДИ "en" (англійська)
             Mermer.Mvvm.Tools.LocalizationManager.Instance.Initialize(locPath, "en", "en");
-
-            // Встановлюємо поточну мову динамічно ("ru", "en", "tm")
             Mermer.Mvvm.Tools.LocalizationManager.Instance.CurrentLocale = shortLocale;
         }
     }
@@ -233,13 +236,10 @@ public class Setup : MvxWpfSetup
     {
         try
         {
-            // Намагаємося створити кеш офіційно
             base.InitializeSingletonCache();
         }
         catch (MvvmCross.Platform.Exceptions.MvxException)
         {
-            // Якщо вікно MainWindow вже встигло створити кеш біндінгів до нас —
-            // ми просто проковтуємо цю помилку і дозволяємо завантаженню йти далі!
         }
     }
 
@@ -256,7 +256,6 @@ public class OldLocalizationSource : IRegistrationSource
 {
     public bool IsAdapterForIndividualComponents => false;
 
-    // Зверни увагу на змінений тип: IEnumerable<IComponentRegistration> замість IEnumerable<ServiceRegistration>
     public IEnumerable<IComponentRegistration> RegistrationsFor(Service service, Func<Service, IEnumerable<IComponentRegistration>> registrationAccessor)
     {
         if (service is TypedService typedService && typedService.ServiceType.FullName == "Payhas.Binyat.Common.Services.ILocalizationService")
