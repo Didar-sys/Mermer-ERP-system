@@ -114,11 +114,11 @@ public class Setup : MvxWpfSetup
 
         // Підключаємося до чистої бази
         builder.RegisterModule(new BinyatCouchModule(
-            "http://localhost:8091",
-            "binyat",
-            "binyat", // Наш новий користувач з правами Full Admin
-            "Password123!"
-        ));
+     Configuration["DbHost"] ?? "http://localhost:8091",
+     Configuration["DbBucket"] ?? "binyat",
+     Configuration["DbUser"] ?? "binyat",
+     Configuration["DbPassword"] ?? "Password123!"
+ ));
 
         // --- АБСОЛЮТНИЙ ФІКС ДЛЯ СЕСІЇ (LOGIN SERVICE) ---
         // 1. Безпечно шукаємо реальний клас сервісу авторизації
