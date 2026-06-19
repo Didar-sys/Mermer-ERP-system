@@ -58,9 +58,11 @@ public class Setup : MvxWpfSetup
 
         builder.Register<IConfigurator>(x => _configurator).As<IConfigurator>().SingleInstance();
 
+        // Отримуємо налаштування, які користувач ввів у вікні Connection Settings (або з реєстру)
         ConnectionSettings config = _configurator.GetConfig<ConnectionSettings>();
 
         builder.RegisterModule<CoreUiModule>();
+
         // Додаємо ?? "http://localhost:5000", щоб програма не падала через відсутність URL
         builder.RegisterModule(new MermerLicensingClientModule(new ActivationConfiguration
         {
@@ -69,7 +71,6 @@ public class Setup : MvxWpfSetup
         }));
 
         // --- ДОДАЄМО ГЛОБАЛЬНИЙ HTTP КЛІЄНТ ---
-        // Завдяки цьому всі сервіси (зокрема і авторизація) знатимуть, куди відправляти запити
         builder.Register(c =>
         {
             var client = new System.Net.Http.HttpClient();
@@ -87,7 +88,7 @@ public class Setup : MvxWpfSetup
             .Where(t => t.IsClass && !t.IsAbstract
                         && t.Name != "PcJsonLocalizationResourceProvider"
                         && t.Name != "App"
-                        && !typeof(ILoginService).IsAssignableFrom(t) // Надійно виключаємо логін-сервіс (коротке ім'я)
+                        && !typeof(ILoginService).IsAssignableFrom(t)
                         && !t.Name.EndsWith("ViewModel")
                         && !t.Name.EndsWith("View")
                         && !t.Name.EndsWith("Setup")
@@ -98,7 +99,7 @@ public class Setup : MvxWpfSetup
         // Реєструємо головний модуль бізнес-логіки
         builder.RegisterModule<Mermer.BinyatModule>();
 
-        // Реєструємо менеджер мов для FluentValidation (ОБОВ'ЯЗКОВО!)
+        // Реєструємо менеджер мов для FluentValidation
         builder.RegisterType<FluentValidation.Resources.LanguageManager>()
                .As<FluentValidation.Resources.ILanguageManager>()
                .SingleInstance();
@@ -112,33 +113,31 @@ public class Setup : MvxWpfSetup
         // !!! ХАК ДЛЯ "ПРИВИДІВ" ЗІ СТАРОЇ БАЗИ ДАНИХ !!!
         builder.RegisterSource(new OldLocalizationSource());
 
-        // Підключаємося до чистої бази
+        // --- ДИНАМІЧНА ПРИВ'ЯЗКА БАЗИ ДАНИХ ---
+        // Тепер Autofac бере реальні дані, які користувач ввів в UI
         builder.RegisterModule(new BinyatCouchModule(
-     Configuration["DbHost"] ?? "http://localhost:8091",
-     Configuration["DbBucket"] ?? "binyat",
-     Configuration["DbUser"] ?? "binyat",
-     Configuration["DbPassword"] ?? "Password123!"
- ));
+             config.DatabaseAddress ?? "http://localhost:8091",
+             config.DatabaseName ?? "binyat",
+             config.DatabaseUser ?? "admin",
+             config.DatabasePassword ?? ""
+        ));
 
         // --- АБСОЛЮТНИЙ ФІКС ДЛЯ СЕСІЇ (LOGIN SERVICE) ---
-        // 1. Безпечно шукаємо реальний клас сервісу авторизації
         var loginServiceType = mermerAssemblies
             .SelectMany(a => {
                 try { return a.GetTypes(); }
-                catch { return new Type[0]; } // Захист від помилок рефлексії
+                catch { return new Type[0]; }
             })
             .LastOrDefault(t => t.IsClass && !t.IsAbstract &&
                                 typeof(ILoginService).IsAssignableFrom(t) &&
                                 !t.Name.Contains("Mock"));
 
-        // 2. Жорстко реєструємо знайдений клас як Одинака (Singleton)
         if (loginServiceType != null)
         {
             builder.RegisterType(loginServiceType)
                    .As<ILoginService>()
                    .SingleInstance();
         }
-        // --------------------------------------------------
 
         var container = builder.Build();
 
@@ -156,7 +155,6 @@ public class Setup : MvxWpfSetup
             if (field != null) field.SetValue(null, null);
         }
 
-        // Тепер шлях вільний! Реєструємо Autofac
         return (IMvxIoCProvider)new AutofacMvxIocProvider(container);
     }
 

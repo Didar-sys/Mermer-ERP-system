@@ -39,7 +39,7 @@ namespace Mermer.Ui.Pc
                 frameworkElement.SetValue(ThemeManager.ThemeNameProperty, "HybridApp");
                 WinUIDialogWindow dialog = new WinUIDialogWindow(dialogViewModel.Caption ?? dataContext.GetType().Name);
                 dialog.Content = frameworkElement;
-                dialog.SetValue(ThemeManager.ThemeNameProperty, "Office2013DarkGray;Touch");
+                dialog.SetValue(ThemeManager.ThemeNameProperty, "Office2013DarkGray");
                 MainViewPresenter.Dialogs.Add(dialog);
                 Task.Run(() => Application.Current.Dispatcher.Invoke(() => dialog.ShowDialog()));
             }

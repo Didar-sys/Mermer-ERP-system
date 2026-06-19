@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Core.Couch.Authentication.AuthInitialDataCreator
-// Assembly: Mermer.Core.Couch, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1349257C-46CD-4839-9154-FBCC3222CF25
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Core.Couch.dll
-
-using Couchbase;
+﻿using Couchbase;
 using Couchbase.Core;
 using Couchbase.Linq;
 using Couchbase.Linq.Extensions;
@@ -20,59 +14,71 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-#nullable disable
 namespace Mermer.Core.Couch.Authentication;
 
 public class AuthInitialDataCreator : IInitialDataCreator
 {
-  private readonly IPatcher _patcher;
-  private readonly ICouchCluster _cluster;
-  private readonly ICouchLocalChangesRepositoryService<CouchPatch> _localChangesRepositoryService;
+    private readonly IPatcher _patcher;
+    private readonly ICouchCluster _cluster;
+    private readonly ICouchLocalChangesRepositoryService<CouchPatch> _localChangesRepositoryService;
 
-  public AuthInitialDataCreator(
-    IPatcher patcher,
-    ICouchCluster cluster,
-    ICouchLocalChangesRepositoryService<CouchPatch> localChangesRepositoryService)
-  {
-    this._patcher = patcher;
-    this._cluster = cluster;
-    this._localChangesRepositoryService = localChangesRepositoryService;
-  }
-
-  public async Task CreateAsync()
-  {
-    using (IBucket bucket1 = this._cluster.OpenDefaultBucket())
+    public AuthInitialDataCreator(
+      IPatcher patcher,
+      ICouchCluster cluster,
+      ICouchLocalChangesRepositoryService<CouchPatch> localChangesRepositoryService)
     {
-      if (!(await new BucketContext(bucket1).Query<User>().Where<User>((Expression<Func<User, bool>>) (x => x.DocType == typeof (User).Name && x.IsAdmin)).ExecuteAsync<User>()).Any<User>())
-      {
-        User user = new User();
-        user.Id = Guid.NewGuid().ToString();
-        user.Username = "admin";
-        user.Password = "admin".Hash();
-        user.IsAdmin = true;
-        User item = user;
-        Patch patch = this._patcher.CreatePatch<User>(item, (User) null);
-        if (patch == null)
-          return;
-        ICouchLocalChangesRepositoryService<CouchPatch> repositoryService = this._localChangesRepositoryService;
-        CouchPatch[] patches = new CouchPatch[1];
-        CouchPatch couchPatch = new CouchPatch();
-        couchPatch.Id = patch.Id;
-        couchPatch.Action = patch.Action;
-        couchPatch.PropertyPatches = patch.PropertyPatches;
-        couchPatch.SubListPatches = patch.SubListPatches;
-        couchPatch.DocType = typeof (User).Name;
-        couchPatch.Author = item.Username;
-        patches[0] = couchPatch;
-        IBucket bucket2 = bucket1;
-        await repositoryService.StorePatchesAsync((IEnumerable<CouchPatch>) patches, bucket2);
-        IDocumentResult<User> documentResult = await bucket1.InsertAsync<User>((IDocument<User>) new Document<User>()
-        {
-          Id = item.Id,
-          Content = item
-        });
-        item = (User) null;
-      }
+        this._patcher = patcher;
+        this._cluster = cluster;
+        this._localChangesRepositoryService = localChangesRepositoryService;
     }
-  }
+
+    public async Task CreateAsync()
+    {
+        using (IBucket bucket1 = this._cluster.OpenDefaultBucket())
+        {
+            // Перевіряємо, чи існує адмін. Якщо індекс затупить - не страшно, нас врятує Upsert.
+            if (!(await new BucketContext(bucket1).Query<User>().Where<User>(x => x.DocType == typeof(User).Name && x.IsAdmin).ExecuteAsync<User>()).Any<User>())
+            {
+                User user = new User();
+
+                // --- ВИПРАВЛЕНО: Жорсткий ID замість випадкового Guid ---
+                user.Id = "User_admin";
+                // ---------------------------------------------------------
+
+                user.Username = "admin";
+                user.Password = "admin".Hash();
+                user.IsAdmin = true;
+                User item = user;
+
+                Patch patch = this._patcher.CreatePatch<User>(item, (User)null);
+                if (patch == null)
+                    return;
+
+                ICouchLocalChangesRepositoryService<CouchPatch> repositoryService = this._localChangesRepositoryService;
+                CouchPatch[] patches = new CouchPatch[1];
+                CouchPatch couchPatch = new CouchPatch();
+                couchPatch.Id = patch.Id;
+                couchPatch.Action = patch.Action;
+                couchPatch.PropertyPatches = patch.PropertyPatches;
+                couchPatch.SubListPatches = patch.SubListPatches;
+                couchPatch.DocType = typeof(User).Name;
+                couchPatch.Author = item.Username;
+                patches[0] = couchPatch;
+                IBucket bucket2 = bucket1;
+
+                await repositoryService.StorePatchesAsync((IEnumerable<CouchPatch>)patches, bucket2);
+
+                // --- ВИПРАВЛЕНО: Використовуємо UpsertAsync замість InsertAsync ---
+                // Тепер, навіть якщо кнопка спрацює двічі, вона не створить клона, а просто оновить єдиного адміна
+                IDocumentResult<User> documentResult = await bucket1.UpsertAsync<User>((IDocument<User>)new Document<User>()
+                {
+                    Id = item.Id,
+                    Content = item
+                });
+                // ------------------------------------------------------------------
+
+                item = (User)null;
+            }
+        }
+    }
 }

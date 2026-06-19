@@ -29,19 +29,17 @@ public class CouchCluster : ICouchCluster, IDisposable
     {
         this.Cluster?.Dispose();
 
-        // 1. Формуємо безпечну адресу (щоб не падало створення Uri)
         string safeUrl = string.IsNullOrWhiteSpace(url) ? "127.0.0.1" : url;
         if (!safeUrl.StartsWith("http"))
         {
             safeUrl = safeUrl.Contains(":") ? $"http://{safeUrl}" : $"http://{safeUrl}:8091";
         }
 
-        // --- ЗАЛІЗОБЕТОННИЙ ХАК ДЛЯ ЛОКАЛЬНОГО ТЕСТУВАННЯ ---
-        // Ігноруємо будь-які старі збережені конфіги з диска
-        this.Url = "http://localhost:8091";
-        this.DefaultBucket = "binyat"; // Ніяких .ymb3!
-        this.Username = "binyat";
-        this.Password = "Password123!";
+        // БІЛЬШЕ НІЯКОГО ХАРДКОДУ! Привласнюємо реальні дані, які прийшли з налаштувань
+        this.Url = safeUrl;
+        this.DefaultBucket = defaultBucket;
+        this.Username = username;
+        this.Password = password;
 
         try
         {
@@ -54,8 +52,6 @@ public class CouchCluster : ICouchCluster, IDisposable
         }
         catch (Exception ex)
         {
-            // Замість того, щоб ковтати помилку і робити Cluster = null, 
-            // ми жбурляємо її наверх із детальним описом!
             throw new Exception($"КРИТИЧНА ПОМИЛКА COUCHBASE: {ex.Message} --- Деталі: {ex.InnerException?.Message}", ex);
         }
     }

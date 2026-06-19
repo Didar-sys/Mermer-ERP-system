@@ -35,7 +35,7 @@ public partial class App : System.Windows.Application
 
         _setupComplete = true;
 
-        ApplicationThemeHelper.ApplicationThemeName = "HybridApp";
+        ApplicationThemeHelper.ApplicationThemeName = "Office2013DarkGray";
         DXGridDataController.DisableThreadingProblemsDetection = true;
 
         this.MainWindow.Show(); // Відкриваємо вікно тільки коли все готово
