@@ -155,6 +155,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Mermer\Binyat\Ui\Pc\Reports\AggregatedReportAll.resx">
+      <CustomToolNamespace>Mermer.Ui.Pc.Reports</CustomToolNamespace>
+    </EmbeddedResource>
     <EmbeddedResource Update="Mermer\Binyat\Ui\Pc\Reports\InvoiceStandard.resx">
       <LogicalName>Mermer.Ui.Pc.Reports.InvoiceStandard.resources</LogicalName>
     </EmbeddedResource>

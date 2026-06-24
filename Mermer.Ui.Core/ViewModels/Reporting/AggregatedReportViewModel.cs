@@ -37,8 +37,10 @@ public class AggregatedReportViewModel : BaseViewModel
   private DateTime _dateFilterFrom = DateTime.Today;
   private DateTime _dateFilterTill = DateTime.Today;
   private bool _loaded;
+    public object SelectedItem { get; set; }
+    public System.Windows.Input.ICommand SelectOrViewDetailsCommand { get; set; }
 
-  public AggregatedReportViewModel(
+    public AggregatedReportViewModel(
     IConfigurator configurator,
     Reference<Office> offices,
     IPrintingService printingService,
@@ -148,46 +150,63 @@ public class AggregatedReportViewModel : BaseViewModel
     }
   }
 
-  public virtual Task OnPrintAsync()
-  {
-    return this._printingService.PrintAggregatedReport(new AggregatedReport()
+    public virtual Task OnPrintAsync()
     {
-      FundsReport = new FundsBalanceAggregated()
-      {
-        Income = this.Report.FundsReport.Income,
-        Expense = this.Report.FundsReport.Expense,
-        StartingBalance = this.Report.FundsReport.StartingBalance,
-        Lines = this.Report.FundsReport.Lines.Select<FundsBalanceAggregatedLine, FundsBalanceAggregatedLine>((Func<FundsBalanceAggregatedLine, FundsBalanceAggregatedLine>) (x => new FundsBalanceAggregatedLine()
+        // Якщо самого звіту взагалі немає - тоді точно нічого друкувати
+        if (Report == null) return Task.CompletedTask;
+
+        // БЕЗПЕЧНО збираємо касу (якщо null - створюємо порожній)
+        var safeFundsReport = Report.FundsReport == null ? new FundsBalanceAggregated() : new FundsBalanceAggregated
         {
-          Income = x.Income,
-          Expense = x.Expense,
-          Type = this.Types.List.Single<ListHelper<string>>((Func<ListHelper<string>, bool>) (i => i.Value == x.Type)).Text
-        }))
-      },
-      StocksReport = new StockBalanceAggregated()
-      {
-        Income = this.Report.StocksReport.Income,
-        Expense = this.Report.StocksReport.Expense,
-        StartingBalance = this.Report.StocksReport.StartingBalance,
-        Lines = this.Report.StocksReport.Lines.Select<StockBalanceAggregatedLine, StockBalanceAggregatedLine>((Func<StockBalanceAggregatedLine, StockBalanceAggregatedLine>) (x => new StockBalanceAggregatedLine()
+            Income = Report.FundsReport.Income,
+            Expense = Report.FundsReport.Expense,
+            StartingBalance = Report.FundsReport.StartingBalance,
+            Lines = Report.FundsReport.Lines?.Select(x => new FundsBalanceAggregatedLine
+            {
+                Income = x.Income,
+                Expense = x.Expense,
+                // FirstOrDefault не видасть помилку, якщо типу немає в словнику
+                Type = Types?.List?.FirstOrDefault(i => i.Value == x.Type)?.Text ?? x.Type
+            }) ?? Enumerable.Empty<FundsBalanceAggregatedLine>()
+        };
+
+        // БЕЗПЕЧНО збираємо склади
+        var safeStocksReport = Report.StocksReport == null ? new StockBalanceAggregated() : new StockBalanceAggregated
         {
-          Income = x.Income,
-          Expense = x.Expense,
-          Type = this.Types.List.Single<ListHelper<string>>((Func<ListHelper<string>, bool>) (i => i.Value == x.Type)).Text
-        }))
-      },
-      PartnersReport = new PartnerBalanceAggregated()
-      {
-        Debit = this.Report.PartnersReport.Debit,
-        Credit = this.Report.PartnersReport.Credit,
-        StartingBalance = this.Report.PartnersReport.StartingBalance,
-        Lines = this.Report.PartnersReport.Lines.Select<PartnerBalanceAggregatedLine, PartnerBalanceAggregatedLine>((Func<PartnerBalanceAggregatedLine, PartnerBalanceAggregatedLine>) (x => new PartnerBalanceAggregatedLine()
+            Income = Report.StocksReport.Income,
+            Expense = Report.StocksReport.Expense,
+            StartingBalance = Report.StocksReport.StartingBalance,
+            Lines = Report.StocksReport.Lines?.Select(x => new StockBalanceAggregatedLine
+            {
+                Income = x.Income,
+                Expense = x.Expense,
+                Type = Types?.List?.FirstOrDefault(i => i.Value == x.Type)?.Text ?? x.Type
+            }) ?? Enumerable.Empty<StockBalanceAggregatedLine>()
+        };
+
+        // БЕЗПЕЧНО збираємо партнерів
+        var safePartnersReport = Report.PartnersReport == null ? new PartnerBalanceAggregated() : new PartnerBalanceAggregated
         {
-          Debit = x.Debit,
-          Credit = x.Credit,
-          Type = this.Types.List.Single<ListHelper<string>>((Func<ListHelper<string>, bool>) (i => i.Value == x.Type)).Text
-        }))
-      }
-    }, this.DateFilterFrom, this.DateFilterTill, this.Offices.List.Where<Office>((Func<Office, bool>) (x => ((IEnumerable<string>) this.OfficeIds).Contains<string>(x.Id))).Select<Office, string>((Func<Office, string>) (x => x.Name)).ToArray<string>());
-  }
+            Debit = Report.PartnersReport.Debit,
+            Credit = Report.PartnersReport.Credit,
+            StartingBalance = Report.PartnersReport.StartingBalance,
+            Lines = Report.PartnersReport.Lines?.Select(x => new PartnerBalanceAggregatedLine
+            {
+                Debit = x.Debit,
+                Credit = x.Credit,
+                Type = Types?.List?.FirstOrDefault(i => i.Value == x.Type)?.Text ?? x.Type
+            }) ?? Enumerable.Empty<PartnerBalanceAggregatedLine>()
+        };
+
+        // Безпечно формуємо список офісів
+        var selectedOffices = Offices?.List?.Where(x => OfficeIds != null && OfficeIds.Contains(x.Id)).Select(x => x.Name).ToArray() ?? Array.Empty<string>();
+
+        // Відправляємо зібрані безпечні блоки на друк
+        return _printingService.PrintAggregatedReport(new AggregatedReport
+        {
+            FundsReport = safeFundsReport,
+            StocksReport = safeStocksReport,
+            PartnersReport = safePartnersReport
+        }, DateFilterFrom, DateFilterTill, selectedOffices);
+    }
 }

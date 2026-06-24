@@ -5,10 +5,10 @@
                    Title="Binyat | Mermer" Height="700" Width="1100" SnapsToDevicePixels="true"
                    UseLayoutRounding="true" dx:ThemeManager.ThemeName="Office2016Black"
                    TabbedWindowMode="Compact" ShowTitle="false" ShowIcon="false" WindowStartupLocation="CenterScreen"
-                   WindowState="Maximized"
+                   WindowState="Maximized" Padding="0" BorderThickness="0"
                    Icon="pack://application:,,,/Mermer.Ui.Pc;component/Resources/binyat_icon_003_d85_icon.ico">
 
-    <ContentControl x:Name="ViewsRoot" Margin="-6,0,-6,-6" Focusable="false"
+    <ContentControl x:Name="ViewsRoot" Margin="-6,-6,-6,-6" Focusable="false"
                   dx:ThemeManager.ThemeName="Office2013DarkGray"/>
 
 </dx:DXTabbedWindow>

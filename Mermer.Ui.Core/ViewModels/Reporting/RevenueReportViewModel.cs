@@ -32,8 +32,10 @@ public class RevenueReportViewModel : BaseViewModel
   private DateTime _dateFilterFrom = DateTime.Today;
   private DateTime _dateFilterTill = DateTime.Today;
   private bool _loaded;
+    public object SelectedItem { get; set; }
+    public System.Windows.Input.ICommand SelectOrViewDetailsCommand { get; set; }
 
-  public RevenueReportViewModel(
+    public RevenueReportViewModel(
     IConfigurator configurator,
     Reference<Warehouse> warehouses,
     IRevenueReportsRepository repository,

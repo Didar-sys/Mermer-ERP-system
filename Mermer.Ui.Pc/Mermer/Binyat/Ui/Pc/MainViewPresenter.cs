@@ -109,55 +109,26 @@ namespace Mermer.Ui.Pc
                             return;
                         }
 
-                        // 2. УНІВЕРСАЛЬНИЙ КІЛЕР ВКЛАДОК
-                        var mainWindow = Application.Current.MainWindow;
-                        if (mainWindow != null)
+                        // 2. ІДЕАЛЬНИЙ КІЛЕР ВКЛАДОК (Без складного пошуку по дереву)
+                        // Шукаємо форму в нашій колекції вкладок за її ViewModel
+                        var viewToKill = MainViewPresenter.TabItems.FirstOrDefault(v => v.DataContext == closeHint.ViewModelToClose);
+
+                        if (viewToKill != null)
                         {
-                            // Радар шукає саму форму накладної
-                            FrameworkElement viewToKill = FindElementByDataContext(mainWindow, closeHint.ViewModelToClose);
+                            // Просто видаляємо з колекції - TabControl сам знищить вкладку!
+                            MainViewPresenter.TabItems.Remove(viewToKill);
 
-                            if (viewToKill != null)
+                            // Очищаємо пам'ять і ресурси
+                            viewToKill.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
+                            if (viewToKill.DataContext is IDisposable disposable)
                             {
-                                // Знаходимо того, хто тримає цю форму (Контейнер DevExpress)
-                                var parent = VisualTreeHelper.GetParent(viewToKill) ?? LogicalTreeHelper.GetParent(viewToKill);
-
-                                if (parent != null)
-                                {
-                                    // Б'ємо по всіх можливих типах контейнерів
-                                    if (parent is ItemsControl itemsControl)
-                                    {
-                                        if (itemsControl.ItemsSource is System.Collections.IList list)
-                                            list.Remove(viewToKill.DataContext ?? viewToKill);
-                                        else
-                                            itemsControl.Items.Remove(viewToKill);
-                                    }
-                                    else if (parent is ContentControl contentControl)
-                                    {
-                                        contentControl.Content = null;
-                                    }
-                                    else if (parent is Panel panel)
-                                    {
-                                        panel.Children.Remove(viewToKill);
-                                    }
-                                    else
-                                    {
-                                        // Якщо DevExpress заблокував усе - просто приховуємо форму
-                                        viewToKill.Visibility = Visibility.Collapsed;
-                                    }
-
-                                    // Очищаємо ресурси
-                                    viewToKill.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
-                                    if (viewToKill.DataContext is IDisposable disposable)
-                                    {
-                                        disposable.Dispose();
-                                    }
-                                }
+                                disposable.Dispose();
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show("Помилка універсального закриття: " + ex.Message);
+                        MessageBox.Show("Помилка закриття вкладки: " + ex.Message);
                     }
                 });
             }
