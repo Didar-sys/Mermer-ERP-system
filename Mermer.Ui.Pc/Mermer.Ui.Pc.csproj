@@ -156,7 +156,16 @@
 
   <ItemGroup>
     <EmbeddedResource Update="Mermer\Binyat\Ui\Pc\Reports\AggregatedReportAll.resx">
-      <CustomToolNamespace>Mermer.Ui.Pc.Reports</CustomToolNamespace>
+      <LogicalName>Mermer.Ui.Pc.Reports.AggregatedReportAll.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Mermer\Binyat\Ui\Pc\Reports\AggregatedReportFunds.resx">
+      <LogicalName>Mermer.Ui.Pc.Reports.AggregatedReportFunds.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Mermer\Binyat\Ui\Pc\Reports\AggregatedReportPartners.resx">
+      <LogicalName>Mermer.Ui.Pc.Reports.AggregatedReportPartners.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Mermer\Binyat\Ui\Pc\Reports\AggregatedReportStocks.resx">
+      <LogicalName>Mermer.Ui.Pc.Reports.AggregatedReportStocks.resources</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Update="Mermer\Binyat\Ui\Pc\Reports\InvoiceStandard.resx">
       <LogicalName>Mermer.Ui.Pc.Reports.InvoiceStandard.resources</LogicalName>
