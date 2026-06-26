@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using MvvmCross.Core.Views;
+
 
 namespace Mermer.Ui.Pc
 {
@@ -29,6 +31,35 @@ namespace Mermer.Ui.Pc
         {
             MainViewPresenter._tabControl = tabControl;
             MainViewPresenter._tabControl.ItemsSource = MainViewPresenter.TabItems;
+
+            // ВИПРАВЛЕНО: Підписуємося на подію хрестика (закриття вкладки користувачем)
+            MainViewPresenter._tabControl.TabHiding += TabControl_TabHiding;
+        }
+
+        // =========================================================================
+        // ОБРОБНИК НАТИСКАННЯ НА ХРЕСТИК В КЛАДЦІ
+        // =========================================================================
+        private static void TabControl_TabHiding(object sender, TabControlTabHidingEventArgs e)
+        {
+            // Скасовуємо стандартне приховування DevExpress (воно зламане кастомним шаблоном)
+            e.Cancel = true;
+
+            // e.Item містить сам FrameworkElement (View), який лежить в нашій колекції TabItems
+            if (e.Item is FrameworkElement viewToKill)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    // Видаляємо з колекції — TabControl повністю знищить вкладку з інтерфейсу
+                    MainViewPresenter.TabItems.Remove(viewToKill);
+
+                    // Очищаємо пам'ять і ресурси (копія вашої логіки з ChangePresentation)
+                    viewToKill.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
+                    if (viewToKill.DataContext is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                });
+            }
         }
 
         public override void Present(FrameworkElement frameworkElement)
@@ -45,13 +76,37 @@ namespace Mermer.Ui.Pc
             }
             else
             {
-                if (MainViewPresenter._tabControl != null)
+                // ----------------------------------------------------
+                // ЛОГІКА ВИХОДУ З ПРОГРАМИ (LOGOUT)
+                // ----------------------------------------------------
+                if (dataContext != null && dataContext.GetType().Name.Contains("LoginViewModel"))
                 {
-                    if (dataContext is LoginViewModel || dataContext is MainViewModel) return;
-                    MainViewPresenter.TabItems.Insert(MainViewPresenter._tabControl.SelectedIndex + 1, frameworkElement);
-                    MainViewPresenter._tabControl.SelectedIndex = MainViewPresenter._tabControl.SelectedIndex + 1;
+                    // 1. Відв'язуємо TabControl і чистимо пам'ять вкладок
+                    MainViewPresenter._tabControl = null;
+                    MainViewPresenter.TabItems.Clear();
+
+                    // 2. Замінюємо весь наш Mermer-інтерфейс на вікно Логіну
+                    this._contentControl.Content = frameworkElement;
                     return;
                 }
+
+                // ----------------------------------------------------
+                // ЛОГІКА ВІДКРИТТЯ НОВИХ ВКЛАДОК
+                // ----------------------------------------------------
+                if (MainViewPresenter._tabControl != null)
+                {
+                    // Ігноруємо спробу відкрити MainViewModel як звичайну вкладку
+                    if (dataContext != null && dataContext.GetType().Name.Contains("MainViewModel")) return;
+
+                    // Додаємо нову вкладку одразу після поточної
+                    MainViewPresenter.TabItems.Insert(MainViewPresenter._tabControl.SelectedIndex + 1, frameworkElement);
+
+                    // Жорстко перемикаємо фокус на щойно створену вкладку
+                    MainViewPresenter._tabControl.SelectedItem = frameworkElement;
+                    return;
+                }
+
+                // Перше завантаження (коли TabControl ще немає)
                 this._contentControl.Content = frameworkElement;
             }
         }
@@ -65,12 +120,10 @@ namespace Mermer.Ui.Pc
 
             if (root is FrameworkElement fe && fe.DataContext == dataContext)
             {
-                // Нам потрібна саме форма (UserControl), а не дрібні елементи типу кнопок
                 if (fe is UserControl || fe is Page || fe.GetType().Name.Contains("View"))
                     return fe;
             }
 
-            // Шукаємо у візуальному дереві
             int childrenCount = VisualTreeHelper.GetChildrenCount(root);
             for (int i = 0; i < childrenCount; i++)
             {
@@ -79,7 +132,6 @@ namespace Mermer.Ui.Pc
                 if (result != null) return result;
             }
 
-            // Шукаємо у логічному дереві (іноді DevExpress ховає форми там)
             foreach (var logicalChild in LogicalTreeHelper.GetChildren(root))
             {
                 if (logicalChild is DependencyObject depChild)
@@ -109,16 +161,13 @@ namespace Mermer.Ui.Pc
                             return;
                         }
 
-                        // 2. ІДЕАЛЬНИЙ КІЛЕР ВКЛАДОК (Без складного пошуку по дереву)
-                        // Шукаємо форму в нашій колекції вкладок за її ViewModel
+                        // 2. КІЛЕР ВКЛАДОК (Програмне закриття через ViewModel)
                         var viewToKill = MainViewPresenter.TabItems.FirstOrDefault(v => v.DataContext == closeHint.ViewModelToClose);
 
                         if (viewToKill != null)
                         {
-                            // Просто видаляємо з колекції - TabControl сам знищить вкладку!
                             MainViewPresenter.TabItems.Remove(viewToKill);
 
-                            // Очищаємо пам'ять і ресурси
                             viewToKill.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
                             if (viewToKill.DataContext is IDisposable disposable)
                             {
@@ -151,5 +200,6 @@ namespace Mermer.Ui.Pc
         {
             return true;
         }
+
     }
 }

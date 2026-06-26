@@ -67,16 +67,18 @@ public class RevenueReportViewModel : BaseViewModel
     }
   }
 
-  public string[] WarehouseIds
-  {
-    get
+    public string[] WarehouseIds
     {
-      System.Collections.Generic.List<object> selectedWarehouseIds = this.SelectedWarehouseIds;
-      return (selectedWarehouseIds != null ? selectedWarehouseIds.Cast<string>().ToArray<string>() : (string[]) null) ?? Array.Empty<string>();
+        get
+        {
+            var selectedWarehouseIds = this.SelectedWarehouseIds;
+            return selectedWarehouseIds != null
+                ? selectedWarehouseIds.Select(x => x?.ToString()).ToArray()
+                : Array.Empty<string>();
+        }
     }
-  }
 
-  public DateTime DateFilterFrom
+    public DateTime DateFilterFrom
   {
     get => this._dateFilterFrom;
     set => this.SetProperty<DateTime>(ref this._dateFilterFrom, value, nameof (DateFilterFrom));

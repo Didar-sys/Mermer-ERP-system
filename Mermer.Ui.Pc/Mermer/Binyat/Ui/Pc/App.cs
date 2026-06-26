@@ -13,20 +13,28 @@ public partial class App : System.Windows.Application
 {
     private bool _setupComplete;
 
+    [Obsolete]
     private void DoSetup()
     {
-        if (_setupComplete) return; // Страховка: ніколи не запускати двічі
+        if (_setupComplete) return;
 
         LoadMvxAssemblyResources();
 
-        // Гарантуємо, що вікно створене до початку ініціалізації
         if (this.MainWindow == null)
         {
             this.MainWindow = new MainWindow();
         }
 
         MainViewPresenter presenter = new MainViewPresenter(((MainWindow)this.MainWindow).Root);
-        presenter.AddPresentationHintHandler<MvxCloseAllPresentationHint>(hint => presenter.CloseAll(hint));
+        // ВИПРАВЛЕНИЙ БЛОК:
+        presenter.AddPresentationHintHandler<MvxCloseAllPresentationHint>(hint =>
+        {
+            if (hint != null)
+            {
+                return presenter.CloseAll(hint);
+            }
+            return false;
+        });
 
         new Setup(this.Dispatcher, presenter).Initialize();
 
@@ -35,10 +43,13 @@ public partial class App : System.Windows.Application
 
         _setupComplete = true;
 
-        ApplicationThemeHelper.ApplicationThemeName = "Office2013DarkGray";
+        // ОСОЬ ТУТ — ОДИНАЙДЕНШЕ ПРАВИЛЬНЕ МІСЦЕ ДЛЯ ТЕМИ:
+        DevExpress.Xpf.Core.ApplicationThemeHelper.ApplicationThemeName = "HybridApp";
+        // (Або спробуй "MetropolisLight", якщо хочеш повністю пласкі стрілочки)
+
         DXGridDataController.DisableThreadingProblemsDetection = true;
 
-        this.MainWindow.Show(); // Відкриваємо вікно тільки коли все готово
+        this.MainWindow.Show();
     }
 
     // МИ ПЕРЕНЕСЛИ OnStartup СЮДИ! Це єдине правильне місце для старту.

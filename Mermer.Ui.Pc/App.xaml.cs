@@ -14,13 +14,10 @@ namespace Mermer.Ui.Pc
         // Створюємо конструктор, який запуститься найпершим
         public App()
         {
-            // Встановлюємо українську локаль (дасть формат ДД.ММ.РРРР та правильні роздільники сум)
+            // Тут тему НЕ СТАВИМО, залишаємо тільки мову:
             var culture = new CultureInfo("uk-UA");
-
             Thread.CurrentThread.CurrentCulture = culture;
-            //Thread.CurrentThread.CurrentUICulture = culture;
 
-            // Змушуємо WPF інтерфейс використовувати цю локаль для всіх елементів (календарі, таблиці)
             FrameworkElement.LanguageProperty.OverrideMetadata(
                 typeof(FrameworkElement),
                 new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(culture.IetfLanguageTag)));

@@ -9,6 +9,9 @@
                 xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm">
 
     <FrameworkElement.Resources>
+        <Style TargetType="{x:Type dxwui:HamburgerMenuItemSeparator}">
+            <Setter Property="Background" Value="Gray"/>
+        </Style>
         <Style x:Key="HeaderCaption" TargetType="{x:Type TextBlock}">
             <Setter Property="TextBlock.Foreground" Value="{StaticResource grayForegroundBrush}"/>
         </Style>
@@ -27,10 +30,6 @@
             <Setter Property="dxwui:HamburgerMenuNavigationButton.GlyphColor"
               Value="{Binding Foreground.Color, RelativeSource={RelativeSource Self}}"/>
         </Style>
-        <Style TargetType="{x:Type dxwui:HamburgerMenu}">
-            <Setter Property="dxwui:HamburgerMenu.PaneBackground" Value="#595959"/>
-            <Setter Property="dxwui:HamburgerMenu.BottomBarBackground" Value="#595959"/>
-        </Style>
         <Style TargetType="{x:Type dxwui:HamburgerSubMenu}">
             <Setter Property="dxwui:HamburgerSubMenu.MoreButtonVisibilityMode" Value="Hidden"/>
             <Setter Property="dxwui:HamburgerSubMenu.IsStandaloneSelectionItemMode" Value="true"/>
@@ -46,22 +45,28 @@
             <Setter Property="FrameworkElement.Height" Value="8"/>
         </Style>
         <Style TargetType="{x:Type dxwui:HamburgerMenuBottomBarNavigationButton}">
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="dxwui:HamburgerMenuBottomBarNavigationButton.AllowGlyphTheming" Value="true"/>
-            <Setter Property="dxwui:HamburgerMenuBottomBarNavigationButton.GlyphColor"
-              Value="{Binding Foreground.Color, RelativeSource={RelativeSource Self}}"/>
+            <Setter Property="dxwui:HamburgerMenuBottomBarNavigationButton.GlyphColor" Value="White"/>
         </Style>
+
         <Style TargetType="{x:Type dxwui:HamburgerMenuBottomBarCheckBox}">
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="dxwui:HamburgerMenuBottomBarCheckBox.AllowGlyphTheming" Value="true"/>
-            <Setter Property="dxwui:HamburgerMenuBottomBarCheckBox.GlyphColor"
-              Value="{Binding Foreground.Color, RelativeSource={RelativeSource Self}}"/>
+            <Setter Property="dxwui:HamburgerMenuBottomBarCheckBox.GlyphColor" Value="White"/>
         </Style>
     </FrameworkElement.Resources>
 
-    <dxwui:HamburgerMenu x:Name="Menu" Loaded="OnMenuLoaded">
+    <dxwui:HamburgerMenu x:Name="Menu" 
+                     Margin="0" Padding="0" Loaded="OnMenuLoaded"
+                     PaneBackground="{StaticResource appBarBackgroundBrush}"
+                     BottomBarBackground="{StaticResource appBarBackgroundBrush}"
+                     Foreground="White"
+                     BorderThickness="0">
 
         <dxwui:HamburgerMenu.Style>
             <Style TargetType="dxwui:HamburgerMenu">
-                <Setter Property="ViewState" Value="Overlay"/>
+                <Setter Property="ViewState" Value= "CompactInline"/>
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding AutoHideMenu}" Value="True">
                         <Setter Property="ViewState" Value="Inline"/>
@@ -177,30 +182,99 @@
         </dxwui:HamburgerMenu.BottomBarItems>
 
         <ContentControl.Content>
-            <Grid Background="Transparent">
+            <Grid Background="#F0F0F0">
+
+                <Rectangle VerticalAlignment="Top" Height="48" Fill="{StaticResource appBarBackgroundBrush}" Panel.ZIndex="0"/>
 
                 <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Panel.ZIndex="0">
                     <TextBlock Style="{StaticResource HeaderCaption}" HorizontalAlignment="Right" Padding="0, 0, 10, 0"
-                               Text="{Localize AppCreator, FallBackText='Mermer Creation Studio'}"/>
+                       Text="{Localize AppCreator, FallBackText='Mermer Creation Studio'}"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <TextBlock Style="{StaticResource WelcomeMessage}" Text="{Localize Mermer}"/>
                         <TextBlock Style="{StaticResource WelcomeMessage}"/>
                     </StackPanel>
                 </StackPanel>
 
-                <dx:DXTabControl x:Name="TabControl" Padding="0" dx:ThemeManager.ThemeName="Office2013DarkGray" Panel.ZIndex="1" Background="Transparent" TabHiding="TabHiding">
+                <dx:DXTabControl x:Name="TabControl" BorderThickness="0" Margin="-2,2,0,0" Padding="0" dx:ThemeManager.ThemeName="HybridApp" Panel.ZIndex="1" Background="Transparent" TabHiding="TabHiding">
 
                     <ItemsControl.ItemContainerStyle>
                         <Style TargetType="{x:Type dx:DXTabItem}">
                             <Setter Property="Focusable" Value="false"/>
                             <Setter Property="Header" Value="{Binding DataContext}"/>
+
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type dx:DXTabItem}">
+                                        <Border x:Name="RootBorder" Background="Transparent" BorderThickness="0" CornerRadius="0">
+                                            <Grid Margin="15,6,15,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <ContentPresenter ContentSource="Header" VerticalAlignment="Center" Margin="0,0,15,0"/>
+
+                                                <Button x:Name="PART_CloseButton" 
+        Grid.Column="1" 
+        VerticalAlignment="Center" 
+        Width="16" Height="16" 
+        Cursor="Hand" 
+        Margin="8,0,0,0"
+        Focusable="False"
+        Click="TabCloseButton_Click">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Grid Background="Transparent">
+                                                                <Path Data="M0,0 L8,8 M8,0 L0,8" 
+                      Stroke="{TemplateBinding Foreground}" 
+                      StrokeThickness="1.5" 
+                      VerticalAlignment="Center" 
+                      HorizontalAlignment="Center"
+                      IsHitTestVisible="False"/>
+                                                            </Grid>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="RootBorder" Property="Background" Value="#F0F0F0"/>
+                                                <Setter TargetName="PART_CloseButton" Property="Foreground" Value="#505050"/>
+                                                <Setter TargetName="PART_CloseButton" Property="Visibility" Value="Visible"/>
+                                            </Trigger>
+
+                                            <Trigger Property="IsSelected" Value="False">
+                                                <Setter TargetName="RootBorder" Property="Background" Value="Transparent"/>
+                                            </Trigger>
+
+                                            <Trigger SourceName="PART_CloseButton" Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="PART_CloseButton" Property="Foreground" Value="#FF4C4C"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+
                             <Setter Property="HeaderTemplate">
                                 <Setter.Value>
                                     <DataTemplate DataType="viewModels:BaseViewModel">
-                                        <StackPanel Orientation="Vertical" Focusable="false">
-                                            <TextBlock Style="{StaticResource HeaderCaption}" Text="{Binding Caption}"/>
-                                            <TextBlock Style="{StaticResource HeaderSubCaption}" Text="{Binding SubCaption}"/>
+                                        <StackPanel Orientation="Vertical" Focusable="false" VerticalAlignment="Center">
+                                            <TextBlock x:Name="TabCaption" Style="{StaticResource HeaderCaption}" Text="{Binding Caption}" FontSize="14"/>
+                                            <TextBlock x:Name="TabSubCaption" Style="{StaticResource HeaderSubCaption}" Text="{Binding SubCaption}"/>
                                         </StackPanel>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=dx:DXTabItem}}" Value="True">
+                                                <Setter TargetName="TabCaption" Property="Foreground" Value="#191919"/>
+                                                <Setter TargetName="TabSubCaption" Property="Foreground" Value="#555555"/>
+                                            </DataTrigger>
+
+                                            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=dx:DXTabItem}}" Value="False">
+                                                <Setter TargetName="TabCaption" Property="Foreground" Value="#D6D6D6"/>
+                                                <Setter TargetName="TabSubCaption" Property="Foreground" Value="#90A4AE"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
                                     </DataTemplate>
                                 </Setter.Value>
                             </Setter>

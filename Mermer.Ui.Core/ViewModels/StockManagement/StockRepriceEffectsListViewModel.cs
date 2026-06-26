@@ -25,113 +25,114 @@ namespace Mermer.Ui.Core.ViewModels.StockManagement;
 
 public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<StockRepriceEffect>
 {
-  private readonly IConfigurator _configurator;
-  private readonly IStockRepriceEffectsRepository _repository;
-  private IEnumerable<ListHelper<StockPriceChangeReason, string>> _priceChangeReasons;
-  private System.Collections.Generic.List<object> _selectedWarehouseIds;
-  private bool _initialized;
+    private readonly IConfigurator _configurator;
+    private readonly IStockRepriceEffectsRepository _repository;
+    private IEnumerable<ListHelper<StockPriceChangeReason, string>> _priceChangeReasons;
+    private System.Collections.Generic.List<object> _selectedWarehouseIds;
+    private bool _initialized;
 
-  public StockRepriceEffectsListViewModel(
-    IMvxMessenger messenger,
-    IConfigurator configurator,
-    Reference<Warehouse> warehouses,
-    IStockRepriceEffectsRepository repository,
-    IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService)
-    : base(messenger, navigationService, userInteractionService)
-  {
-    this._configurator = configurator;
-    this._repository = repository;
-    this.Warehouses = warehouses;
-    this.PriceChangeReasons = (IEnumerable<ListHelper<StockPriceChangeReason, string>>) new ListHelper<StockPriceChangeReason, string>[2]
+    public StockRepriceEffectsListViewModel(
+      IMvxMessenger messenger,
+      IConfigurator configurator,
+      Reference<Warehouse> warehouses,
+      IStockRepriceEffectsRepository repository,
+      IMvxNavigationService navigationService,
+      IUserInteractionService userInteractionService)
+      : base(messenger, navigationService, userInteractionService)
     {
+        this._configurator = configurator;
+        this._repository = repository;
+        this.Warehouses = warehouses;
+        this.PriceChangeReasons = (IEnumerable<ListHelper<StockPriceChangeReason, string>>)new ListHelper<StockPriceChangeReason, string>[2]
+        {
       new ListHelper<StockPriceChangeReason, string>(StockPriceChangeReason.PriceChanged, this["PriceChange", Array.Empty<object>()]),
       new ListHelper<StockPriceChangeReason, string>(StockPriceChangeReason.RateChanged, this["RateChange", Array.Empty<object>()])
-    };
-  }
-
-  public IEnumerable<ListHelper<StockPriceChangeReason, string>> PriceChangeReasons
-  {
-    get => this._priceChangeReasons;
-    set
-    {
-      this.SetProperty<IEnumerable<ListHelper<StockPriceChangeReason, string>>>(ref this._priceChangeReasons, value, nameof (PriceChangeReasons));
+        };
     }
-  }
 
-  public Reference<Warehouse> Warehouses { get; }
-
-  public System.Collections.Generic.List<object> SelectedWarehouseIds
-  {
-    get => this._selectedWarehouseIds;
-    set
+    public IEnumerable<ListHelper<StockPriceChangeReason, string>> PriceChangeReasons
     {
-      if (this._selectedWarehouseIds != null && value != null && this._selectedWarehouseIds.SequenceEqual<object>((IEnumerable<object>) value) || !this.SetProperty<System.Collections.Generic.List<object>>(ref this._selectedWarehouseIds, value, nameof (SelectedWarehouseIds)) || this.IsBusy)
-        return;
-      this.Initialize();
+        get => this._priceChangeReasons;
+        set
+        {
+            this.SetProperty<IEnumerable<ListHelper<StockPriceChangeReason, string>>>(ref this._priceChangeReasons, value, nameof(PriceChangeReasons));
+        }
     }
-  }
 
-  public string[] WarehouseIds
-  {
-    get
+    public Reference<Warehouse> Warehouses { get; }
+
+    public System.Collections.Generic.List<object> SelectedWarehouseIds
     {
-      System.Collections.Generic.List<object> selectedWarehouseIds = this.SelectedWarehouseIds;
-      return (selectedWarehouseIds != null ? selectedWarehouseIds.Cast<string>().ToArray<string>() : (string[]) null) ?? Array.Empty<string>();
+        get => this._selectedWarehouseIds;
+        set
+        {
+            if (this._selectedWarehouseIds != null && value != null && this._selectedWarehouseIds.SequenceEqual<object>((IEnumerable<object>)value) || !this.SetProperty<System.Collections.Generic.List<object>>(ref this._selectedWarehouseIds, value, nameof(SelectedWarehouseIds)) || this.IsBusy)
+                return;
+            this.Initialize();
+        }
     }
-  }
 
-  protected override Task PreLoad()
-  {
-    if (!this._initialized)
+    public string[] WarehouseIds
     {
-      this.SelectedWarehouseIds = new System.Collections.Generic.List<object>((IEnumerable<object>) new object[1]
-      {
+        get
+        {
+            var selectedWarehouseIds = this.SelectedWarehouseIds;
+            return selectedWarehouseIds != null
+                ? selectedWarehouseIds.Select(x => x?.ToString()).ToArray()
+                : Array.Empty<string>();
+        }
+    }
+
+    protected override Task PreLoad()
+    {
+        if (!this._initialized)
+        {
+            this.SelectedWarehouseIds = new System.Collections.Generic.List<object>((IEnumerable<object>)new object[1]
+            {
         (object) this._configurator.GetConfig<AppSettings>().DefaultWarehouseId
-      });
-      this._initialized = true;
+            });
+            this._initialized = true;
+        }
+        return Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize());
     }
-    return Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize());
-  }
 
-  protected override Task<int> CountFilteredListAsync(ListFilter filter)
-  {
-    return this._repository.CountAsync(DateTime.MinValue, DateTime.MaxValue);
-  }
+    protected override Task<int> CountFilteredListAsync(ListFilter filter)
+    {
+        return this._repository.CountAsync(DateTime.MinValue, DateTime.MaxValue);
+    }
 
-  protected override Task<int> CountFilteredListByDateAsync(DateTime from, DateTime till)
-  {
-    return this._repository.CountAsync(from, till);
-  }
+    protected override Task<int> CountFilteredListByDateAsync(DateTime from, DateTime till)
+    {
+        return this._repository.CountAsync(from, till);
+    }
 
-  protected override Task<IEnumerable<StockRepriceEffect>> GetFilteredListAsync(ListFilter filter)
-  {
-    return this._repository.GetAsync(DateTime.MinValue, DateTime.MaxValue, this.WarehouseIds);
-  }
+    protected override Task<IEnumerable<StockRepriceEffect>> GetFilteredListAsync(ListFilter filter)
+    {
+        return this._repository.GetAsync(DateTime.MinValue, DateTime.MaxValue, this.WarehouseIds);
+    }
 
-  protected override Task<IEnumerable<StockRepriceEffect>> GetFilteredListByDateAsync(
-    DateTime from,
-    DateTime till)
-  {
-    return this._repository.GetAsync(from, till, this.WarehouseIds);
-  }
+    protected override Task<IEnumerable<StockRepriceEffect>> GetFilteredListByDateAsync(
+      DateTime from,
+      DateTime till)
+    {
+        return this._repository.GetAsync(from, till, this.WarehouseIds);
+    }
 
-  protected override Task<int> CountListAsync(
-    params Expression<Func<StockRepriceEffect, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Task<int> CountListAsync(
+      params Expression<Func<StockRepriceEffect, bool>>[] predicates)
+    {
+        throw new NotImplementedException();
+    }
 
-  protected override Task<IEnumerable<StockRepriceEffect>> GetListAsync(
-    params Expression<Func<StockRepriceEffect, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Task<IEnumerable<StockRepriceEffect>> GetListAsync(
+      params Expression<Func<StockRepriceEffect, bool>>[] predicates)
+    {
+        throw new NotImplementedException();
+    }
 
-  protected override Expression<Func<StockRepriceEffect, bool>> GetDateFilter(
-    DateTime from,
-    DateTime till)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Expression<Func<StockRepriceEffect, bool>> GetDateFilter(DateTime from, DateTime till)
+    {
+        // Повертаємо умову: Дата зміни повинна бути між From та Till
+        return effect => effect.ChangeDate >= from && effect.ChangeDate <= till;
+    }
 }

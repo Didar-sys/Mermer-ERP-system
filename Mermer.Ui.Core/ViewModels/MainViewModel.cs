@@ -56,7 +56,7 @@ public class MainViewModel : BaseViewModel
   private string _currentUser;
   private bool _openPostOnLoad;
   private bool _allowReporting;
-  private bool _autoHideMenu;
+  private bool _autoHideMenu = false;
     private static bool _isLanguageMetadataOverridden = false;
     public MainViewModel(
     ILoginService loginService,

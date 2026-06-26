@@ -77,16 +77,18 @@ public class AggregatedReportViewModel : BaseViewModel
     }
   }
 
-  public string[] OfficeIds
-  {
-    get
+    public string[] OfficeIds
     {
-      List<object> selectedOfficeIds = this.SelectedOfficeIds;
-      return (selectedOfficeIds != null ? selectedOfficeIds.Cast<string>().ToArray<string>() : (string[]) null) ?? Array.Empty<string>();
+        get
+        {
+            var selectedOfficeIds = this.SelectedOfficeIds;
+            return selectedOfficeIds != null
+                ? selectedOfficeIds.Select(x => x?.ToString()).ToArray()
+                : Array.Empty<string>();
+        }
     }
-  }
 
-  public DateTime DateFilterFrom
+    public DateTime DateFilterFrom
   {
     get => this._dateFilterFrom;
     set => this.SetProperty<DateTime>(ref this._dateFilterFrom, value, nameof (DateFilterFrom));

@@ -8,7 +8,9 @@
                    WindowState="Maximized" Padding="0" BorderThickness="0"
                    Icon="pack://application:,,,/Mermer.Ui.Pc;component/Resources/binyat_icon_003_d85_icon.ico">
 
-    <ContentControl x:Name="ViewsRoot" Margin="-6,-6,-6,-6" Focusable="false"
-                  dx:ThemeManager.ThemeName="Office2013DarkGray"/>
+    <ContentControl x:Name="ViewsRoot" 
+                Margin="-10,-8,-8,-8" 
+                Focusable="false"
+                dx:ThemeManager.ThemeName="HybridApp"/>
 
 </dx:DXTabbedWindow>

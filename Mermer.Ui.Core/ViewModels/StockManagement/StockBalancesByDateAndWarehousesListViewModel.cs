@@ -39,7 +39,14 @@ public class StockBalancesByDateAndWarehousesListViewModel : BaseViewModel
   private StockBalanceByWarehouses _selectedItem;
   private bool _loaded;
 
-  public StockBalancesByDateAndWarehousesListViewModel(
+    public System.Windows.Input.ICommand SelectOrViewDetailsCommand => new MvvmCross.Core.ViewModels.MvxCommand(() =>
+    {
+        if (SelectedItem != null)
+        {
+            // Резерв під майбутнє відкриття деталей
+        }
+    });
+    public StockBalancesByDateAndWarehousesListViewModel(
     StockSearcher stockSearcher,
     Reference<Currency> currencies,
     Reference<Warehouse> warehouses,

@@ -1,13 +1,16 @@
 ﻿using DevExpress.Xpf.Core;
 using DevExpress.Xpf.WindowsUI;
-using MvvmCross.Core.Navigation;
-using MvvmCross.Platform;
-using MvvmCross.Wpf.Views;
+using Mermer.Mvvm.ViewModels;
 using Mermer.Ui.Core.ViewModels;
 using Mermer.Ui.Pc.Reports;
 using Mermer.Ui.Pc.ViewModels;
-using Mermer.Mvvm.ViewModels;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Core.ViewModels;
+using MvvmCross.Platform;
+using MvvmCross.Wpf.Views;
+using MvvmCross.Wpf.Views.Presenters;
 using System;
+using MvvmCross.Core.Views;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -117,5 +120,41 @@ public partial class MainView : MvxWpfView
     private void ShowPrintLayoutConfig(object sender, RoutedEventArgs e)
     {
         Mvx.IocConstruct<IMvxNavigationService>().Navigate<ReportsListViewModel>();
+    }
+
+    private void TabCloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Знаходимо кнопку та саму вкладку (DXTabItem), якій вона належить
+        if (sender is Button btn && btn.TemplatedParent is DXTabItem tabItem)
+        {
+            // Шукаємо View (форму) всередині вкладки
+            var view = tabItem.Content as FrameworkElement ?? tabItem.DataContext as FrameworkElement;
+
+            // Отримуємо ViewModel цієї View
+            if (view?.DataContext is IMvxViewModel viewModel)
+            {
+                try
+                {
+                    // НАДІЙНИЙ СПОСІБ ЗАКРИТТЯ:
+                    // Викликаємо базовий навігаційний сервіс MvvmCross. 
+                    // Він гарантовано відправить запит у твій MainViewPresenter!
+                    var navService = MvvmCross.Platform.Mvx.Resolve<MvvmCross.Core.Navigation.IMvxNavigationService>();
+                    navService.Close(viewModel);
+                }
+                catch (Exception ex)
+                {
+                    // Якщо раптом щось піде не так (наприклад, стара версія MvvmCross)
+                    // використовуємо прямий виклик команди як запасний план
+
+                    // ВИПРАВЛЕНО ТУТ: використовуємо просто BaseViewModel
+                    if (viewModel is BaseViewModel baseVm &&
+                        baseVm.CloseCommand != null &&
+                        baseVm.CloseCommand.CanExecute(null))
+                    {
+                        baseVm.CloseCommand.Execute(null);
+                    }
+                }
+            }
+        }
     }
 }

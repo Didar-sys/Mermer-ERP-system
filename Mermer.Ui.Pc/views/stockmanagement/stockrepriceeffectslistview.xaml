@@ -13,66 +13,65 @@
                 xmlns:vm="clr-namespace:Mermer.Ui.Core.ViewModels.StockManagement;assembly=Mermer.Ui.Core"
                 xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
                 xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core">
-  <DockPanel>
-    <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
-      <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
-      <menu:CommonReload/>
-      <menu:ListPrint x:Name="PrintButton"/>
-      <menu:ListFilter x:Name="FilterButton"/>
-      <menu:CommonClose/>
-    </dxwui:AppBar>
-    <ctrl:ListFilterControl DockPanel.Dock="Left"
+    <DockPanel>
+        <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
+            <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
+            <menu:CommonReload/>
+            <menu:ListPrint x:Name="PrintButton"/>
+            <menu:ListFilter x:Name="FilterButton"/>
+            <menu:CommonClose/>
+        </dxwui:AppBar>
+        <ctrl:ListFilterControl DockPanel.Dock="Left"
                             Visibility="{Binding ElementName=ExpandButton, Path=IsChecked, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
-    <ToggleButton x:Name="ExpandButton" DockPanel.Dock="Left" Style="{StaticResource HideButtonStyle}"
+        <ToggleButton x:Name="ExpandButton" DockPanel.Dock="Left" Style="{StaticResource HideButtonStyle}"
                   IsChecked="True" VerticalAlignment="Center"/>
-    <dxlc:LayoutControl Margin="0" Orientation="Vertical">
-      <dxlc:LayoutGroup Orientation="Vertical" Margin="10, 10, 10, 0">
-        <dxlc:LayoutItem HorizontalAlignment="Left" Width="500" Label="{Localize Warehouse}">
-          <dxe:ComboBoxEdit ShowCustomItems="True" DisplayMember="Name" ValueMember="Id"
+        <dxlc:LayoutControl Margin="0" Orientation="Vertical">
+            <dxlc:LayoutGroup Orientation="Vertical" Margin="10, 10, 10, 0">
+                <dxlc:LayoutItem HorizontalAlignment="Left" Width="500" Label="{Localize Warehouse}">
+                    <dxe:ComboBoxEdit ShowCustomItems="True" DisplayMember="Name" ValueMember="Id"
                             EditValue="{Binding SelectedWarehouseIds, UpdateSourceTrigger=PropertyChanged}"
                             ItemsSource="{Binding Warehouses.List}">
-            <dxe:BaseEdit.StyleSettings>
-              <dxe:CheckedComboBoxStyleSettings/>
-            </dxe:BaseEdit.StyleSettings>
-          </dxe:ComboBoxEdit>
-        </dxlc:LayoutItem>
-      </dxlc:LayoutGroup>
-      <dx:PLinqInstantFeedbackDataSource Name="ParalelLinqInstantSource" ItemsSource="{Binding List}"/>
-      <ctrl:StyledGridControl x:Name="GridControl" ItemsSource="{Binding ElementName=ParalelLinqInstantSource, Path=Data}"
+                        <dxe:BaseEdit.StyleSettings>
+                            <dxe:CheckedComboBoxStyleSettings/>
+                        </dxe:BaseEdit.StyleSettings>
+                    </dxe:ComboBoxEdit>
+                </dxlc:LayoutItem>
+            </dxlc:LayoutGroup>
+            <ctrl:StyledGridControl x:Name="GridControl" ItemsSource="{Binding List}"
                               PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
                               FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
                               SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}">
-        <dxg:GridControl.Bands>
-          <dxg:GridControlBand Header="{Localize Stock}">
-            <dxg:GridColumn FieldName="StockCode" AllowCellMerge="True" SortIndex="0" Header="{Localize Code}"/>
-            <dxg:GridColumn FieldName="StockName" AllowCellMerge="True" Width="600" Header="{Localize Name}"/>
-          </dxg:GridControlBand>
-          <dxg:GridControlBand Header="{Localize PriceChange}">
-            <dxg:GridColumn FieldName="ChangeDate" SortIndex="1" AllowCellMerge="True" Header="{Localize Date}">
-              <dxg:ColumnBase.EditSettings>
-                <dxe:DateEditSettings DisplayFormat="d"/>
-              </dxg:ColumnBase.EditSettings>
-            </dxg:GridColumn>
-            <dxg:GridColumn FieldName="PriceChange" AllowCellMerge="True" Style="{StaticResource AmountDisplayFormat}"
+                <dxg:GridControl.Bands>
+                    <dxg:GridControlBand Header="{Localize Stock}">
+                        <dxg:GridColumn FieldName="StockCode" AllowCellMerge="True" SortIndex="0" Header="{Localize Code}"/>
+                        <dxg:GridColumn FieldName="StockName" AllowCellMerge="True" Width="600" Header="{Localize Name}"/>
+                    </dxg:GridControlBand>
+                    <dxg:GridControlBand Header="{Localize PriceChange}">
+                        <dxg:GridColumn FieldName="ChangeDate" SortIndex="1" AllowCellMerge="True" Header="{Localize Date}">
+                            <dxg:ColumnBase.EditSettings>
+                                <dxe:DateEditSettings DisplayFormat="d"/>
+                            </dxg:ColumnBase.EditSettings>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn FieldName="PriceChange" AllowCellMerge="True" Style="{StaticResource AmountDisplayFormat}"
                             Width="80" Header="{Localize Difference}"/>
-            <dxg:GridColumn FieldName="ChangeReason" Header="{Localize Reason}"/>
-          </dxg:GridControlBand>
-          <dxg:GridControlBand Header="{Localize Effect}">
-            <dxg:GridColumn FieldName="WarehouseId" Width="150" Header="{Localize Warehouse}">
-              <dxg:ColumnBase.EditSettings>
-                <dxg:LookUpEditSettings DisplayMember="Name" ValueMember="Id" ItemsSource="{Binding Warehouses.List}"/>
-              </dxg:ColumnBase.EditSettings>
-            </dxg:GridColumn>
-            <dxg:GridColumn FieldName="Balance" Style="{StaticResource QuantityDisplayFormat}" Width="80"
+                        <dxg:GridColumn FieldName="ChangeReason" Header="{Localize Reason}"/>
+                    </dxg:GridControlBand>
+                    <dxg:GridControlBand Header="{Localize Effect}">
+                        <dxg:GridColumn FieldName="WarehouseId" Width="150" Header="{Localize Warehouse}">
+                            <dxg:ColumnBase.EditSettings>
+                                <dxg:LookUpEditSettings DisplayMember="Name" ValueMember="Id" ItemsSource="{Binding Warehouses.List}"/>
+                            </dxg:ColumnBase.EditSettings>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn FieldName="Balance" Style="{StaticResource QuantityDisplayFormat}" Width="80"
                             Header="{Localize Balance}"/>
-            <dxg:GridColumn FieldName="BalanceEffect" Style="{StaticResource AmountDisplayFormat}" Width="80"
+                        <dxg:GridColumn FieldName="BalanceEffect" Style="{StaticResource AmountDisplayFormat}" Width="80"
                             Header="{Localize BalanceEffect}"/>
-          </dxg:GridControlBand>
-        </dxg:GridControl.Bands>
-        <dxg:GridControl.TotalSummary>
-          <dxg:GridSummaryItem FieldName="BalanceEffect" DisplayFormat="#,##0.00" SummaryType="Sum"/>
-        </dxg:GridControl.TotalSummary>
-      </ctrl:StyledGridControl>
-    </dxlc:LayoutControl>
-  </DockPanel>
+                    </dxg:GridControlBand>
+                </dxg:GridControl.Bands>
+                <dxg:GridControl.TotalSummary>
+                    <dxg:GridSummaryItem FieldName="BalanceEffect" DisplayFormat="#,##0.00" SummaryType="Sum"/>
+                </dxg:GridControl.TotalSummary>
+            </ctrl:StyledGridControl>
+        </dxlc:LayoutControl>
+    </DockPanel>
 </mvx:MvxWpfView>

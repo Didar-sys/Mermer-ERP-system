@@ -35,6 +35,13 @@ public class StockTurnoverDataListViewModel : ListViewModelBaseWithFilter<StockT
   private string _warehouseId;
   private bool _initialized;
 
+    public System.Windows.Input.ICommand SelectOrViewDetailsCommand => new MvvmCross.Core.ViewModels.MvxCommand(() =>
+    {
+        if (SelectedItem != null)
+        {
+            // Резерв під майбутнє відкриття деталей
+        }
+    });
     public StockTurnoverDataListViewModel(
       IMvxMessenger messenger,
       IConfigurator configurator,
