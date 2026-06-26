@@ -72,14 +72,29 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
         }
     }
 
+
+    public System.Windows.Input.ICommand SelectOrViewDetailsCommand => new MvvmCross.Core.ViewModels.MvxCommand(() =>
+    {
+        if (SelectedItem != null)
+        {
+            // Резерв під деталі
+        }
+    });
+
     public string[] WarehouseIds
     {
         get
         {
             var selectedWarehouseIds = this.SelectedWarehouseIds;
-            return selectedWarehouseIds != null
-                ? selectedWarehouseIds.Select(x => x?.ToString()).ToArray()
-                : Array.Empty<string>();
+
+            // Якщо список пустий (користувач прибрав усі галочки), 
+            // повертаємо null, щоб база відключила фільтр по складах і віддала ВСЕ.
+            if (selectedWarehouseIds == null || selectedWarehouseIds.Count == 0)
+            {
+                return null;
+            }
+
+            return selectedWarehouseIds.Select(x => x?.ToString()).ToArray();
         }
     }
 
@@ -118,16 +133,16 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
         return this._repository.GetAsync(from, till, this.WarehouseIds);
     }
 
-    protected override Task<int> CountListAsync(
-      params Expression<Func<StockRepriceEffect, bool>>[] predicates)
+    protected override Task<int> CountListAsync(params Expression<Func<StockRepriceEffect, bool>>[] predicates)
     {
-        throw new NotImplementedException();
+        // Рахуємо всі записи за весь час
+        return this._repository.CountAsync(DateTime.MinValue, DateTime.MaxValue);
     }
 
-    protected override Task<IEnumerable<StockRepriceEffect>> GetListAsync(
-      params Expression<Func<StockRepriceEffect, bool>>[] predicates)
+    protected override Task<IEnumerable<StockRepriceEffect>> GetListAsync(params Expression<Func<StockRepriceEffect, bool>>[] predicates)
     {
-        throw new NotImplementedException();
+        // Дістаємо всі записи за весь час з урахуванням фільтру складів
+        return this._repository.GetAsync(DateTime.MinValue, DateTime.MaxValue, this.WarehouseIds);
     }
 
     protected override Expression<Func<StockRepriceEffect, bool>> GetDateFilter(DateTime from, DateTime till)
