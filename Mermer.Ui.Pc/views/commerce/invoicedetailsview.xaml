@@ -73,12 +73,16 @@
               <dxlc:LayoutGroup>
                 <dxlc:LayoutItem MaxWidth="730" Label="{Localize Add}" IsEnabled="{Binding HasSaveAccess}">
                   <dxlc:LayoutGroup>
-                    <ctrl:StockLookupEdit x:Name="FirstFocus" DataContext="{Binding StockSearcher}">
-                      <dxmvvm:Interaction.Behaviors>
-                        <dxmvvm:FocusBehavior EventName="Loaded"/>
-                      </dxmvvm:Interaction.Behaviors>
-                    </ctrl:StockLookupEdit>
-                    <dxe:SpinEdit MaxWidth="100" MinValue="0" EditValue="{Binding AddQuantity}"/>
+                                        <ctrl:StockLookupEdit x:Name="FirstFocus" DataContext="{Binding StockSearcher}">
+                                            <dxmvvm:Interaction.Behaviors>
+                                                <dxmvvm:FocusBehavior EventName="Loaded"/>
+
+                                                <dxmvvm:EventToCommand EventName="ResultSelected" 
+                           PassEventArgsToCommand="True"
+                           Command="{Binding DataContext.SelectedLineEditCommand, ElementName=RootView}" />
+                                            </dxmvvm:Interaction.Behaviors>
+                                        </ctrl:StockLookupEdit>
+                                        <dxe:SpinEdit MaxWidth="100" MinValue="0" EditValue="{Binding AddQuantity}"/>
                   </dxlc:LayoutGroup>
                 </dxlc:LayoutItem>
                 <dxlc:LayoutItem HorizontalAlignment="Right" MinWidth="100">

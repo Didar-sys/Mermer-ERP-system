@@ -273,21 +273,21 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     return cacheByCodeAsync;
   }
 
-  protected virtual async void StockSearcher_ResultSelected(
+    protected virtual async void StockSearcher_ResultSelected(
     StockSearcher searcher,
     StockSearchResult result)
-  {
-    StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    TLine newLineAsync = await detailsViewModel.CreateNewLineAsync(result.Id, new Decimal?(detailsViewModel.AddQuantity), result.UnitId, new Decimal?(result.Price), result.CurrencyId);
-    detailsViewModel.Details.Lines.Add(newLineAsync);
-    detailsViewModel.SelectedLine = newLineAsync;
-    detailsViewModel.AddQuantity = 1M;
-    if (!detailsViewModel.AppSettings.OpenEditorWhenAdding)
-      return;
-    detailsViewModel.SelectedLineEditCommand.Execute((object) null);
-  }
+    {
+        StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
+        TLine newLineAsync = await detailsViewModel.CreateNewLineAsync(result.Id, new Decimal?(detailsViewModel.AddQuantity), result.UnitId, new Decimal?(result.Price), result.CurrencyId);
 
-  protected virtual async Task<TLine> CreateNewLineAsync(
+        detailsViewModel.Details.Lines.Add(newLineAsync);
+        detailsViewModel.SelectedLine = newLineAsync;
+        detailsViewModel.AddQuantity = 1M;
+
+        await detailsViewModel.OnSelectedLineEditAsync();
+    }
+
+    protected virtual async Task<TLine> CreateNewLineAsync(
     string stockId,
     Decimal? quantity = null,
     string unitId = null,

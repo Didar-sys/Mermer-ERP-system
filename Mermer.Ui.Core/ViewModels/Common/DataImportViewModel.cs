@@ -101,14 +101,27 @@ public class DataImportViewModel :
         {
             await Task.Run(() =>
             {
-                // 1. Відкриваємо файл через твій правильний метод
+                // 1. Открываем файл
                 _excelReaderService.OpenExcelFile(_fileName);
 
-                // 2. Генеруємо список колонок із правильними властивостей Value та Text
+                // 2. Генерируем список колонок, начиная с 0-го индекса
                 var columnsList = new List<ListHelper<int>>();
-                for (int i = 1; i <= 50; i++)
+                for (int i = 0; i < 50; i++) // Изменено: начинаем с 0, чтобы поймать Pair
                 {
-                    columnsList.Add(new ListHelper<int> { Value = i, Text = $"Column {i}" });
+                    string headerText = $"Column {i + 1}";
+                    try
+                    {
+                        // Ряд 0 — это наша шапка (Pair, Date и т.д.)
+                        object headerObj = _excelReaderService.GetValue(0, i);
+
+                        if (headerObj != null && !string.IsNullOrWhiteSpace(headerObj.ToString()))
+                        {
+                            headerText = headerObj.ToString();
+                        }
+                    }
+                    catch { }
+
+                    columnsList.Add(new ListHelper<int> { Value = i, Text = headerText });
                 }
                 Columns = columnsList;
             });
@@ -118,9 +131,7 @@ public class DataImportViewModel :
         }
         catch (Exception ex)
         {
-            // Якщо сталася помилка при відкритті, намагаємося закрити файл, щоб не блокувати його
             try { _excelReaderService.CloseExcelFile(); } catch { }
-
             UserInteractionService.ShowExceptionMessage(ex);
             Status = this["Error loading file"];
         }
@@ -161,7 +172,23 @@ public class DataImportViewModel :
                         // Витягуємо базовий тип, якщо це Nullable (наприклад, decimal?)
                         Type targetType = Nullable.GetUnderlyingType(property.Info.PropertyType) ?? property.Info.PropertyType;
 
-                        object convertedValue = Convert.ChangeType(cellValue, targetType);
+                        object convertedValue;
+
+                        // Якщо це числове поле (Ціна, Ліміти тощо)
+                        if (targetType == typeof(decimal) || targetType == typeof(double) || targetType == typeof(float))
+                        {
+                            // 1. Прибираємо зайві пробіли
+                            // 2. Жорстко замінюємо будь-яку кому на крапку
+                            string cleanNumStr = cellValue.ToString().Trim().Replace(",", ".");
+
+                            // 3. Конвертуємо, вказуючи InvariantCulture (міжнародний стандарт, який розуміє крапку)
+                            convertedValue = Convert.ChangeType(cleanNumStr, targetType, System.Globalization.CultureInfo.InvariantCulture);
+                        }
+                        else
+                        {
+                            // Для звичайного тексту або дат залишаємо стандартну конвертацію
+                            convertedValue = Convert.ChangeType(cellValue, targetType);
+                        }
                         property.Info.SetValue(instance, convertedValue);
                         hasDataInRow = true;
                     }

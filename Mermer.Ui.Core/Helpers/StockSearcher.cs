@@ -168,7 +168,29 @@ public class StockSearcher : BindableObject
     set => this.SetProperty<bool>(ref this._isSearching, value, nameof (IsSearching));
   }
 
-  public Task Initialize(bool forceReload = false)
+    private StockSearchResult _selectedItem;
+
+    public virtual StockSearchResult SelectedItem
+    {
+        get => this._selectedItem;
+        set
+        {
+            if (this.SetProperty<StockSearchResult>(ref this._selectedItem, value, nameof(SelectedItem)))
+            {
+                if (value != null)
+                {
+                    // 1. Як тільки ми натиснули Enter, передаємо товар у головну програму!
+                    this.Select(value);
+
+                    // 2. Очищаємо вибір, щоб можна було шукати наступний товар
+                    this._selectedItem = null;
+                    this.RaisePropertyChanged(() => this.SelectedItem);
+                }
+            }
+        }
+    }
+
+    public Task Initialize(bool forceReload = false)
   {
     return this._stockSearchService is InMemoryStockSearchService stockSearchService ? stockSearchService.Initialize(forceReload) : Task.CompletedTask;
   }

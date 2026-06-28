@@ -16,9 +16,11 @@
   </dxe:ButtonEdit.Buttons>
   <dxe:PopupBaseEdit.PopupContentTemplate>
     <ControlTemplate>
-      <dxg:GridControl MinHeight="300" MaxHeight="550" MinWidth="680" MaxWidth="900" AutoExpandAllGroups="true"
-                       ItemsSource="{Binding SearchResult}">
-        <dxg:GridControl.Columns>
+            <dxg:GridControl MinHeight="300" MaxHeight="550" MinWidth="680" MaxWidth="900" AutoExpandAllGroups="true"
+                 ItemsSource="{Binding SearchResult}"
+                 Loaded="GridControl_Loaded" 
+                 Unloaded="GridControl_Unloaded">
+                <dxg:GridControl.Columns>
           <dxg:GridColumn FieldName="Code" Width="100" Header="{Localize Code}">
             <dxg:ColumnBase.DisplayTemplate>
               <ControlTemplate>
@@ -43,9 +45,10 @@
           <dxg:GridColumn FieldName="Unit" Width="50" Header="{Localize Unit}" Visible="{Binding HasBalance}"/>
         </dxg:GridControl.Columns>
         <dxg:GridControl.View>
-          <dxg:TableView AllowEditing="false" AutoWidth="true" ShowGroupPanel="false" NavigationStyle="Row"
-                         AllowLeaveFocusOnTab="true">
-            <dxg:TableView.FormatConditions>
+                    <dxg:TableView AllowEditing="false" AutoWidth="true" ShowGroupPanel="false" NavigationStyle="Row"
+               AllowLeaveFocusOnTab="true"
+               MouseDoubleClick="TableView_MouseDoubleClick">
+                        <dxg:TableView.FormatConditions>
               <dxg:FormatCondition FieldName="IsDisabled" Expression="[IsDisabled]=True" ApplyToRow="true"
                                    PredefinedFormatName="LightRedFillWithDarkRedText"/>
               <dxg:FormatCondition FieldName="IsDisabled" Expression="[IsDisabled]=True" ApplyToRow="true"
