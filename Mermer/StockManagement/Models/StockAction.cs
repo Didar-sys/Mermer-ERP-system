@@ -12,7 +12,8 @@ namespace Mermer.StockManagement.Models;
 
 public class StockAction
 {
-  public string TransactionId { get; set; }
+    public decimal GrandTotalInCustomCurrency { get; set; }
+    public string TransactionId { get; set; }
 
   public string TransactionCode { get; set; }
 

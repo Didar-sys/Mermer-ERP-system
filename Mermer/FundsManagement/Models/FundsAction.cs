@@ -49,4 +49,5 @@ public class FundsAction
   public Decimal ActionExpense { get; set; }
 
   public Decimal ActionEffect => this.ActionIncome - this.ActionExpense;
+    public decimal ActionEffectInCustomCurrency { get; set; }
 }

@@ -189,7 +189,6 @@ public class DetailsViewModel<T> : BaseViewModel, IMvxViewModel<string>, IMvxVie
 
     public override async Task<bool> OnCloseAsync()
     {
-
         if (IsDirty)
         {
             bool? nullable = UserInteractionService.ShowMessage(this["Closing"], this["Would you like to save?"], UserInteractionType.YesNoCancel);
@@ -201,8 +200,12 @@ public class DetailsViewModel<T> : BaseViewModel, IMvxViewModel<string>, IMvxVie
             }
         }
 
-        // Відправляємо сигнал у Презентер
+        // ВАЖЛИВО: Викликаємо закриття вікна/вкладки через стандартний MvvmCross NavigationService
+        await this.NavigationService.Close(this);
+
+        // Залишаємо виклик делегата про всяк випадок (якщо інша логіка від нього залежить)
         BaseViewModel.RequestComponentCloseAction?.Invoke(this);
+
         return true;
     }
 }

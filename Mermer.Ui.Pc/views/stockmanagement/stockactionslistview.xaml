@@ -47,7 +47,12 @@
                   Visibility="{Binding StockIdSelected, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
           <Label VerticalContentAlignment="Center" MinHeight="24" Content="{Binding SelectedStockMessage}"/>
         </dxlc:LayoutGroup>
-      </dxlc:LayoutGroup>
+                <dxlc:LayoutItem HorizontalAlignment="Left" Width="300" Label="{Localize 'Balance Currency'}">
+                    <dxe:ComboBoxEdit ShowCustomItems="True" DisplayMember="Name" ValueMember="Id"
+                            EditValue="{Binding CurrencyId, UpdateSourceTrigger=PropertyChanged}"
+                            ItemsSource="{Binding Currencies.List}"/>
+                </dxlc:LayoutItem>
+            </dxlc:LayoutGroup>
       <dx:PLinqInstantFeedbackDataSource Name="ParalelLinqInstantSource" ItemsSource="{Binding List}"/>
       <ctrl:StyledGridControl x:Name="GridControl" FilterString="[TransactionIsCompleted] And ![TransactionIsDisabled]"
                               PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
@@ -120,7 +125,9 @@
                             Header="{Localize Total}"/>
             <dxg:GridColumn FieldName="RecommendedTotal" Width="80" Style="{StaticResource AmountDisplayFormat}"
                             Header="{Localize RecommendedTotal}"/>
-          </dxg:GridControlBand>
+                        <dxg:GridColumn FieldName="GrandTotalInCustomCurrency" Width="100" Style="{StaticResource AmountDisplayFormat}"
+                            Header="{Localize 'In Selected Currency'}"/>
+                    </dxg:GridControlBand>
           <dxg:GridControlBand Header="{Localize Additional}">
             <dxg:GridColumn FieldName="TransactionIsCash" Width="50" Visible="true" Header="{Localize Cash}"/>
             <dxg:GridColumn FieldName="IsCheaperThanRecommended" Width="50" Visible="true" Header="{Localize Cheap}"/>
@@ -139,7 +146,8 @@
           <dxg:GridSummaryItem FieldName="RecommendedTotal" DisplayFormat="#,##0.00" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="ActionOverhead" DisplayFormat="#,##0.00" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="ActionDiscount" DisplayFormat="#,##0.00" SummaryType="Sum"/>
-        </dxg:GridControl.TotalSummary>
+                    <dxg:GridSummaryItem FieldName="GrandTotalInCustomCurrency" DisplayFormat="#,##0.00" SummaryType="Sum"/>
+                </dxg:GridControl.TotalSummary>
       </ctrl:StyledGridControl>
     </dxlc:LayoutControl>
   </DockPanel>

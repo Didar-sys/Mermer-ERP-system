@@ -4,9 +4,6 @@
 // MVID: DC92D011-8413-44AC-9F10-F866D891CF66
 // Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
 
-using MvvmCross.Core.Navigation;
-using MvvmCross.Core.ViewModels;
-using MvvmCross.Plugins.Messenger;
 using Mermer.Commerce.Models;
 using Mermer.Common.Settings;
 using Mermer.CRM.Models;
@@ -14,12 +11,16 @@ using Mermer.Enterprise.Models;
 using Mermer.Finance.Models;
 using Mermer.Finance.Spending.Models;
 using Mermer.FundsManagement.Models;
+using Mermer.FundsManagement.Models.Extenders;
 using Mermer.FundsManagement.Services;
-using Mermer.Ui.Core.Helpers;
-using Mermer.Ui.Core.ViewModels.Common;
 using Mermer.Mvvm.Services;
 using Mermer.Mvvm.ViewModels;
 using Mermer.Services;
+using Mermer.Ui.Core.Helpers;
+using Mermer.Ui.Core.ViewModels.Common;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Core.ViewModels;
+using MvvmCross.Plugins.Messenger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,25 +41,41 @@ public class FundsActionsListViewModel :
   private System.Collections.Generic.List<object> _selectedDepositoryIds;
   private FundsActionsFilter _parameter;
   private bool _loaded;
+    private string _currencyId;
 
-  public FundsActionsListViewModel(
-    IMvxMessenger messenger,
-    IConfigurator configurator,
-    Reference<Partner> partners,
-    Reference<Depository> depositories,
-    IFundsActionsRepository repository,
-    IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService)
-    : base(messenger, navigationService, userInteractionService)
-  {
-    this._configurator = configurator;
-    this._repository = repository;
-    this.Partners = partners;
-    this.Depositories = depositories;
-        this.Types = new LocalizedTransactionTypes("Repricing");
+    public virtual string CurrencyId
+    {
+        get => this._currencyId;
+        set
+        {
+            if (!this.SetProperty<string>(ref this._currencyId, value, nameof(CurrencyId)) || this.IsBusy)
+                return;
+            this.ApplyCustomCurrencyRate(); // Викликаємо перерахунок
+        }
     }
 
-  public System.Collections.Generic.List<object> SelectedDepositoryIds
+    public Reference<Currency> Currencies { get; private set; }
+    public FundsActionsListViewModel(
+     IMvxMessenger messenger,
+     IConfigurator configurator,
+     Reference<Partner> partners,
+     Reference<Depository> depositories,
+     Reference<Currency> currencies, // ДОДАНО
+     IFundsActionsRepository repository,
+     IMvxNavigationService navigationService,
+     IUserInteractionService userInteractionService)
+     : base(messenger, navigationService, userInteractionService)
+    {
+        this._configurator = configurator;
+        this._repository = repository;
+        this.Partners = partners;
+        this.Depositories = depositories;
+        this.Types = new LocalizedTransactionTypes("Repricing");
+
+        this.Currencies = currencies; // ДОДАНО
+    }
+
+    public System.Collections.Generic.List<object> SelectedDepositoryIds
   {
     get => this._selectedDepositoryIds;
     set
@@ -108,10 +125,37 @@ public class FundsActionsListViewModel :
         await Task.WhenAll(
             base.PreLoad(),
             Depositories.Initialize(),
-            Partners.Initialize()
+            Partners.Initialize(),
+            Currencies.Initialize() // ДОДАНО
         );
+
+        // ДОДАНО: Ставимо дефолтну валюту при завантаженні
+        if (string.IsNullOrEmpty(CurrencyId))
+        {
+            CurrencyId = Currencies.List.FirstOrDefault(x => x.IsDefault)?.Id;
+        }
     }
 
+
+    private void ApplyCustomCurrencyRate() => this.List = this.ApplyCustomCurrencyRate(this.List);
+
+    private IEnumerable<FundsAction> ApplyCustomCurrencyRate(IEnumerable<FundsAction> list)
+    {
+        if (list == null) return list;
+
+        Decimal rate = 0M;
+        Currency currency = this.Currencies?.List?.SingleOrDefault(x => x.Id == this._currencyId);
+        CurrencyRate rate1 = currency != null ? currency.GetRate() : null;
+
+        if (rate1 != null)
+            rate = rate1.Divider / rate1.Multiplier;
+
+        return list.Select(item =>
+        {
+            item.ActionEffectInCustomCurrency = item.ActionEffect * rate;
+            return item;
+        });
+    }
     protected override Task OnLoad()
   {
     if (this._parameter == null)
@@ -130,19 +174,19 @@ public class FundsActionsListViewModel :
     return this._repository.CountAsync(new DateTime?(), new DateTime?(), (string) null, this.DepositoryIds);
   }
 
-  protected override Task<IEnumerable<FundsAction>> GetFilteredListByDateAsync(
-    DateTime from,
-    DateTime till)
-  {
-    return this._repository.GetAsync(new DateTime?(from), new DateTime?(till), (string) null, this.DepositoryIds);
-  }
+    protected override async Task<IEnumerable<FundsAction>> GetFilteredListByDateAsync(DateTime from, DateTime till)
+    {
+        var result = await this._repository.GetAsync(from, till, (string)null, this.DepositoryIds);
+        return ApplyCustomCurrencyRate(result); // ДОДАНО ОБГОРТКУ
+    }
 
-  protected override Task<IEnumerable<FundsAction>> GetFilteredListAsync(ListFilter filter)
-  {
-    return this._repository.GetAsync(new DateTime?(), new DateTime?(), (string) null, this.DepositoryIds);
-  }
+    protected override async Task<IEnumerable<FundsAction>> GetFilteredListAsync(ListFilter filter)
+    {
+        var result = await this._repository.GetAsync(default(DateTime?), default(DateTime?), (string)null, this.DepositoryIds);
+        return ApplyCustomCurrencyRate(result); // ДОДАНО ОБГОРТКУ
+    }
 
-  protected override Task<int> CountListAsync(
+    protected override Task<int> CountListAsync(
     params Expression<Func<FundsAction, bool>>[] predicates)
   {
     throw new NotImplementedException();

@@ -49,7 +49,12 @@
             </dxg:LookUpEdit.StyleSettings>
           </dxg:LookUpEdit>
         </dxlc:LayoutItem>
-      </dxlc:LayoutGroup>
+                <dxlc:LayoutItem HorizontalAlignment="Left" Width="300" Label="{Localize 'Balance Currency'}">
+                    <dxe:ComboBoxEdit ShowCustomItems="True" DisplayMember="Name" ValueMember="Id"
+                            EditValue="{Binding CurrencyId, UpdateSourceTrigger=PropertyChanged}"
+                            ItemsSource="{Binding Currencies.List}"/>
+                </dxlc:LayoutItem>
+            </dxlc:LayoutGroup>
       <ctrl:StyledGridControl x:Name="GridControl" PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
                               FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
                               SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}">
@@ -94,9 +99,11 @@
                             Header="{Localize Payment}"/>
           </dxg:GridControlBand>
           <dxg:GridControlBand Header="{Localize Resulting}">
-            <dxg:GridColumn FieldName="ResultingBalance" Style="{StaticResource QuantityDisplayFormat}"
+                        <dxg:GridColumn FieldName="ResultingBalance" Style="{StaticResource QuantityDisplayFormat}"
                             Header="{Localize Balance}"/>
-          </dxg:GridControlBand>
+                        <dxg:GridColumn FieldName="ResultingBalanceInCustomCurrency" Style="{StaticResource AmountDisplayFormat}"
+                            Header="{Localize 'In Selected Currency'}"/>
+                    </dxg:GridControlBand>
         </dxg:GridControl.Bands>
         <dxg:GridControl.TotalSummary>
           <dxg:GridSummaryItem FieldName="DepositoryId" DisplayFormat="{}{0}" SummaryType="Count"/>
@@ -114,7 +121,8 @@
           <dxg:GridSummaryItem FieldName="Purchase" DisplayFormat="#,##0.00" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="Payment" DisplayFormat="#,##0.00" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="ResultingBalance" DisplayFormat="#,##0.00" SummaryType="Sum"/>
-        </dxg:GridControl.TotalSummary>
+                    <dxg:GridSummaryItem FieldName="ResultingBalanceInCustomCurrency" DisplayFormat="#,##0.00" SummaryType="Sum"/>
+                </dxg:GridControl.TotalSummary>
       </ctrl:StyledGridControl>
     </dxlc:LayoutControl>
   </DockPanel>

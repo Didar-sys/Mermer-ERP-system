@@ -4,14 +4,17 @@
 // MVID: D54C0BF8-E817-4120-9485-68C30ADFDFE4
 // Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Pc.exe
 
-using MvvmCross.Core.Navigation;
-using MvvmCross.Plugins.Messenger;
-using Mermer.Ui.Core.Helpers;
+using DevExpress.Mvvm;
 using Mermer.Mvvm.Services;
 using Mermer.Mvvm.ViewModels;
+using Mermer.Ui.Core.Helpers;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Core.ViewModels;
+using MvvmCross.Plugins.Messenger;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 #nullable disable
 namespace Mermer.Ui.Pc.ViewModels;
@@ -40,4 +43,47 @@ public class ReportsListViewModel(
     };
     return base.OnLoad();
   }
+    // Команда для подвійного кліку (Вибрати або Переглянути)
+    public ICommand SelectOrViewDetailsCommand => new MvxAsyncCommand(OnSelectOrViewDetailsCommandAsync, () => !IsBusy);
+
+    protected virtual Task OnSelectOrViewDetailsCommandAsync()
+    {
+        try
+        {
+            var type = this.GetType();
+            var editCmd = type.GetProperty("EditCommand")?.GetValue(this) as ICommand;
+            var selectCmd = type.GetProperty("SelectCommand")?.GetValue(this) as ICommand;
+
+            if (selectCmd != null && selectCmd.CanExecute(null))
+            {
+                selectCmd.Execute(null);
+            }
+            else if (editCmd != null && editCmd.CanExecute(null))
+            {
+                editCmd.Execute(null);
+            }
+        }
+        catch { }
+
+        return Task.CompletedTask;
+    }
+
+    // Команда для кнопки "Переглянути деталі"
+    public ICommand ViewDetailsCommand => new MvxAsyncCommand(OnViewDetailsCommandAsync, () => !IsBusy);
+
+    protected virtual Task OnViewDetailsCommandAsync()
+    {
+        try
+        {
+            var editCmd = this.GetType().GetProperty("EditCommand")?.GetValue(this) as ICommand;
+
+            if (editCmd != null && editCmd.CanExecute(null))
+            {
+                editCmd.Execute(null);
+            }
+        }
+        catch { }
+
+        return Task.CompletedTask;
+    }
 }

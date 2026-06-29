@@ -23,7 +23,7 @@
         <dxlc:LayoutGroup View="Tabs">
           <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize General}">
             <dxlc:LayoutItem Label="{Localize Language}">
-              <dxe:ComboBoxEdit DisplayMember="Text" ValueMember="Value" ItemsSource="{Binding Languages}"
+                            <dxe:ComboBoxEdit x:Name="FirstFocus" DisplayMember="Text" ValueMember="Value" ItemsSource="{Binding Languages}"
                                 EditValue="{Binding Config.Culture, UpdateSourceTrigger=PropertyChanged}"/>
             </dxlc:LayoutItem>
             <dxlc:LayoutItem Label="{Localize 'POS Options'}">

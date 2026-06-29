@@ -26,40 +26,47 @@
     <ToggleButton x:Name="ExpandButton" DockPanel.Dock="Left" Style="{StaticResource HideButtonStyle}"
                   IsChecked="True" VerticalAlignment="Center"/>
     <dxlc:LayoutControl Margin="0" Orientation="Vertical">
-      <dxlc:LayoutGroup Orientation="Vertical" Margin="10, 10, 10, 0">
-        <dxlc:LayoutItem HorizontalAlignment="Left" Width="300" Label="{Localize Office}">
-          <dxe:ComboBoxEdit ShowCustomItems="True" DisplayMember="Name" ValueMember="Id"
-                            EditValue="{Binding SelectedOfficeIds, UpdateSourceTrigger=PropertyChanged}"
-                            ItemsSource="{Binding Offices.List}">
-            <dxe:BaseEdit.StyleSettings>
-              <dxe:CheckedComboBoxStyleSettings/>
-            </dxe:BaseEdit.StyleSettings>
-          </dxe:ComboBoxEdit>
-        </dxlc:LayoutItem>
-        <dxlc:LayoutItem HorizontalAlignment="Left" Width="400" Label="{Localize Partner}">
-          <dxg:LookUpEdit NullValueButtonPlacement="EditBox" AutoPopulateColumns="false" DisplayMember="Fullname"
-                          ValueMember="Id" EditValue="{Binding PartnerId, UpdateSourceTrigger=PropertyChanged}"
-                          ItemsSource="{Binding Partners.List}" NullText="{Localize 'All Partners'}">
-            <dxe:PopupBaseEdit.PopupContentTemplate>
-              <ControlTemplate>
-                <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
-                  <dxg:GridControl.Columns>
-                    <dxg:GridColumn FieldName="Code" Header="{Localize Code}"/>
-                    <dxg:GridColumn FieldName="Name" Width="300" Header="{Localize Name}"/>
-                  </dxg:GridControl.Columns>
-                  <dxg:GridControl.View>
-                    <dxg:TableView AutoWidth="true"/>
-                  </dxg:GridControl.View>
-                </dxg:GridControl>
-              </ControlTemplate>
-            </dxe:PopupBaseEdit.PopupContentTemplate>
-            <dxg:LookUpEdit.StyleSettings>
-              <dxg:SearchLookUpEditStyleSettings/>
-            </dxg:LookUpEdit.StyleSettings>
-          </dxg:LookUpEdit>
-        </dxlc:LayoutItem>
-      </dxlc:LayoutGroup>
-      <ctrl:StyledGridControl x:Name="GridControl" FilterString="[TransactionIsCompleted] And ![TransactionIsDisabled]"
+            <dxlc:LayoutGroup Orientation="Vertical" Margin="10, 10, 10, 0">
+                <dxlc:LayoutItem HorizontalAlignment="Left" Width="300" Label="{Localize Office}">
+                    <dxe:ComboBoxEdit ShowCustomItems="True" DisplayMember="Name" ValueMember="Id"
+                      EditValue="{Binding SelectedOfficeIds, UpdateSourceTrigger=PropertyChanged}"
+                      ItemsSource="{Binding Offices.List}">
+                        <dxe:BaseEdit.StyleSettings>
+                            <dxe:CheckedComboBoxStyleSettings/>
+                        </dxe:BaseEdit.StyleSettings>
+                    </dxe:ComboBoxEdit>
+                </dxlc:LayoutItem>
+
+                <dxlc:LayoutItem HorizontalAlignment="Left" Width="400" Label="{Localize Partner}">
+                    <dxg:LookUpEdit NullValueButtonPlacement="EditBox" AutoPopulateColumns="false" DisplayMember="Fullname"
+                    ValueMember="Id" EditValue="{Binding PartnerId, UpdateSourceTrigger=PropertyChanged}"
+                    ItemsSource="{Binding Partners.List}" NullText="{Localize 'All Partners'}">
+                        <dxe:PopupBaseEdit.PopupContentTemplate>
+                            <ControlTemplate>
+                                <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
+                                    <dxg:GridControl.Columns>
+                                        <dxg:GridColumn FieldName="Code" Header="{Localize Code}"/>
+                                        <dxg:GridColumn FieldName="Name" Width="300" Header="{Localize Name}"/>
+                                    </dxg:GridControl.Columns>
+                                    <dxg:GridControl.View>
+                                        <dxg:TableView AutoWidth="true"/>
+                                    </dxg:GridControl.View>
+                                </dxg:GridControl>
+                            </ControlTemplate>
+                        </dxe:PopupBaseEdit.PopupContentTemplate>
+                        <dxg:LookUpEdit.StyleSettings>
+                            <dxg:SearchLookUpEditStyleSettings/>
+                        </dxg:LookUpEdit.StyleSettings>
+                    </dxg:LookUpEdit>
+                </dxlc:LayoutItem>
+
+                <dxlc:LayoutItem HorizontalAlignment="Left" Width="300" Label="{Localize 'Balance Currency'}">
+                    <dxe:ComboBoxEdit ShowCustomItems="True" DisplayMember="Name" ValueMember="Id"
+                      EditValue="{Binding CurrencyId, UpdateSourceTrigger=PropertyChanged}"
+                      ItemsSource="{Binding Currencies.List}"/>
+                </dxlc:LayoutItem>
+            </dxlc:LayoutGroup>
+            <ctrl:StyledGridControl x:Name="GridControl" FilterString="[TransactionIsCompleted] And ![TransactionIsDisabled]"
                               PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
                               FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
                               SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}">
@@ -108,13 +115,16 @@
                             Header="{Localize Credit}"/>
             <dxg:GridColumn FieldName="ActionEffect" Style="{StaticResource AmountDisplayFormat}" Width="80"
                             Header="{Localize Effect}"/>
-          </dxg:GridControlBand>
+                        <dxg:GridColumn FieldName="ActionEffectInCustomCurrency" Style="{StaticResource AmountDisplayFormat}" Width="100"
+                Header="{Localize 'In Selected Currency'}"/>
+                    </dxg:GridControlBand>
         </dxg:GridControl.Bands>
         <dxg:GridControl.TotalSummary>
           <dxg:GridSummaryItem FieldName="ActionDebit" DisplayFormat="#,##0.00" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="ActionCredit" DisplayFormat="#,##0.00" SummaryType="Sum"/>
-          <dxg:GridSummaryItem FieldName="ActionEffect" DisplayFormat="#,##0.00" SummaryType="Sum"/>
-        </dxg:GridControl.TotalSummary>
+                    <dxg:GridSummaryItem FieldName="ActionEffect" DisplayFormat="#,##0.00" SummaryType="Sum"/>
+                    <dxg:GridSummaryItem FieldName="ActionEffectInCustomCurrency" DisplayFormat="#,##0.00" SummaryType="Sum"/>
+                </dxg:GridControl.TotalSummary>
       </ctrl:StyledGridControl>
     </dxlc:LayoutControl>
   </DockPanel>

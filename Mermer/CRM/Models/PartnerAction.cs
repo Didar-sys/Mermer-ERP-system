@@ -12,7 +12,8 @@ namespace Mermer.CRM.Models;
 
 public class PartnerAction
 {
-  public string TransactionId { get; set; }
+    public decimal ActionEffectInCustomCurrency { get; set; }
+    public string TransactionId { get; set; }
 
   public string TransactionCode { get; set; }
 

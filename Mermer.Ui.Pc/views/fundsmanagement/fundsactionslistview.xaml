@@ -36,7 +36,12 @@
             </dxe:BaseEdit.StyleSettings>
           </dxe:ComboBoxEdit>
         </dxlc:LayoutItem>
-      </dxlc:LayoutGroup>
+                <dxlc:LayoutItem HorizontalAlignment="Left" Width="300" Label="{Localize 'Balance Currency'}">
+                    <dxe:ComboBoxEdit ShowCustomItems="True" DisplayMember="Name" ValueMember="Id"
+                            EditValue="{Binding CurrencyId, UpdateSourceTrigger=PropertyChanged}"
+                            ItemsSource="{Binding Currencies.List}"/>
+                </dxlc:LayoutItem>
+            </dxlc:LayoutGroup>
       <ctrl:StyledGridControl x:Name="GridControl" FilterString="[TransactionIsCompleted] And ![TransactionIsDisabled]"
                               PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
                               FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
@@ -82,14 +87,17 @@
                             Header="{Localize Expense}"/>
             <dxg:GridColumn FieldName="ActionEffect" Style="{StaticResource AmountDisplayFormat}" Width="80"
                             Header="{Localize Effect}"/>
-          </dxg:GridControlBand>
+                        <dxg:GridColumn FieldName="ActionEffectInCustomCurrency" Width="100" Style="{StaticResource AmountDisplayFormat}"
+                            Header="{Localize 'In Selected Currency'}"/>
+                    </dxg:GridControlBand>
         </dxg:GridControl.Bands>
         <dxg:GridControl.TotalSummary>
           <dxg:GridSummaryItem FieldName="TransactionDate" DisplayFormat="{}{0}" SummaryType="Count"/>
           <dxg:GridSummaryItem FieldName="ActionIncome" DisplayFormat="#,##0.00" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="ActionExpense" DisplayFormat="#,##0.00" SummaryType="Sum"/>
           <dxg:GridSummaryItem FieldName="ActionEffect" DisplayFormat="#,##0.00" SummaryType="Sum"/>
-        </dxg:GridControl.TotalSummary>
+                    <dxg:GridSummaryItem FieldName="ActionEffectInCustomCurrency" DisplayFormat="#,##0.00" SummaryType="Sum"/>
+                </dxg:GridControl.TotalSummary>
       </ctrl:StyledGridControl>
     </dxlc:LayoutControl>
   </DockPanel>

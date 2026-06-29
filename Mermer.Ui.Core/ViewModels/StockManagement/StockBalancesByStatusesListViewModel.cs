@@ -5,25 +5,27 @@
 // Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
 
 using Humanizer;
-using MvvmCross.Core.Navigation;
-using MvvmCross.Plugins.Messenger;
 using Mermer.Common.Settings;
+using Mermer.Data.Tools.Expressions;
 using Mermer.Enterprise.Models;
 using Mermer.FundsManagement.Models;
 using Mermer.FundsManagement.Models.Extenders;
+using Mermer.Mvvm.Messages;
+using Mermer.Mvvm.Services;
+using Mermer.Services;
 using Mermer.StockManagement.Models;
 using Mermer.StockManagement.Services;
 using Mermer.Ui.Core.Helpers;
 using Mermer.Ui.Core.ViewModels.Common;
-using Mermer.Data.Tools.Expressions;
-using Mermer.Mvvm.Messages;
-using Mermer.Mvvm.Services;
-using Mermer.Services;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Core.ViewModels;
+using MvvmCross.Plugins.Messenger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 #nullable disable
 namespace Mermer.Ui.Core.ViewModels.StockManagement;
@@ -256,4 +258,32 @@ public class StockBalancesByStatusesListViewModel : ListViewModelBaseWithFilter<
     base.Dispose();
     this._messageToken?.Dispose();
   }
+    // Команда, яку шукає XAML
+    public ICommand SelectOrViewDetailsCommand => new MvxAsyncCommand(OnSelectOrViewDetailsCommandAsync, () => !IsBusy);
+
+    protected virtual Task OnSelectOrViewDetailsCommandAsync()
+    {
+        try
+        {
+            var type = this.GetType();
+            var editCmd = type.GetProperty("EditCommand")?.GetValue(this) as ICommand;
+            var selectCmd = type.GetProperty("SelectCommand")?.GetValue(this) as ICommand;
+
+            if (selectCmd != null && selectCmd.CanExecute(null))
+            {
+                selectCmd.Execute(null);
+            }
+            else if (editCmd != null && editCmd.CanExecute(null))
+            {
+                editCmd.Execute(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Логирование ошибки, если необходимо
+        }
+
+        // Возвращаем успешно завершенный таск напрямую без async/await
+        return Task.CompletedTask;
+    }
 }

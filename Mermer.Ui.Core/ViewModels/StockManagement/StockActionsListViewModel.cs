@@ -4,22 +4,24 @@
 // MVID: DC92D011-8413-44AC-9F10-F866D891CF66
 // Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
 
-using MvvmCross.Core.Navigation;
-using MvvmCross.Core.ViewModels;
-using MvvmCross.Plugins.Messenger;
 using Mermer.Commerce.Models;
 using Mermer.Common.Settings;
+using Mermer.Data.Storage;
 using Mermer.Enterprise.Models;
+using Mermer.FundsManagement.Models;
+using Mermer.FundsManagement.Models.Extenders;
+using Mermer.Mvvm.Messages;
+using Mermer.Mvvm.Services;
+using Mermer.Mvvm.ViewModels;
+using Mermer.Services;
 using Mermer.StockManagement.Models;
 using Mermer.StockManagement.Services;
 using Mermer.Ui.Core.Helpers;
 using Mermer.Ui.Core.ViewModels.Common;
 using Mermer.Warehousing.Models;
-using Mermer.Data.Storage;
-using Mermer.Mvvm.Messages;
-using Mermer.Mvvm.Services;
-using Mermer.Mvvm.ViewModels;
-using Mermer.Services;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Core.ViewModels;
+using MvvmCross.Plugins.Messenger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,29 +46,45 @@ public class StockActionsListViewModel :
   private string _selectedStockMessage;
   private StockActionsFilter _parameter;
   private bool _loaded;
+    private string _currencyId;
 
-  public StockActionsListViewModel(
+    public virtual string CurrencyId
+    {
+        get => this._currencyId;
+        set
+        {
+            if (!this.SetProperty<string>(ref this._currencyId, value, nameof(CurrencyId)) || this.IsBusy)
+                return;
+            this.ApplyCustomCurrencyRate(); // Перерахунок при зміні валюти
+        }
+    }
+
+    public Reference<Currency> Currencies { get; private set; }
+    public StockActionsListViewModel(
     IMvxMessenger messenger,
     IConfigurator configurator,
     StockSearcher stockSearcher,
     Reference<Warehouse> warehouses,
+    Reference<Currency> currencies, // ДОДАНО
     IStockActionsRepository repository,
     IRepository<Stock> stocksRepository,
     IMvxNavigationService navigationService,
     IUserInteractionService userInteractionService)
     : base(messenger, navigationService, userInteractionService)
-  {
-    this._configurator = configurator;
-    this._repository = repository;
-    this._stocksRepository = stocksRepository;
-    this._messageToken = messenger.Subscribe<DocumentModified<StockAction>>((Action<DocumentModified<StockAction>>) (async m => await this.Initialize()), MvxReference.Strong);
-    this.Warehouses = warehouses;
-    this.StockSearcher = stockSearcher;
-    this.StockSearcher.ResultSelected += new SearchResultSelected(this.StockSearcher_ResultSelected);
-    this.Types = new LocalizedTransactionTypes("Repricing");
-  }
+    {
+        this._configurator = configurator;
+        this._repository = repository;
+        this._stocksRepository = stocksRepository;
+        this._messageToken = messenger.Subscribe<DocumentModified<StockAction>>((Action<DocumentModified<StockAction>>)(async m => await this.Initialize()), MvxReference.Strong);
+        this.Warehouses = warehouses;
+        this.StockSearcher = stockSearcher;
+        this.StockSearcher.ResultSelected += new SearchResultSelected(this.StockSearcher_ResultSelected);
+        this.Types = new LocalizedTransactionTypes("Repricing");
 
-  public System.Collections.Generic.List<object> SelectedWarehouseIds
+        this.Currencies = currencies; // ДОДАНО
+    }
+
+    public System.Collections.Generic.List<object> SelectedWarehouseIds
   {
     get => this._selectedWarehouseIds;
     set
@@ -167,8 +185,36 @@ public class StockActionsListViewModel :
         await Task.WhenAll(
             base.PreLoad(),
             Warehouses.Initialize(),
-            StockSearcher.Initialize()
+            StockSearcher.Initialize(),
+            Currencies.Initialize() // ДОДАНО
         );
+
+        // ДОДАНО: Дефолтна валюта
+        if (string.IsNullOrEmpty(CurrencyId))
+        {
+            CurrencyId = Currencies.List.FirstOrDefault(x => x.IsDefault)?.Id;
+        }
+    }
+
+    private void ApplyCustomCurrencyRate() => this.List = this.ApplyCustomCurrencyRate(this.List);
+
+    private IEnumerable<StockActionWithData> ApplyCustomCurrencyRate(IEnumerable<StockActionWithData> list)
+    {
+        if (list == null) return list;
+
+        Decimal rate = 0M;
+        Currency currency = this.Currencies?.List?.SingleOrDefault(x => x.Id == this._currencyId);
+        CurrencyRate rate1 = currency != null ? currency.GetRate() : null;
+
+        if (rate1 != null)
+            rate = rate1.Divider / rate1.Multiplier;
+
+        return list.Select(item =>
+        {
+            // Множимо суму грошей (GrandTotal) на курс
+            item.GrandTotalInCustomCurrency = item.GrandTotal * rate;
+            return item;
+        });
     }
 
     protected override Task OnLoad()
@@ -189,17 +235,17 @@ public class StockActionsListViewModel :
     return this._repository.CountAsync(new DateTime?(), new DateTime?(), this.StockId, this.WarehouseIds);
   }
 
-  protected override Task<IEnumerable<StockActionWithData>> GetFilteredListByDateAsync(
-    DateTime from,
-    DateTime till)
-  {
-    return this._repository.GetAsync(new DateTime?(from), new DateTime?(till), this.StockId, this.WarehouseIds);
-  }
+    protected override async Task<IEnumerable<StockActionWithData>> GetFilteredListByDateAsync(DateTime from, DateTime till)
+    {
+        var result = await this._repository.GetAsync(from, till, this.StockId, this.WarehouseIds);
+        return ApplyCustomCurrencyRate(result);
+    }
 
-  protected override Task<IEnumerable<StockActionWithData>> GetFilteredListAsync(ListFilter filter)
-  {
-    return this._repository.GetAsync(new DateTime?(), new DateTime?(), this.StockId, this.WarehouseIds);
-  }
+    protected override async Task<IEnumerable<StockActionWithData>> GetFilteredListAsync(ListFilter filter)
+    {
+        var result = await this._repository.GetAsync(default(DateTime?), default(DateTime?), this.StockId, this.WarehouseIds);
+        return ApplyCustomCurrencyRate(result);
+    }
 
     protected override Task<int> CountListAsync(params Expression<Func<StockActionWithData, bool>>[] predicates)
     {

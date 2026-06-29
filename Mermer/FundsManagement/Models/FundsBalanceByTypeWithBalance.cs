@@ -11,7 +11,9 @@ namespace Mermer.FundsManagement.Models;
 
 public class FundsBalanceByTypeWithBalance : FundsBalanceByType
 {
+
   public Decimal StartingBalance { get; set; }
 
   public Decimal ResultingBalance => this.StartingBalance + this.Balance;
+    public decimal ResultingBalanceInCustomCurrency { get; set; }
 }
