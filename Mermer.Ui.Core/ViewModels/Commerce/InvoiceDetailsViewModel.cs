@@ -237,19 +237,14 @@ public class InvoiceDetailsViewModel :
     {
         try
         {
-            // 1. --- ЗАХИСТ ВІД ПОРОЖНЬОГО ЧЕКА ---
-            if (Details?.Lines == null || Details.Lines.Count == 0)
+            // --- НОВА ПЕРЕВІРКА НА ОПЛАТУ (Точно за вимогами Леона) ---
+            // Якщо є якийсь неоплачений залишок (Left) І НЕ стоїть галочка "На запис"
+            if (Details.DisplayLeftTotal > 0 && !Details.DebitCreditLeftAmount)
             {
-                throw new Exception("Save error: Cannot save or print an empty invoice!");
+                throw new Exception("Оплата не прийнята повністю! Внесіть суму оплати або поставте галочку 'На запис' (Debit/Credit Left Amount).");
             }
+            // -----------------------------------------------------------
 
-            // 2. --- ПЕРЕВІРКА НА ОПЛАТУ ---
-            if (Details.DisplayPaymentsTotal < Details.DisplayGrandTotal && !Details.DebitCreditLeftAmount)
-            {
-                throw new Exception("Save error: Please enter the full payment or check 'On account' (Debit/Credit)!");
-            }
-
-            // 3. --- ПЕРЕВІРКА КРЕДИТНОГО ЛІМІТУ ---
             if (!string.IsNullOrEmpty(Details.PartnerId))
             {
                 if (Details.IsDebitCredit)
@@ -272,17 +267,17 @@ public class InvoiceDetailsViewModel :
         }
         catch (Exception ex)
         {
+            // Виводимо наше повідомлення про помилку
             UserInteractionService.ShowExceptionMessage(ex);
+
+            // Блокуємо збереження!
             return false;
         }
 
-        // 4. --- ЗБЕРЕЖЕННЯ ТА ДРУК ---
-        if (!await base.OnSaveAsync())
-            return false;
+        if (!await base.OnSaveAsync()) return false;
 
         decimal balance = PartnerBalanceToDate?.Balance ?? 0M;
         await _printingService.PrintInvoice(Details, balance);
-
         return true;
     }
 

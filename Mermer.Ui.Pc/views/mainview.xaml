@@ -77,28 +77,30 @@
 
         <dxwui:HamburgerMenu.Items>
             <dxwui:HamburgerMenuNavigationButton Glyph="pack://application:,,,/DevExpress.Images.v21.2;component/DevAV/Actions/Buy_32x32.png"
-                                                 Content="{Localize Pos}" Command="{Binding ShowPosCommand}"/>
+                                         Content="{Localize Pos}" Command="{Binding ShowPosCommand}"/>
             <dxwui:HamburgerMenuItemSeparator/>
             <dxwui:HamburgerSubMenu Glyph="pack://application:,,,/DevExpress.Images.v21.2;component/DevAV/Sales/SalesAnalysis_32x32.png"
-                                    Content="{Localize Commerce}" FlyoutHeader="{Localize Commerce}">
+                            Content="{Localize Commerce}" FlyoutHeader="{Localize Commerce}">
                 <dxwui:HamburgerSubMenuNavigationButton Style="{StaticResource Group}" Content="{Localize Slips}"/>
                 <dxwui:HamburgerSubMenuNavigationButton Content="{Localize Invoices}" Command="{Binding ShowInvoicesCommand}"/>
                 <dxwui:HamburgerSubMenuNavigationButton Content="{Localize Bills}" Command="{Binding ShowBillsCommand}"/>
                 <dxwui:HamburgerSubMenuNavigationButton Style="{StaticResource Group}" Content="{Localize Reports}"
-                                                        Visibility="{Binding AllowReporting, Converter={dx:BooleanToVisibilityConverter}}"/>
+                                                Visibility="{Binding AllowReporting, Converter={dx:BooleanToVisibilityConverter}}"/>
                 <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'Sales Payment Info'}" Command="{Binding ShowInvoicePaymentDataCommand}"
-                                                        Visibility="{Binding AllowReporting, Converter={dx:BooleanToVisibilityConverter}}"/>
+                                                Visibility="{Binding AllowReporting, Converter={dx:BooleanToVisibilityConverter}}"/>
+
                 <dxwui:HamburgerSubMenuNavigationButton Style="{StaticResource Group}" Content="{Localize Sales}"/>
-                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Sales Invoice'}" Command="{Binding ShowNewInvoiceCommand}"/>
-                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Sales Return Invoice'}" Command="{Binding ShowNewInvoiceCommand}"/>
-                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Funds Collection Bill'}" Command="{Binding ShowNewBillCommand}"/>
+                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Sales Invoice'}" Command="{Binding ShowNewInvoiceCommand}" CommandParameter="Sales"/>
+                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Sales Return Invoice'}" Command="{Binding ShowNewInvoiceCommand}" CommandParameter="SalesReturn"/>
+                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Funds Collection Bill'}" Command="{Binding ShowNewBillCommand}" CommandParameter="Collection"/>
+
                 <dxwui:HamburgerSubMenuNavigationButton Style="{StaticResource Group}" Content="{Localize Procurement}"/>
-                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Purchase Invoice'}" Command="{Binding ShowNewInvoiceCommand}"/>
-                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Purchase Return Invoice'}" Command="{Binding ShowNewInvoiceCommand}"/>
-                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Funds Payment Bill'}" Command="{Binding ShowNewBillCommand}"/>
+                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Purchase Invoice'}" Command="{Binding ShowNewInvoiceCommand}" CommandParameter="Purchase"/>
+                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Purchase Return Invoice'}" Command="{Binding ShowNewInvoiceCommand}" CommandParameter="PurchaseReturn"/>
+                <dxwui:HamburgerSubMenuNavigationButton Content="{Localize 'New Funds Payment Bill'}" Command="{Binding ShowNewBillCommand}" CommandParameter="Payment"/>
             </dxwui:HamburgerSubMenu>
             <dxwui:HamburgerSubMenu Glyph="pack://application:,,,/DevExpress.Images.v21.2;component/DevAV/View/Customers_32x32.png"
-                                    Content="{Localize CRM}" FlyoutHeader="{Localize CRM}">
+                            Content="{Localize CRM}" FlyoutHeader="{Localize CRM}">
                 <dxwui:HamburgerSubMenuNavigationButton Style="{StaticResource Group}" Content="{Localize Dictionaries}"/>
                 <dxwui:HamburgerSubMenuNavigationButton Content="{Localize PartnersList}" Command="{Binding ShowPartnersCommand}"/>
                 <dxwui:HamburgerSubMenuNavigationButton Style="{StaticResource Group}" Content="{Localize Slips}"/>

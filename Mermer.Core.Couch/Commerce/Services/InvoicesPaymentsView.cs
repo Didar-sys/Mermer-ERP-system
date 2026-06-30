@@ -31,16 +31,33 @@ public class InvoicesPaymentsView : CouchView
     this._authService = authService;
   }
 
-  public async Task<int> CountAsync(
-    DateTime from,
-    DateTime till,
-    string officeId,
-    string partnerId)
-  {
-    return (await this.GetRecordsAsync<int>(from, till, officeId, partnerId, true)).Sum();
-  }
+    public async Task<int> CountAsync(DateTime from, DateTime till, string officeId, string partnerId)
+    {
+        // Якщо WPF передав порожній рядок "", примусово перетворюємо його в чистий null.
+        // Це змусить оригінальний оператор `??` всередині GetRecordsAsync відпрацювати як "all".
+        string safeOfficeId = string.IsNullOrEmpty(officeId) ? null : officeId;
+        string safePartnerId = string.IsNullOrEmpty(partnerId) ? null : partnerId;
 
-  public Task<IEnumerable<InvoicePaymentInfo>> GetAsync(
+        // Викликаємо метод вже з безпечними параметрами
+        var records = await this.GetRecordsAsync<dynamic>(from, till, safeOfficeId, safePartnerId, true);
+
+        long totalCount = 0;
+
+        if (records != null)
+        {
+            foreach (var r in records)
+            {
+                if (r != null)
+                {
+                    totalCount += Convert.ToInt64(r);
+                }
+            }
+        }
+
+        return (int)totalCount;
+    }
+
+    public Task<IEnumerable<InvoicePaymentInfo>> GetAsync(
     DateTime from,
     DateTime till,
     string officeId,

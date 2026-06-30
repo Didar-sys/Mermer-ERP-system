@@ -297,4 +297,39 @@ public class PartnerSlipDetailsViewModel :
 
     public string CreditCurrency { get; internal set; }
   }
+
+    protected override async Task<bool> OnSaveAsync()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(Details.OfficeId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Office"]]);
+            }
+
+            if (Details.Lines == null || !Details.Lines.Any())
+            {
+                throw new Exception(this["Document cannot be empty"]);
+            }
+
+            foreach (var line in Details.Lines)
+            {
+                if (string.IsNullOrEmpty(line.PartnerId))
+                    throw new Exception(this["Field '{0}' is required", this["Partner"]]);
+
+                if (line.DebitAmount > 0 && string.IsNullOrEmpty(line.DebitCurrencyId))
+                    throw new Exception(this["Field '{0}' is required", this["Currency"]]);
+
+                if (line.CreditAmount > 0 && string.IsNullOrEmpty(line.CreditCurrencyId))
+                    throw new Exception(this["Field '{0}' is required", this["Currency"]]);
+            }
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        return await base.OnSaveAsync();
+    }
 }

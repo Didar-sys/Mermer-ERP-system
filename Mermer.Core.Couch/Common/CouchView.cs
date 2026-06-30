@@ -120,17 +120,32 @@ public class CouchView
         if (queries.Count != list.Count)
           return retrials < 3 ? await this.GetRecordsAsync<TRow, TResult>(queries, reduce, groupLevel, projector, retrials + 1) : await this.GetRecordsByOneAsync<TRow, TResult>(queries, reduce, groupLevel, projector);
       }
-      catch (Exception ex)
-      {
-      }
-    }
+            catch (Exception ex)
+            {
+                // Хоча б викиньте помилку вище, щоб побачити її під час дебагу!
+                throw new Exception("Couchbase View Query Failed: " + ex.Message, ex);
+            }
+        }
     IEnumerable<TResult> first = (IEnumerable<TResult>) new List<TResult>();
     foreach (IEnumerable<TResult> second in list)
       first = first.Concat<TResult>(second);
     return first;
   }
 
-  private async Task<IEnumerable<TResult>> GetRecordsByOneAsync<TRow, TResult>(
+    protected virtual async Task<long> GetCountAsync(string designDoc, string view, IViewQuery query)
+    {
+        using (IBucket bucket = this.Cluster.OpenDefaultBucket())
+        {
+            query.Reduce(true); // Обов'язково
+            var result = await bucket.QueryAsync<dynamic>(query);
+            if (!result.Success) throw new Exception(result.Message);
+
+            // Результат _count завжди лежить у першому елементі Values
+            return (long)(result.Rows.FirstOrDefault()?.Value ?? 0);
+        }
+    }
+
+    private async Task<IEnumerable<TResult>> GetRecordsByOneAsync<TRow, TResult>(
     List<IViewQuery> queries,
     bool reduce = false,
     int groupLevel = 0,
