@@ -237,6 +237,19 @@ public class InvoiceDetailsViewModel :
     {
         try
         {
+            // 1. --- ЗАХИСТ ВІД ПОРОЖНЬОГО ЧЕКА ---
+            if (Details?.Lines == null || Details.Lines.Count == 0)
+            {
+                throw new Exception("Save error: Cannot save or print an empty invoice!");
+            }
+
+            // 2. --- ПЕРЕВІРКА НА ОПЛАТУ ---
+            if (Details.DisplayPaymentsTotal < Details.DisplayGrandTotal && !Details.DebitCreditLeftAmount)
+            {
+                throw new Exception("Save error: Please enter the full payment or check 'On account' (Debit/Credit)!");
+            }
+
+            // 3. --- ПЕРЕВІРКА КРЕДИТНОГО ЛІМІТУ ---
             if (!string.IsNullOrEmpty(Details.PartnerId))
             {
                 if (Details.IsDebitCredit)
@@ -260,12 +273,16 @@ public class InvoiceDetailsViewModel :
         catch (Exception ex)
         {
             UserInteractionService.ShowExceptionMessage(ex);
+            return false;
         }
 
-        if (!await base.OnSaveAsync()) return false;
+        // 4. --- ЗБЕРЕЖЕННЯ ТА ДРУК ---
+        if (!await base.OnSaveAsync())
+            return false;
 
         decimal balance = PartnerBalanceToDate?.Balance ?? 0M;
         await _printingService.PrintInvoice(Details, balance);
+
         return true;
     }
 
@@ -383,6 +400,13 @@ public class InvoiceDetailsViewModel :
 
     protected virtual async Task OnPrintCommandAsync()
     {
+        // Захист: якщо товарів у списку немає
+        if (Details?.Lines == null || Details.Lines.Count == 0)
+        {
+            UserInteractionService.ShowMessage("Error", "Cannot print an empty invoice!");
+            return; // Зупиняємо виконання, чек не друкується
+        }
+
         decimal balance = PartnerBalanceToDate?.Balance ?? 0M;
         await _printingService.PrintInvoice(Details, balance, true);
     }

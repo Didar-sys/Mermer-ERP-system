@@ -62,6 +62,7 @@
           <dxlc:LayoutGroup View="Tabs" HorizontalAlignment="Stretch">
             <dxlc:LayoutGroup.TabsStyle>
               <Style TargetType="{x:Type dx:DXTabControl}">
+                <Setter Property="TabContentCacheMode" Value="CacheAllTabs"/>
                 <Setter Property="dx:DXTabControl.View">
                   <Setter.Value>
                     <dx:TabControlMultiLineView HeaderLocation="Bottom"/>
@@ -75,8 +76,6 @@
                   <dxlc:LayoutGroup>
                                         <ctrl:StockLookupEdit x:Name="FirstFocus" DataContext="{Binding StockSearcher}">
                                             <dxmvvm:Interaction.Behaviors>
-                                                <dxmvvm:FocusBehavior EventName="Loaded"/>
-
                                                 <dxmvvm:EventToCommand EventName="ResultSelected" 
                            PassEventArgsToCommand="True"
                            Command="{Binding DataContext.SelectedLineEditCommand, ElementName=RootView}" />
@@ -718,7 +717,7 @@
           </dxlc:LayoutGroup>
         </dxlc:LayoutGroup>
       </dxlc:LayoutControl>
-      <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
+            <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}" IsHitTestVisible="False">
         <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
       </Grid>
     </Grid>
