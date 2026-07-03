@@ -91,11 +91,47 @@ public class StockTransferDetailsViewModel :
 
     protected override async Task<bool> OnSaveAsync()
     {
-        if (!await base.OnSaveAsync())
-            return false;
+        try
+        {
+            // 1. Перевірка вибору складу-відправника
+            if (string.IsNullOrEmpty(Details.WarehouseId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Source Warehouse"]]);
+            }
 
-        await _printingService.PrintStockTransfer(Details);
-        return true;
+            // 2. Перевірка вибору складу-отримувача
+            if (string.IsNullOrEmpty(Details.DestinationWarehouseId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Destination Warehouse"]]);
+            }
+
+            // 3. Склад-відправник і склад-отримувач не повинні збігатися
+            if (Details.WarehouseId == Details.DestinationWarehouseId)
+            {
+                throw new Exception(this["Source and destination warehouses must be different"]);
+            }
+
+            // 5. Перевірка кожного рядка переміщення
+            foreach (var line in Details.Lines)
+            {
+                // Кількість має бути строго більшою за нуль
+                if (line.Quantity <= 0)
+                    throw new Exception(this["Quantity must be greater than zero"]);
+
+                // Перевірка прив'язки валюти (якщо вона є в структурі StockTransferLine)
+                if (string.IsNullOrEmpty(line.CurrencyId))
+                    throw new Exception(this["Field '{0}' is required", this["Currency"]]);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Перериваємо процес збереження та показуємо вікно з помилкою
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        // Якщо все заповнено коректно — виконуємо стандартне базове збереження
+        return await base.OnSaveAsync();
     }
 
     protected override StockTransferLine CreateNewLine(

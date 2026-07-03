@@ -96,49 +96,55 @@ public class StockOrderTemplatesListViewModel : ListViewModel<StockOrderTemplate
     return this.SelectedFilter == null ? Task.CompletedTask : this.LoadByFilterAsync(this.SelectedFilter, false);
   }
 
-  protected virtual async Task LoadByFilterAsync(ListFilter filter, bool setBusiness = true)
-  {
-    StockOrderTemplatesListViewModel templatesListViewModel = this;
-    if (setBusiness)
-      templatesListViewModel.IsBusy = true;
-    try
+    protected virtual async Task LoadByFilterAsync(ListFilter filter, bool setBusiness = true)
     {
-      switch (filter.Tag.ToString())
-      {
-        case "Active":
-          IEnumerable<StockOrderTemplate> async1 = await templatesListViewModel.Repository.GetAsync((Expression<Func<StockOrderTemplate, bool>>) (x => !x.IsDisabled));
-          templatesListViewModel.List = async1;
-          break;
-        case "Disabled":
-          IEnumerable<StockOrderTemplate> async2 = await templatesListViewModel.Repository.GetAsync((Expression<Func<StockOrderTemplate, bool>>) (x => x.IsDisabled));
-          templatesListViewModel.List = async2;
-          break;
-        default:
-          IEnumerable<StockOrderTemplate> async3 = await templatesListViewModel.Repository.GetAsync();
-          templatesListViewModel.List = async3;
-          break;
-      }
-      templatesListViewModel.SubCaption = filter.Title;
-    }
-    catch (Exception ex)
-    {
-      templatesListViewModel.UserInteractionService.ShowExceptionMessage(ex);
-    }
-    if (!setBusiness)
-      return;
-    templatesListViewModel.IsBusy = false;
-  }
+        StockOrderTemplatesListViewModel templatesListViewModel = this;
+        if (setBusiness)
+            templatesListViewModel.IsBusy = true;
+        try
+        {
+            // 1. Безпечна перевірка на null
+            string tag = filter?.Tag?.ToString() ?? string.Empty;
 
-  protected virtual Task<int> CountByFilterAsync(ListFilter filter)
-  {
-    switch (filter.Tag.ToString())
-    {
-      case "Active":
-        return this.Repository.CountAsync((Expression<Func<StockOrderTemplate, bool>>) (x => !x.IsDisabled));
-      case "Disabled":
-        return this.Repository.CountAsync((Expression<Func<StockOrderTemplate, bool>>) (x => x.IsDisabled));
-      default:
-        return this.Repository.CountAsync();
+            switch (tag)
+            {
+                case "Active":
+                    IEnumerable<StockOrderTemplate> async1 = await templatesListViewModel.Repository.GetAsync((Expression<Func<StockOrderTemplate, bool>>)(x => !x.IsDisabled));
+                    templatesListViewModel.List = async1;
+                    break;
+                case "Disabled":
+                    IEnumerable<StockOrderTemplate> async2 = await templatesListViewModel.Repository.GetAsync((Expression<Func<StockOrderTemplate, bool>>)(x => x.IsDisabled));
+                    templatesListViewModel.List = async2;
+                    break;
+                default:
+                    IEnumerable<StockOrderTemplate> async3 = await templatesListViewModel.Repository.GetAsync();
+                    templatesListViewModel.List = async3;
+                    break;
+            }
+            templatesListViewModel.SubCaption = filter?.Title;
+        }
+        catch (Exception ex)
+        {
+            templatesListViewModel.UserInteractionService.ShowExceptionMessage(ex);
+        }
+        if (!setBusiness)
+            return;
+        templatesListViewModel.IsBusy = false;
     }
-  }
+
+    protected virtual Task<int> CountByFilterAsync(ListFilter filter)
+    {
+        // Безпечна перевірка на null
+        string tag = filter?.Tag?.ToString() ?? string.Empty;
+
+        switch (tag)
+        {
+            case "Active":
+                return this.Repository.CountAsync((Expression<Func<StockOrderTemplate, bool>>)(x => !x.IsDisabled));
+            case "Disabled":
+                return this.Repository.CountAsync((Expression<Func<StockOrderTemplate, bool>>)(x => x.IsDisabled));
+            default:
+                return this.Repository.CountAsync();
+        }
+    }
 }

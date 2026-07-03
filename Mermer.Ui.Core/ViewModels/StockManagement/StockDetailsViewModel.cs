@@ -340,4 +340,49 @@ public class StockDetailsViewModel : DetailsViewModel<Stock>
       Barcodes = (IEnumerable<string>) stringList
     });
   }
+
+    protected override async Task<bool> OnSaveAsync()
+    {
+        try
+        {
+            // 1. Перевірка назви товару
+            if (string.IsNullOrEmpty(Details.Name))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Name"]]);
+            }
+
+            // 2. Перевірка коду товару (якщо генератор коду чомусь не спрацював)
+            if (string.IsNullOrEmpty(Details.Code))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Code"]]);
+            }
+
+            // 3. Одиниця виміру (Unit) обов'язкова для складського обліку
+            if (string.IsNullOrEmpty(Details.Unit))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Unit"]]);
+            }
+
+            // 4. Перевірка базової ціни
+            if (Details.Price < 0)
+            {
+                throw new Exception(this["Price cannot be negative"]);
+            }
+
+            // 5. Якщо ціна вказана, обов'язково має бути вибрана валюта
+            if (Details.Price > 0 && string.IsNullOrEmpty(Details.CurrencyId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Currency"]]);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Показуємо еррор-меседж користувачу та зупиняємо збереження
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        // Якщо валідація пройдена — викликаємо збереження в базу
+        return await base.OnSaveAsync();
+    }
 }

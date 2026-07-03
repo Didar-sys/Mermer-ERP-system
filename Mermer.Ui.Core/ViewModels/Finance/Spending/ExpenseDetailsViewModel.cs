@@ -56,4 +56,27 @@ public class ExpenseDetailsViewModel(
     detailsViewModel.GroupNames = facets["GroupNames"].Select<KeyValuePair<string, int>, string>((Func<KeyValuePair<string, int>, string>) (x => x.Key)).ToArray<string>();
     detailsViewModel.TagNames = facets["TagNames"].Select<KeyValuePair<string, int>, string>((Func<KeyValuePair<string, int>, string>) (x => x.Key)).ToArray<string>();
   }
+
+    protected override async Task<bool> OnSaveAsync()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(Details.Name))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Name"]]);
+            }
+            // Перевірка групи (Group)
+            if (string.IsNullOrWhiteSpace(Details.Group))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Group"]]);
+            }
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        return await base.OnSaveAsync();
+    }
 }

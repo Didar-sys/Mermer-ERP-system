@@ -77,16 +77,25 @@ public class StockNameComposerDialogViewModel :
     }
   }
 
-  private Task OnComposeAsync()
-  {
-    return (Task) this.NavigationService.Close<SncParams>((IMvxViewModelResult<SncParams>) this, new SncParams()
+    private Task OnComposeAsync()
     {
-      ShortName = string.Join(" ", this.Values.Select<StockNameComposerValue, string>((Func<StockNameComposerValue, string>) (x => x.ShortName))),
-      Name = string.Join(" ", this.Values.Select<StockNameComposerValue, string>((Func<StockNameComposerValue, string>) (x => x.Name)))
-    });
-  }
+        // 1. Захист: якщо нічого не вибрано, не даємо закрити вікно і згенерувати пусту назву
+        if (this.Values == null || !this.Values.Any())
+        {
+            this.UserInteractionService.ShowMessage(this["Error", Array.Empty<object>()], this["Please select at least one value", Array.Empty<object>()]);
+            return Task.CompletedTask;
+        }
 
-  public override Task<bool> OnCloseAsync()
+        // 2. Склеюємо назву з безпечних (перевірених) значень. 
+        // (Я трохи почистив код від декомпільованого сміття для кращої читабельності)
+        return (Task)this.NavigationService.Close<SncParams>((IMvxViewModelResult<SncParams>)this, new SncParams()
+        {
+            ShortName = string.Join(" ", this.Values.Select(x => x.ShortName)),
+            Name = string.Join(" ", this.Values.Select(x => x.Name))
+        });
+    }
+
+    public override Task<bool> OnCloseAsync()
   {
     return this.NavigationService.Close<SncParams>((IMvxViewModelResult<SncParams>) this, (SncParams) null);
   }

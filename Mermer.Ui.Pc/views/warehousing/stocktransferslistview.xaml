@@ -19,7 +19,7 @@
       <menu:ListViewDetails/>
       <dxwui:AppBarSeparator/>
       <menu:CommonReload/>
-      <menu:ListPrint x:Name="PrintButton"/>
+      <menu:ListPrint x:Name="PrintButton" IsEnabled="{DXBinding '@e(GridControl).VisibleRowCount != 0'}"/>
       <menu:ListFilter x:Name="FilterButton"/>
       <menu:CommonClose/>
     </dxwui:AppBar>
@@ -30,7 +30,7 @@
     <ctrl:StyledGridControl x:Name="GridControl" PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
                             FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
                             SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}">
-      <dxg:GridControl.Columns>
+            <dxg:GridControl.Columns>
         <dxg:GridColumn FieldName="Date" SortOrder="Ascending" Header="{Localize Date}">
           <dxg:ColumnBase.EditSettings>
             <dxe:DateEditSettings DisplayFormat="g"/>

@@ -34,7 +34,7 @@
       <menu:DetailsSaveAndClose/>
       <dxwui:AppBarSeparator Visibility="{Binding HasSaveAccess, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
       <menu:CommonReload/>
-      <menu:ListPrint x:Name="PrintButton"/>
+      <menu:ListPrint x:Name="PrintButton" IsEnabled="{DXBinding '@e(GridControl).VisibleRowCount != 0'}"/>
       <dxwui:AppBarButton HorizontalAlignment="Right" hlp:ShortcutExtender.Shortcut="Ctrl+."
                           Style="{StaticResource AppBarButtonBaseStyle}" Label="{Localize More}"
                           Glyph="{dx:DXImageOffice2013 Image=Status_32x32.png}">
@@ -187,8 +187,10 @@
                               IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"/>
               </dxlc:LayoutItem>
               <dxlc:LayoutItem Label="{Localize Warehouse}">
-                <dxg:LookUpEdit AllowDefaultButton="False" IsReadOnly="true" DisplayMember="Name" ValueMember="Id"
-                                EditValue="{Binding Details.WarehouseId, Mode=OneWay}" ItemsSource="{Binding Warehouses.List}"/>
+                <dxg:LookUpEdit DisplayMember="Name" ValueMember="Id"
+                  EditValue="{Binding Details.WarehouseId, UpdateSourceTrigger=PropertyChanged}" 
+                  ItemsSource="{Binding Warehouses.List}"
+                  IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"/>
               </dxlc:LayoutItem>
               <dxlc:LayoutItem Label="{Localize Status}">
                 <dxlc:LayoutGroup>

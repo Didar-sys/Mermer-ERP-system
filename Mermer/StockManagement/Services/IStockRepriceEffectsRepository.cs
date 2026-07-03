@@ -14,7 +14,7 @@ namespace Mermer.StockManagement.Services;
 
 public interface IStockRepriceEffectsRepository
 {
-  Task<int> CountAsync(DateTime from, DateTime till);
+  Task<int> CountAsync(DateTime from, DateTime till, string[] warehouseIds);
 
   Task<IEnumerable<DateTime>> GetChangeDatesAsync(DateTime from, DateTime till);
 

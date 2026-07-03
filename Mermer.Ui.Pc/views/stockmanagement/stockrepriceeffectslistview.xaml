@@ -17,7 +17,7 @@
         <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
             <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
             <menu:CommonReload/>
-            <menu:ListPrint x:Name="PrintButton"/>
+            <menu:ListPrint x:Name="PrintButton" IsEnabled="{DXBinding '@e(GridControl).VisibleRowCount != 0'}"/>
             <menu:ListFilter x:Name="FilterButton"/>
             <menu:CommonClose/>
         </dxwui:AppBar>

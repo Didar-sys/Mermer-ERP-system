@@ -182,10 +182,26 @@ public class FundsBalancesListViewModel :
         return x => true;
     }
 
-    protected override Task<int> CountListAsync(
-    params Expression<Func<FundsBalanceByTypeWithBalance, bool>>[] predicates)
+    protected override async Task<int> CountListAsync(params Expression<Func<FundsBalanceByTypeWithBalance, bool>>[] predicates)
     {
-        // Повертаємо 0, якщо не знаємо, як рахувати, або реалізуй логіку, якщо потрібно
-        return Task.FromResult(0);
+        // Якщо DepositoryId порожній, передаємо null або пустий рядок в репозиторій,
+        // щоб він дістав баланси по ВСІХ касах, а не шукав касу з ім'ям "null"
+        var depId = string.IsNullOrEmpty(this.DepositoryId) ? null : this.DepositoryId;
+        var result = await this._repository.GetByTypeAsync(depId, null, null);
+        return result != null ? result.Count() : 0;
+    }
+
+    protected override async Task<int> CountFilteredListAsync(ListFilter filter)
+    {
+        var depId = string.IsNullOrEmpty(this.DepositoryId) ? null : this.DepositoryId;
+        var result = await this._repository.GetByTypeAsync(depId, null, null);
+        return result != null ? result.Count() : 0;
+    }
+
+    protected override async Task<int> CountFilteredListByDateAsync(DateTime from, DateTime till)
+    {
+        var depId = string.IsNullOrEmpty(this.DepositoryId) ? null : this.DepositoryId;
+        var result = await this._repository.GetByTypeAsync(depId, from, till);
+        return result != null ? result.Count() : 0;
     }
 }

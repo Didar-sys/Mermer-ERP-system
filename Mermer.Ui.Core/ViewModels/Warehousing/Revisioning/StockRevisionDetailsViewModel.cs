@@ -599,7 +599,42 @@ public class StockRevisionDetailsViewModel : TransactionDetailsViewModel<StockRe
     }
   }
 
-  protected virtual async Task OnCreateRevisionDeficitsSlipCommandAsync()
+    protected override async Task<bool> OnSaveAsync()
+    {
+        try
+        {
+            // 1. Обов'язково має бути вибраний склад для інвентаризації
+            if (string.IsNullOrEmpty(Details.WarehouseId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
+            }
+
+            // 2. Документ інвентаризації не може бути без товарних позицій (рядків)
+            if (Lines == null || !Lines.Any())
+            {
+                throw new Exception(this["Document cannot be empty"]);
+            }
+
+            // 3. За необхідності валідуємо кожен рядок (залежить від структури StockRevisionLine)
+            // Наприклад, забороняємо від'ємну фактичну кількість, якщо це заборонено логікою бізнесу
+            foreach (var line in Lines)
+            {
+                // Якщо у вашій системі CountedQuantity (або подібне поле) не може бути < 0
+                // if (line.Quantity < 0) 
+                //     throw new Exception(this["Quantity cannot be negative"]);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Відображаємо помилку користувачу та перериваємо збереження
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        // Якщо все окей — зберігаємо
+        return await base.OnSaveAsync();
+    }
+    protected virtual async Task OnCreateRevisionDeficitsSlipCommandAsync()
   {
     StockRevisionDetailsViewModel detailsViewModel = this;
     detailsViewModel.IsBusy = true;

@@ -535,141 +535,79 @@
           </dxlc:LayoutGroup>
         </dxlc:LayoutGroup>
         <dxlc:LayoutGroup Orientation="Vertical" HorizontalAlignment="Right" Width="400">
-          <dxlc:LayoutGroup View="Tabs">
-            <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize Details}">
-              <dxlc:LayoutItem Label="{Localize Code}">
-                <dxe:TextEdit EditValue="{Binding Details.Code, UpdateSourceTrigger=PropertyChanged}"
-                              IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"/>
-              </dxlc:LayoutItem>
-              <dxlc:LayoutItem Label="{Localize Date}">
-                <dxe:DateEdit Mask="f" MaskUseAsDisplayFormat="true"
-                              EditValue="{Binding Details.Date, UpdateSourceTrigger=PropertyChanged}"
-                              IsReadOnly="{Binding CanChangeDate, Converter={dxmvvm:BooleanNegationConverter}}"/>
-              </dxlc:LayoutItem>
-              <dxlc:LayoutItem Label="{Localize 'Due Date'}">
-                <dxe:DateEdit Mask="D" MaskUseAsDisplayFormat="true"
-                              EditValue="{Binding Details.DueDate, UpdateSourceTrigger=PropertyChanged}"
-                              IsReadOnly="{Binding CanChangeDate, Converter={dxmvvm:BooleanNegationConverter}}"/>
-              </dxlc:LayoutItem>
-              <dxlc:LayoutItem Height="10"/>
-              <dxlc:LayoutItem Label="{Localize Partner}">
-                <dxg:LookUpEdit x:Name="PartnerEditor" DisplayMember="Fullname" ValueMember="Id" AutoPopulateColumns="false"
-                                EditValue="{Binding Details.PartnerId, UpdateSourceTrigger=PropertyChanged}"
-                                IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"
-                                ItemsSource="{Binding Partners.List}" AllowDefaultButton="{Binding HasSaveAccess}">
-                  <dxe:PopupBaseEdit.PopupContentTemplate>
-                    <ControlTemplate>
-                      <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
-                        <dxg:GridControl.Columns>
-                          <dxg:GridColumn FieldName="Code" Header="{Localize Code}"/>
-                          <dxg:GridColumn FieldName="Name" Width="300" Header="{Localize Name}"/>
-                        </dxg:GridControl.Columns>
-                        <dxg:GridControl.View>
-                          <dxg:TableView AutoWidth="true"/>
-                        </dxg:GridControl.View>
-                      </dxg:GridControl>
-                    </ControlTemplate>
-                  </dxe:PopupBaseEdit.PopupContentTemplate>
-                  <dxg:LookUpEdit.StyleSettings>
-                    <dxg:SearchLookUpEditStyleSettings/>
-                  </dxg:LookUpEdit.StyleSettings>
-                  <dxe:ButtonInfo GlyphKind="Cancel" Command="{Binding RemovePartnerCommand}"
-                                  Visibility="{Binding HasSaveAccess, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
-                  <dxe:ButtonInfo GlyphKind="Regular" Command="{Binding SelectPartnerCommand}"
-                                  Visibility="{Binding HasSaveAccess, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
-                </dxg:LookUpEdit>
-              </dxlc:LayoutItem>
-              <dxlc:LayoutItem Label="{Localize Office}">
-                <dxg:LookUpEdit DisplayMember="Name" ValueMember="Id" AutoPopulateColumns="false"
-                                EditValue="{Binding Details.OfficeId, UpdateSourceTrigger=PropertyChanged}"
-                                IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"
-                                ItemsSource="{Binding Offices.List}" AllowDefaultButton="{Binding HasSaveAccess}">
-                  <dxe:PopupBaseEdit.PopupContentTemplate>
-                    <ControlTemplate>
-                      <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
-                        <dxg:GridControl.Columns>
-                          <dxg:GridColumn FieldName="Name"/>
-                        </dxg:GridControl.Columns>
-                        <dxg:GridControl.View>
-                          <dxg:TableView AutoWidth="true"/>
-                        </dxg:GridControl.View>
-                      </dxg:GridControl>
-                    </ControlTemplate>
-                  </dxe:PopupBaseEdit.PopupContentTemplate>
-                  <dxg:LookUpEdit.StyleSettings>
-                    <dxg:SearchLookUpEditStyleSettings/>
-                  </dxg:LookUpEdit.StyleSettings>
-                  <dxe:ButtonInfo GlyphKind="Regular" Command="{Binding SelectOfficeCommand}"
-                                  Visibility="{Binding HasSaveAccess, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
-                </dxg:LookUpEdit>
-              </dxlc:LayoutItem>
-              <dxlc:LayoutItem Label="{Localize Warehouse}">
-                <dxg:LookUpEdit DisplayMember="Name" ValueMember="Id" AutoPopulateColumns="false"
-                                EditValue="{Binding Details.WarehouseId, UpdateSourceTrigger=PropertyChanged}"
-                                IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"
-                                ItemsSource="{Binding Warehouses.List}" AllowDefaultButton="{Binding HasSaveAccess}">
-                  <dxe:PopupBaseEdit.PopupContentTemplate>
-                    <ControlTemplate>
-                      <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
-                        <dxg:GridControl.Columns>
-                          <dxg:GridColumn FieldName="Name"/>
-                        </dxg:GridControl.Columns>
-                        <dxg:GridControl.View>
-                          <dxg:TableView AutoWidth="true"/>
-                        </dxg:GridControl.View>
-                      </dxg:GridControl>
-                    </ControlTemplate>
-                  </dxe:PopupBaseEdit.PopupContentTemplate>
-                  <dxg:LookUpEdit.StyleSettings>
-                    <dxg:SearchLookUpEditStyleSettings/>
-                  </dxg:LookUpEdit.StyleSettings>
-                  <dxe:ButtonInfo GlyphKind="Regular" Command="{Binding SelectWarehouseCommand}"
-                                  Visibility="{Binding HasSaveAccess, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
-                </dxg:LookUpEdit>
-              </dxlc:LayoutItem>
-              <dxlc:LayoutItem Label="{Localize Depository}">
-                <dxg:LookUpEdit DisplayMember="Name" ValueMember="Id" AutoPopulateColumns="false"
-                                EditValue="{Binding Details.DepositoryId, UpdateSourceTrigger=PropertyChanged}"
-                                IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"
-                                ItemsSource="{Binding Depositories.List}" AllowDefaultButton="{Binding HasSaveAccess}">
-                  <dxe:PopupBaseEdit.PopupContentTemplate>
-                    <ControlTemplate>
-                      <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
-                        <dxg:GridControl.Columns>
-                          <dxg:GridColumn FieldName="Name"/>
-                        </dxg:GridControl.Columns>
-                        <dxg:GridControl.View>
-                          <dxg:TableView AutoWidth="true"/>
-                        </dxg:GridControl.View>
-                      </dxg:GridControl>
-                    </ControlTemplate>
-                  </dxe:PopupBaseEdit.PopupContentTemplate>
-                  <dxg:LookUpEdit.StyleSettings>
-                    <dxg:SearchLookUpEditStyleSettings/>
-                  </dxg:LookUpEdit.StyleSettings>
-                  <dxe:ButtonInfo GlyphKind="Regular" Command="{Binding SelectDepositoryCommand}"
-                                  Visibility="{Binding HasSaveAccess, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
-                </dxg:LookUpEdit>
-              </dxlc:LayoutItem>
-              <dxlc:LayoutItem Height="10"/>
-              <dxlc:LayoutItem Label="{Localize Type}">
-                <dxe:ComboBoxEdit DisplayMember="Text" ValueMember="Value"
-                                  EditValue="{Binding Details.InvoiceType, UpdateSourceTrigger=PropertyChanged}"
-                                  IsReadOnly="{Binding CanChangeType, Converter={dxmvvm:BooleanNegationConverter}}"
-                                  AllowDefaultButton="{Binding CanChangeType}" ItemsSource="{Binding Types}"/>
-              </dxlc:LayoutItem>
-              <dxlc:LayoutItem Label="{Localize Status}">
-                <dxlc:LayoutGroup>
-                  <dxe:CheckEdit Content="{Localize Completed}"
-                                 EditValue="{Binding Details.IsCompleted, UpdateSourceTrigger=PropertyChanged}"
-                                 IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"/>
-                  <dxe:CheckEdit Content="{Localize Deleted}"
-                                 EditValue="{Binding Details.IsDisabled, UpdateSourceTrigger=PropertyChanged}"
-                                 IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"/>
-                </dxlc:LayoutGroup>
-              </dxlc:LayoutItem>
-            </dxlc:LayoutGroup>
-          </dxlc:LayoutGroup>
+                    <dxlc:LayoutGroup View="Tabs">
+                        <dxlc:LayoutGroup.TabsStyle>
+                            <Style TargetType="{x:Type dx:DXTabControl}">
+                                <Setter Property="TabContentCacheMode" Value="CacheAllTabs"/>
+                            </Style>
+                        </dxlc:LayoutGroup.TabsStyle>
+
+                        <dxlc:LayoutGroup Header="{Localize Payments}">
+                            <dxg:GridControl ItemsSource="{Binding Details.Payments}">
+                                <dxg:GridColumn FieldName="Amount" Style="{StaticResource AmountDisplayFormat}" Header="{Localize Amount}"/>
+                                <dxg:GridColumn FieldName="CurrencyId" Header="{Localize Currency}">
+                                    <dxg:ColumnBase.EditSettings>
+                                        <dxg:LookUpEditSettings AutoPopulateColumns="false" DisplayMember="Name" ValueMember="Id"
+                                    ItemsSource="{Binding Currencies.List}">
+                                            <dxe:PopupBaseEditSettings.PopupContentTemplate>
+                                                <ControlTemplate>
+                                                    <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
+                                                        <dxg:GridControl.Columns>
+                                                            <dxg:GridColumn FieldName="Name"/>
+                                                        </dxg:GridControl.Columns>
+                                                        <dxg:GridControl.View>
+                                                            <dxg:TableView AutoWidth="true"/>
+                                                        </dxg:GridControl.View>
+                                                    </dxg:GridControl>
+                                                </ControlTemplate>
+                                            </dxe:PopupBaseEditSettings.PopupContentTemplate>
+                                        </dxg:LookUpEditSettings>
+                                    </dxg:ColumnBase.EditSettings>
+                                </dxg:GridColumn>
+                                <dxg:GridControl.View>
+                                    <dxg:TableView AutoWidth="true" ShowGroupPanel="false" NewItemRowPosition="Bottom"
+                         AllowEditing="{Binding HasSaveAccess}"/>
+                                </dxg:GridControl.View>
+                            </dxg:GridControl>
+                        </dxlc:LayoutGroup>
+                    </dxlc:LayoutGroup>
+
+                    <dxlc:LayoutGroup View="Tabs">
+                        <dxlc:LayoutGroup.TabsStyle>
+                            <Style TargetType="{x:Type dx:DXTabControl}">
+                                <Setter Property="TabContentCacheMode" Value="CacheAllTabs"/>
+                            </Style>
+                        </dxlc:LayoutGroup.TabsStyle>
+
+                        <dxlc:LayoutGroup Header="{Localize Changes}">
+                            <dxg:GridControl ItemsSource="{Binding Details.Changes}">
+                                <dxg:GridColumn FieldName="Amount" Style="{StaticResource AmountDisplayFormat}" Header="{Localize Amount}"/>
+                                <dxg:GridColumn FieldName="CurrencyId" Header="{Localize Currency}">
+                                    <dxg:ColumnBase.EditSettings>
+                                        <dxg:LookUpEditSettings AutoPopulateColumns="false" DisplayMember="Name" ValueMember="Id"
+                                    ItemsSource="{Binding Currencies.List}">
+                                            <dxe:PopupBaseEditSettings.PopupContentTemplate>
+                                                <ControlTemplate>
+                                                    <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
+                                                        <dxg:GridControl.Columns>
+                                                            <dxg:GridColumn FieldName="Name"/>
+                                                        </dxg:GridControl.Columns>
+                                                        <dxg:GridControl.View>
+                                                            <dxg:TableView AutoWidth="true"/>
+                                                        </dxg:GridControl.View>
+                                                    </dxg:GridControl>
+                                                </ControlTemplate>
+                                            </dxe:PopupBaseEditSettings.PopupContentTemplate>
+                                        </dxg:LookUpEditSettings>
+                                    </dxg:ColumnBase.EditSettings>
+                                </dxg:GridColumn>
+                                <dxg:GridControl.View>
+                                    <dxg:TableView AutoWidth="true" ShowGroupPanel="false" NewItemRowPosition="Bottom"
+                         AllowEditing="{Binding HasSaveAccess}"/>
+                                </dxg:GridControl.View>
+                            </dxg:GridControl>
+                        </dxlc:LayoutGroup>
+                    </dxlc:LayoutGroup>
           <dxlc:LayoutItem Height="10"/>
           <dxlc:LayoutGroup View="Tabs">
             <dxlc:LayoutGroup Orientation="Vertical" Header="{Localize Additional}">

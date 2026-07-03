@@ -18,8 +18,8 @@
       <menu:ShowActions/>
       <dxwui:AppBarSeparator/>
       <menu:CommonReload/>
-      <menu:ListPrint x:Name="PrintButton"/>
-      <menu:ListFilter x:Name="FilterButton"/>
+            <menu:ListPrint x:Name="PrintButton" IsEnabled="{DXBinding '@e(GridControl).VisibleRowCount != 0'}"/>
+            <menu:ListFilter x:Name="FilterButton"/>
       <menu:CommonClose/>
     </dxwui:AppBar>
     <ctrl:ListFilterControl DockPanel.Dock="Left"

@@ -180,7 +180,51 @@ public class PartnerTransferDetailsViewModel : TransactionDetailsViewModel<Partn
     }
   }
 
-  public bool CanEditSelectedLine => this.HasSaveAccess && this.SelectedLine != null;
+    protected override async Task<bool> OnSaveAsync()
+    {
+        try
+        {
+            // 1. Перевіряємо, чи таблиця не порожня
+            if (Details.Lines == null || !Details.Lines.Any())
+            {
+                throw new Exception(this["Document cannot be empty"]);
+            }
+
+            // 2. Перевіряємо кожен рядок у таблиці на правильність
+            foreach (var line in Details.Lines)
+            {
+                // Обов'язково має бути вказаний Партнер
+                if (string.IsNullOrEmpty(line.PartnerId))
+                    throw new Exception(this["Field '{0}' is required", this["Partner"]]);
+
+                // Обов'язково має бути вказаний Офіс
+                if (string.IsNullOrEmpty(line.OfficeId))
+                    throw new Exception(this["Field '{0}' is required", this["Office"]]);
+
+                // Має бути хоч якась сума (або Дебет, або Кредит)
+                if (line.DebitAmount == 0 && line.CreditAmount == 0)
+                    throw new Exception(this["Amount must be greater than zero"]);
+
+                // Якщо є Дебет - обов'язкова валюта Дебету
+                if (line.DebitAmount > 0 && string.IsNullOrEmpty(line.DebitCurrencyId))
+                    throw new Exception(this["Field '{0}' is required", this["Currency"]]);
+
+                // Якщо є Кредит - обов'язкова валюта Кредиту
+                if (line.CreditAmount > 0 && string.IsNullOrEmpty(line.CreditCurrencyId))
+                    throw new Exception(this["Field '{0}' is required", this["Currency"]]);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Виводимо локалізовану помилку і блокуємо збереження
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        return await base.OnSaveAsync();
+    }
+
+    public bool CanEditSelectedLine => this.HasSaveAccess && this.SelectedLine != null;
 
   public ICommand SelectedLineDeleteCommand
   {

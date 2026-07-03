@@ -68,31 +68,31 @@ public class StocksListViewModel :
 
   public override string Caption => this["Stocks", Array.Empty<object>()];
 
-  public virtual string AdditionalPriceCurrencyId
-  {
-    get => this._additionalPriceCurrencyId;
-    set
+    public virtual string AdditionalPriceCurrencyId
     {
-      if (!this.SetProperty<string>(ref this._additionalPriceCurrencyId, value, nameof (AdditionalPriceCurrencyId)) || this.IsBusy)
-        return;
-      this.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => this.ShowAdditionalPrice));
-      this.Initialize();
+        get => this._additionalPriceCurrencyId;
+        set
+        {
+            if (!this.SetProperty<string>(ref this._additionalPriceCurrencyId, value, nameof(AdditionalPriceCurrencyId)) || this.IsBusy)
+                return;
+            this.RaisePropertyChanged<bool>(() => this.ShowAdditionalPrice);
+            this.Initialize();
+        }
     }
-  }
 
-  public virtual string AdditionalPriceGroup
-  {
-    get => this._additionalPriceGroup;
-    set
+    public virtual string AdditionalPriceGroup
     {
-      if (!this.SetProperty<string>(ref this._additionalPriceGroup, value, nameof (AdditionalPriceGroup)) || this.IsBusy)
-        return;
-      this.RaisePropertyChanged<bool>((Expression<Func<bool>>) (() => this.ShowAdditionalPrice));
-      this.Initialize();
+        get => this._additionalPriceGroup;
+        set
+        {
+            if (!this.SetProperty<string>(ref this._additionalPriceGroup, value, nameof(AdditionalPriceGroup)) || this.IsBusy)
+                return;
+            this.RaisePropertyChanged<bool>(() => this.ShowAdditionalPrice);
+            this.Initialize();
+        }
     }
-  }
 
-  public virtual bool ShowAdditionalPrice
+    public virtual bool ShowAdditionalPrice
   {
     get
     {
@@ -110,12 +110,29 @@ public class StocksListViewModel :
     set => this.SetProperty<string[]>(ref this._priceGroupNames, value, nameof (PriceGroupNames));
   }
 
-  protected async Task LoadFacetsAsync()
-  {
-    this.PriceGroupNames = (await this._repository.GetFacets("PriceGroupNames"))["PriceGroupNames"].Select<KeyValuePair<string, int>, string>((Func<KeyValuePair<string, int>, string>) (x => x.Key)).ToArray<string>();
-  }
+    protected virtual async Task LoadFacetsAsync()
+    {
+        try
+        {
+            var facets = await this._repository.GetFacets("PriceGroupNames");
 
-  public void Prepare(string parameter) => this.ItemId = parameter;
+            // Безпечна перевірка: якщо база повернула порожнечу, ми створимо пустий масив
+            if (facets != null && facets.ContainsKey("PriceGroupNames") && facets["PriceGroupNames"] != null)
+            {
+                this.PriceGroupNames = facets["PriceGroupNames"].Select(x => x.Key).ToArray();
+            }
+            else
+            {
+                this.PriceGroupNames = new string[0];
+            }
+        }
+        catch
+        {
+            this.PriceGroupNames = new string[0];
+        }
+    }
+
+    public void Prepare(string parameter) => this.ItemId = parameter;
 
   protected override Task PreLoad()
   {
@@ -124,16 +141,30 @@ public class StocksListViewModel :
 
     protected override async Task OnLoad()
     {
-        // Получаем данные из репозитория
-        IEnumerable<StockInfo> infoAsync = await _repository.GetInfoAsync(AdditionalPriceCurrencyId, AdditionalPriceGroup);
-        List = infoAsync;
-
-        // Если передан ItemId (например, при переходе к конкретному товару),
-        // находим его в списке и делаем выделенным.
-        if (!string.IsNullOrEmpty(ItemId))
+        try
         {
-            // Вместо \u003COnLoad\u003Eb__30_0 пишем нормальную лямбду:
-            SelectedItem = List.SingleOrDefault(x => x.Id == ItemId);
+            // 1. Захист від null. База даних падає, якщо передати їй null замість тексту.
+            string safeCurrency = AdditionalPriceCurrencyId ?? string.Empty;
+            string safeGroup = AdditionalPriceGroup ?? string.Empty;
+
+            // 2. Отримуємо дані з репозиторію з безпечними параметрами
+            IEnumerable<StockInfo> infoAsync = await _repository.GetInfoAsync(safeCurrency, safeGroup);
+
+            // 3. Матеріалізуємо список
+            var stockList = infoAsync?.ToList() ?? new List<StockInfo>();
+            List = stockList;
+
+            // 4. Відновлюємо виділений рядок (якщо він є)
+            if (!string.IsNullOrEmpty(ItemId) && stockList.Count > 0)
+            {
+                SelectedItem = stockList.FirstOrDefault(x => x != null && x.Id == ItemId);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Відображаємо помилку і очищаємо список, щоб уникнути зависання
+            List = new List<StockInfo>();
+            UserInteractionService.ShowExceptionMessage(ex);
         }
     }
 

@@ -113,12 +113,14 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
 
     protected override Task<int> CountFilteredListAsync(ListFilter filter)
     {
-        return this._repository.CountAsync(DateTime.MinValue, DateTime.MaxValue);
+        // ДОДАНО: this.WarehouseIds
+        return this._repository.CountAsync(DateTime.MinValue, DateTime.MaxValue, this.WarehouseIds);
     }
 
     protected override Task<int> CountFilteredListByDateAsync(DateTime from, DateTime till)
     {
-        return this._repository.CountAsync(from, till);
+        // ДОДАНО: this.WarehouseIds
+        return this._repository.CountAsync(from, till, this.WarehouseIds);
     }
 
     protected override Task<IEnumerable<StockRepriceEffect>> GetFilteredListAsync(ListFilter filter)
@@ -135,8 +137,8 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
 
     protected override Task<int> CountListAsync(params Expression<Func<StockRepriceEffect, bool>>[] predicates)
     {
-        // Рахуємо всі записи за весь час
-        return this._repository.CountAsync(DateTime.MinValue, DateTime.MaxValue);
+        // ДОДАНО: this.WarehouseIds
+        return this._repository.CountAsync(DateTime.MinValue, DateTime.MaxValue, this.WarehouseIds);
     }
 
     protected override Task<IEnumerable<StockRepriceEffect>> GetListAsync(params Expression<Func<StockRepriceEffect, bool>>[] predicates)

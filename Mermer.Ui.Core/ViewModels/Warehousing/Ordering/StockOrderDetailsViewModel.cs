@@ -242,11 +242,37 @@ public class StockOrderDetailsViewModel :
 
     protected override async Task<bool> OnSaveAsync()
     {
-        if (!await base.OnSaveAsync())
-            return false;
+        try
+        {
+            // 1. Перевірка вибору складу
+            if (string.IsNullOrEmpty(Details.WarehouseId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
+            }
 
-        await _printingService.PrintStockOrder(Details);
-        return true;
+            // 2. Перевірка наявності товарних позицій (заборона порожнього документа)
+            if (Details.Lines == null || !Details.Lines.Any())
+            {
+                throw new Exception(this["Document cannot be empty"]);
+            }
+
+            // 3. Перевірка кожного рядка замовлення
+            foreach (var line in Details.Lines)
+            {
+                // Кількість має бути строго більшою за нуль
+                if (line.Quantity <= 0)
+                    throw new Exception(this["Quantity must be greater than zero"]);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Показуємо повідомлення та блокуємо збереження
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        // Якщо все заповнено коректно — виконуємо збереження в базу
+        return await base.OnSaveAsync();
     }
 
     public CopyCreate CopyCreate { get; }

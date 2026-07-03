@@ -86,22 +86,62 @@ public class StocksRepository :
         if (!string.IsNullOrEmpty(additionalPriceCurrencyId))
         {
             var currencyList = await _currenciesRepository.GetAsync();
-            currencies = currencyList.ToDictionary(x => x.Id, x => x);
+            // Безпечно формуємо словник валют
+            currencies = currencyList?.Where(x => x != null && x.Id != null).ToDictionary(x => x.Id, x => x)
+                         ?? new Dictionary<string, Currency>();
         }
 
         var stocks = await GetAsync(Array.Empty<System.Linq.Expressions.Expression<Func<Stock, bool>>>());
+        if (stocks == null) return Enumerable.Empty<StockInfo>();
+
         return stocks.Select(stock =>
         {
+            if (stock == null) return null;
+
+            // 1. Безпечно отримуємо ціну. Якщо вона null — ставимо нуль за замовчуванням
             var price = stock.GetPrice(null, additionalPriceGroup);
+            if (price == null)
+            {
+                return new StockInfo
+                {
+                    Id = stock.Id,
+                    Code = stock.Code,
+                    Name = stock.Name,
+                    ShortName = stock.ShortName,
+                    Unit = stock.Unit,
+                    Price = stock.Price,
+                    CurrencyId = stock.CurrencyId,
+                    AdditionalPrice = 0, // Немає ціни — виводимо 0
+                    AdditionalPriceCurrencyId = additionalPriceCurrencyId,
+                    Type = stock.Type,
+                    Group = stock.Group,
+                    Tags = stock.Tags,
+                    Barcodes = stock.Barcodes,
+                    IsDisabled = stock.IsDisabled
+                };
+            }
+
             decimal num = price.Price;
             string str2 = price.CurrencyId;
 
-            if (!string.IsNullOrEmpty(additionalPriceCurrencyId) && price.CurrencyId != additionalPriceCurrencyId)
+            // 2. Безпечний перерахунок курсів валют
+            if (!string.IsNullOrEmpty(additionalPriceCurrencyId) && price.CurrencyId != additionalPriceCurrencyId && currencies != null)
             {
-                var rate1 = currencies[price.CurrencyId].GetRate();
-                var rate2 = currencies[additionalPriceCurrencyId].GetRate();
-                num = price.Price * rate1.Multiplier / rate1.Divider / rate2.Multiplier * rate2.Divider;
-                str2 = additionalPriceCurrencyId;
+                // Перевіряємо, чи існують обидві валюти в базі даних, щоб уникнути KeyNotFoundException
+                if (price.CurrencyId != null &&
+                    currencies.TryGetValue(price.CurrencyId, out var currency1) &&
+                    currencies.TryGetValue(additionalPriceCurrencyId, out var currency2))
+                {
+                    var rate1 = currency1?.GetRate();
+                    var rate2 = currency2?.GetRate();
+
+                    // Захист від ділення на нуль та null-рейтів
+                    if (rate1 != null && rate2 != null && rate1.Divider != 0 && rate2.Multiplier != 0)
+                    {
+                        num = price.Price * rate1.Multiplier / rate1.Divider / rate2.Multiplier * rate2.Divider;
+                        str2 = additionalPriceCurrencyId;
+                    }
+                }
             }
 
             return new StockInfo
@@ -121,7 +161,7 @@ public class StocksRepository :
                 Barcodes = stock.Barcodes,
                 IsDisabled = stock.IsDisabled
             };
-        });
+        }).Where(x => x != null).ToList(); // .ToList() відразу матеріалізує список в безпечному місці
     }
 
     public async Task MergeAsync(string mainStockId, string[] mergeStockIds, bool disableMergedItems)

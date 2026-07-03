@@ -62,6 +62,7 @@ public class DailyFundsRegisteriesListViewModel :
     return base.PreLoad();
   }
 
+
   protected override async Task<IEnumerable<DailyFundsRegistery>> GetFilteredListAsync(
     ListFilter filter)
   {

@@ -396,7 +396,33 @@ public class AggregatedStockOrderDetailsViewModel :
     detailsViewModel.IsBusy = false;
   }
 
-  public class Params
+    protected override async Task<bool> OnSaveAsync()
+    {
+        try
+        {
+            // 1. Обов'язкова перевірка вибору складу (Warehouse)
+            if (string.IsNullOrEmpty(Details.WarehouseId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
+            }
+
+            // 2. Перевірка наявності товарних позицій (заборона збереження порожнього документа)
+            if (Details.Lines == null || !Details.Lines.Any())
+            {
+                throw new Exception(this["Document cannot be empty"]);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Перехоплюємо помилку, показуємо повідомлення користувачу та блокуємо збереження
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        // Якщо всі перевірки пройдено — виконуємо стандартне збереження
+        return await base.OnSaveAsync();
+    }
+    public class Params
   {
     public string WarehouseId { get; set; }
 

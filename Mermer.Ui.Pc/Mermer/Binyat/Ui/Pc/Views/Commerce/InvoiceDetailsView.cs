@@ -23,8 +23,8 @@ public partial class InvoiceDetailsView : MvxWpfView
                 e.Handled = true;
                 break;
             case Key.Home:
-                PartnerEditor.Focus();
-                PartnerEditor.OpenPopupCommand.Execute(null);
+                //PartnerEditor.Focus();
+                //PartnerEditor.OpenPopupCommand.Execute(null);
                 e.Handled = true;
                 break;
             case Key.Insert:

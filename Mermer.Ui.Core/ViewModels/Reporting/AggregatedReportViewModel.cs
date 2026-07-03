@@ -83,7 +83,7 @@ public class AggregatedReportViewModel : BaseViewModel
         {
             var selectedOfficeIds = this.SelectedOfficeIds;
             return selectedOfficeIds != null
-                ? selectedOfficeIds.Select(x => x?.ToString()).ToArray()
+                ? selectedOfficeIds.Where(x => x != null).Select(x => x.ToString()).ToArray()
                 : Array.Empty<string>();
         }
     }
@@ -110,31 +110,51 @@ public class AggregatedReportViewModel : BaseViewModel
     }
   }
 
-  protected override async Task PreLoad()
-{
-    if (!_loaded && !OfficeIds.Any())
+    protected override async Task PreLoad()
     {
-        var config = await _configurator.GetConfigAsync<AppSettings>();
-        SelectedOfficeIds = new List<object> { config.DefaultOfficeId };
+        if (!_loaded && (SelectedOfficeIds == null || !SelectedOfficeIds.Any()))
+        {
+            var config = await _configurator.GetConfigAsync<AppSettings>();
+            if (config != null && !string.IsNullOrEmpty(config.DefaultOfficeId))
+            {
+                SelectedOfficeIds = new List<object> { config.DefaultOfficeId };
+            }
+            else
+            {
+                SelectedOfficeIds = new List<object>(); // Инициализируем пустым, если офиса нет
+            }
+        }
+
+        _loaded = true;
+
+        await Task.WhenAll(
+            base.PreLoad(),
+            Offices.Initialize()
+        );
     }
-    
-    _loaded = true;
-    
-    await Task.WhenAll(
-        base.PreLoad(), 
-        Offices.Initialize()
-    );
-}
 
-  protected override async Task OnLoad()
-  {
-    AggregatedReportViewModel aggregatedReportViewModel = this;
-    AggregatedReport async = await aggregatedReportViewModel._repository.GetAsync(aggregatedReportViewModel.OfficeIds, aggregatedReportViewModel.DateFilterFrom, aggregatedReportViewModel.DateFilterTillInclusive);
-    aggregatedReportViewModel.Report = async;
-    aggregatedReportViewModel.SubCaption = $"{aggregatedReportViewModel.DateFilterFrom:MMM d} - {aggregatedReportViewModel.DateFilterTill:MMM d}";
-  }
+    protected override async Task OnLoad()
+    {
+        try
+        {
+            // Безопасный вызов репозитория
+            var safeOfficeIds = this.OfficeIds ?? Array.Empty<string>();
+            var fetchedReport = await this._repository.GetAsync(safeOfficeIds, this.DateFilterFrom, this.DateFilterTillInclusive);
 
-  public ICommand ReloadCommand
+            // Если база вернула null, создаем пустой каркас отчета, чтобы XAML не упал
+            this.Report = fetchedReport ?? new AggregatedReport();
+
+            this.SubCaption = $"{this.DateFilterFrom:MMM d} - {this.DateFilterTill:MMM d}";
+        }
+        catch (Exception ex)
+        {
+            // Если ошибка произойдет глубоко в базе, мы ее перехватим и не дадим крашнуть окно
+            this.Report = new AggregatedReport();
+            this.UserInteractionService.ShowExceptionMessage(ex);
+        }
+    }
+
+    public ICommand ReloadCommand
   {
     get
     {

@@ -67,8 +67,8 @@ public class StockAlternativeDetailsViewModel : DetailsViewModel<StockAlternativ
 
   public bool IsLineSelected => this.SelectedLine != null;
 
-  public ICommand SelectedLineDelete
-  {
+  public ICommand SelectedLineDeleteCommand
+    {
     get
     {
       return (ICommand) new MvxCommand(new Action(this.OnSelectedLineDelete), (Func<bool>) (() => !this.IsBusy && this.IsLineSelected));
@@ -94,6 +94,33 @@ public class StockAlternativeDetailsViewModel : DetailsViewModel<StockAlternativ
             Details.Lines = new ObservableCollection<StockAlternativeLine>();
 
         await LoadStocksCache();
+    }
+
+    protected override async Task<bool> OnSaveAsync()
+    {
+        try
+        {
+            // 1. Обов'язкова перевірка поля "Назва" (Name)
+            if (string.IsNullOrEmpty(Details.Name))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Name"]]);
+            }
+
+            // 2. Заборона збереження документа без жодного товару-аналога
+            if (Details.Lines == null || !Details.Lines.Any())
+            {
+                throw new Exception(this["Document cannot be empty"]);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Перехоплюємо помилку, показуємо локалізоване повідомлення і блокуємо збереження
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        // Якщо всі перевірки пройдено — виконуємо стандартне збереження
+        return await base.OnSaveAsync();
     }
 
     private async Task LoadStocksCache()

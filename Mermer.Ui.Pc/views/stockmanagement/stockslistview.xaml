@@ -23,7 +23,7 @@
       <menu:ListMerge/>
       <dxwui:AppBarSeparator/>
       <menu:CommonReload/>
-      <menu:ListPrint x:Name="PrintButton"/>
+      <menu:ListPrint x:Name="PrintButton" IsEnabled="{DXBinding '@e(GridControl).VisibleRowCount != 0'}"/>
       <menu:ListFilter x:Name="FilterButton"/>
       <menu:CommonClose/>
       <dxwui:AppBarButton Label="Synch Duzelt" HorizontalAlignment="Right" Style="{StaticResource AppBarButtonBaseStyle}"

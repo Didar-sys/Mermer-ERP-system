@@ -67,4 +67,55 @@ public class FundsTransferDetailsViewModel(
     fundsTransfer.DestinationDepositoryId = await detailsViewModel.NavigationService.Navigate<ListViewModel<Depository>, string, string>(detailsViewModel.Details.DestinationDepositoryId ?? Guid.Empty.ToString());
     fundsTransfer = (FundsTransfer) null;
   }
+
+    protected override async Task<bool> OnSaveAsync()
+    {
+        try
+        {
+            // 1. Обов'язково має бути вказана каса-відправник
+            if (string.IsNullOrEmpty(Details.DepositoryId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Source Depository"]]);
+            }
+
+            // 2. Обов'язково має бути вказана каса-одержувач
+            if (string.IsNullOrEmpty(Details.DestinationDepositoryId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Destination Depository"]]);
+            }
+
+            // 3. Логічний захист: каса-відправник і каса-одержувач не можуть бути однаковими
+            if (Details.DepositoryId == Details.DestinationDepositoryId)
+            {
+                throw new Exception(this["Source and destination depositories cannot be the same"]);
+            }
+
+            // 4. Документ не може бути порожнім
+            if (Details.Lines == null || !Details.Lines.Any())
+            {
+                throw new Exception(this["Document cannot be empty"]);
+            }
+
+            // 5. Перевірка кожного рядка в таблиці
+            foreach (var line in Details.Lines)
+            {
+                // Сума має бути більшою за нуль
+                if (line.Amount <= 0)
+                    throw new Exception(this["Amount must be greater than zero"]);
+
+                // Валюта є обов'язковою
+                if (string.IsNullOrEmpty(line.CurrencyId))
+                    throw new Exception(this["Field '{0}' is required", this["Currency"]]);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Виводимо повідомлення та блокуємо збереження
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        // Якщо все заповнено правильно — викликаємо стандартне збереження
+        return await base.OnSaveAsync();
+    }
 }

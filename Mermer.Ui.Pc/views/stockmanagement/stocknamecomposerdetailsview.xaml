@@ -4,6 +4,7 @@
                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                 xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+                xmlns:sys="clr-namespace:System;assembly=mscorlib"
                 xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
                 xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
                 xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
@@ -29,7 +30,7 @@
             <dxlc:LayoutGroup Orientation="Vertical" Width="400">
               <dxlc:LayoutItem Label="{Localize Order}">
                 <dxe:SpinEdit x:Name="FirstFocus" EditValue="{Binding Details.Order, UpdateSourceTrigger=PropertyChanged}"
-                              IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"/>
+                              IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}" IsFloatValue="False" EditValueType="{x:Type sys:Int32}"/>
               </dxlc:LayoutItem>
               <dxlc:LayoutItem Label="{Localize Name}">
                 <dxe:TextEdit EditValue="{Binding Details.Name, UpdateSourceTrigger=PropertyChanged}"

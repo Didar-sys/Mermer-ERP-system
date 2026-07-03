@@ -4,18 +4,19 @@
 // MVID: DC92D011-8413-44AC-9F10-F866D891CF66
 // Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
 
-using MvvmCross.Core.Navigation;
-using MvvmCross.Plugins.Messenger;
 using Mermer.Authorization.Services;
+using Mermer.Data.Authorizers;
+using Mermer.Data.Storage;
 using Mermer.Enterprise.Models;
+using Mermer.Mvvm.Services;
 using Mermer.Ui.Core.Helpers;
 using Mermer.Ui.Core.ViewModels.Common;
 using Mermer.Warehousing.Ordering.Models;
-using Mermer.Data.Authorizers;
-using Mermer.Data.Storage;
-using Mermer.Mvvm.Services;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Plugins.Messenger;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -85,39 +86,45 @@ public class StockOrdersListViewModel : TransactionsListViewModel<StockOrder>
 
   protected override Task PreLoad() => Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize());
 
-  protected override Task<int> CountFilteredListAsync(ListFilter filter)
-  {
-    switch (filter.Tag.ToString())
+    protected override Task<int> CountFilteredListAsync(ListFilter filter)
     {
-      case "My Orders":
-        string userId = this._loginService.Session.UserId;
-        return this.Repository.CountAsync((Expression<Func<StockOrder, bool>>) (x => x.UserId == userId));
-      case "Open":
-        return this.Repository.CountAsync((Expression<Func<StockOrder, bool>>) (x => !x.IsCompleted && !x.IsDisabled));
-      case "Completed":
-        return this.Repository.CountAsync((Expression<Func<StockOrder, bool>>) (x => x.IsCompleted && !x.IsDisabled));
-      case "Deleted":
-        return this.Repository.CountAsync((Expression<Func<StockOrder, bool>>) (x => x.IsDisabled));
-      default:
-        return base.CountFilteredListAsync(filter);
-    }
-  }
+        if (filter?.Tag == null) return base.CountFilteredListAsync(filter);
 
-  protected override Task<IEnumerable<StockOrder>> GetFilteredListAsync(ListFilter filter)
-  {
-    switch (filter.Tag.ToString())
-    {
-      case "My Orders":
-        string userId = this._loginService.Session.UserId;
-        return this.Repository.GetAsync((Expression<Func<StockOrder, bool>>) (x => x.UserId == userId));
-      case "Open":
-        return this.Repository.GetAsync((Expression<Func<StockOrder, bool>>) (x => !x.IsCompleted && !x.IsDisabled));
-      case "Completed":
-        return this.Repository.GetAsync((Expression<Func<StockOrder, bool>>) (x => x.IsCompleted && !x.IsDisabled));
-      case "Deleted":
-        return this.Repository.GetAsync((Expression<Func<StockOrder, bool>>) (x => x.IsDisabled));
-      default:
-        return base.GetFilteredListAsync(filter);
+        switch (filter.Tag.ToString())
+        {
+            case "My Orders":
+                string userId = this._loginService.Session?.UserId;
+                if (string.IsNullOrEmpty(userId)) return Task.FromResult(0);
+                return this.Repository.CountAsync((Expression<Func<StockOrder, bool>>)(x => x.UserId == userId));
+            case "Open":
+                return this.Repository.CountAsync((Expression<Func<StockOrder, bool>>)(x => !x.IsCompleted && !x.IsDisabled));
+            case "Completed":
+                return this.Repository.CountAsync((Expression<Func<StockOrder, bool>>)(x => x.IsCompleted && !x.IsDisabled));
+            case "Deleted":
+                return this.Repository.CountAsync((Expression<Func<StockOrder, bool>>)(x => x.IsDisabled));
+            default:
+                return base.CountFilteredListAsync(filter);
+        }
     }
-  }
+
+    protected override Task<IEnumerable<StockOrder>> GetFilteredListAsync(ListFilter filter)
+    {
+        if (filter?.Tag == null) return base.GetFilteredListAsync(filter);
+
+        switch (filter.Tag.ToString())
+        {
+            case "My Orders":
+                string userId = this._loginService.Session?.UserId;
+                if (string.IsNullOrEmpty(userId)) return Task.FromResult(Enumerable.Empty<StockOrder>());
+                return this.Repository.GetAsync((Expression<Func<StockOrder, bool>>)(x => x.UserId == userId));
+            case "Open":
+                return this.Repository.GetAsync((Expression<Func<StockOrder, bool>>)(x => !x.IsCompleted && !x.IsDisabled));
+            case "Completed":
+                return this.Repository.GetAsync((Expression<Func<StockOrder, bool>>)(x => x.IsCompleted && !x.IsDisabled));
+            case "Deleted":
+                return this.Repository.GetAsync((Expression<Func<StockOrder, bool>>)(x => x.IsDisabled));
+            default:
+                return base.GetFilteredListAsync(filter);
+        }
+    }
 }

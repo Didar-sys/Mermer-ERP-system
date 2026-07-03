@@ -66,9 +66,47 @@ public class ExpenseSlipDetailsViewModel :
 
     protected override async Task<bool> OnSaveAsync()
     {
+        try
+        {
+            // 1. Обов'язково має бути вибрана Каса (Depository)
+            if (string.IsNullOrEmpty(Details.DepositoryId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Depository"]]);
+            }
+
+            // 2. Документ не може бути порожнім
+            if (Details.Lines == null || !Details.Lines.Any())
+            {
+                throw new Exception(this["Document cannot be empty"]);
+            }
+
+            // 3. Перевірка кожного рядка в таблиці
+            foreach (var line in Details.Lines)
+            {
+                // Має бути обрана стаття витрат (Expense)
+                if (string.IsNullOrEmpty(line.ExpenseId))
+                    throw new Exception(this["Field '{0}' is required", this["Expense"]]);
+
+                // Сума має бути більшою за нуль
+                if (line.Amount <= 0)
+                    throw new Exception(this["Amount must be greater than zero"]);
+
+                // Валюта є обов'язковою
+                if (string.IsNullOrEmpty(line.CurrencyId))
+                    throw new Exception(this["Field '{0}' is required", this["Currency"]]);
+            }
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false; // Блокуємо збереження
+        }
+
+        // Оригінальна логіка збереження
         if (!await base.OnSaveAsync())
             return false;
 
+        // Оригінальна логіка автоматичного друку після успішного збереження
         await _printingService.PrintExpenseSlip(Details);
         return true;
     }

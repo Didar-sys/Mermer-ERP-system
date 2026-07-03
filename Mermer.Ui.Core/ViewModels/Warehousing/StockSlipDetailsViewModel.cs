@@ -4,11 +4,13 @@
 // MVID: DC92D011-8413-44AC-9F10-F866D891CF66
 // Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
 
-using MvvmCross.Core.Navigation;
-using MvvmCross.Core.ViewModels;
 using Mermer.Authorization.Services;
+using Mermer.Data.Authorizers;
+using Mermer.Data.Storage;
 using Mermer.Enterprise.Models;
 using Mermer.FundsManagement.Models;
+using Mermer.Mvvm.Services;
+using Mermer.Services;
 using Mermer.StockManagement.Models;
 using Mermer.StockManagement.Models.Extenders;
 using Mermer.StockManagement.Services;
@@ -18,14 +20,13 @@ using Mermer.Ui.Core.Services;
 using Mermer.Ui.Core.ViewModels.Common;
 using Mermer.Ui.Core.ViewModels.Transactions;
 using Mermer.Warehousing.Models;
-using Mermer.Data.Authorizers;
-using Mermer.Data.Storage;
-using Mermer.Mvvm.Services;
-using Mermer.Services;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Core.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -72,6 +73,44 @@ public class StockSlipDetailsViewModel :
 
     protected override async Task<bool> OnSaveAsync()
     {
+        try
+        {
+            // 1. Обов'язково має бути вибраний склад (Warehouse)
+            if (string.IsNullOrEmpty(Details.WarehouseId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
+            }
+
+            // 2. Документ не може бути без товарних позицій
+            if (Details.Lines == null || !Details.Lines.Any())
+            {
+                throw new Exception(this["Document cannot be empty"]);
+            }
+
+            // 3. Валідація кожного рядка накладної
+            foreach (var line in Details.Lines)
+            {
+                // Кількість товару повинна бути більшою за нуль
+                if (line.Quantity <= 0)
+                    throw new Exception(this["Quantity must be greater than zero"]);
+
+                // Якщо увімкнено редагування ціни, вона не повинна бути від'ємною
+                if (Details.IsPriceEditable && line.Price < 0)
+                    throw new Exception(this["Price cannot be negative"]);
+
+                // Перевірка наявності прив'язки до валюти
+                if (string.IsNullOrEmpty(line.CurrencyId))
+                    throw new Exception(this["Field '{0}' is required", this["Currency"]]);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Відображаємо помилку користувачу та перериваємо ланцюжок збереження/друку
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        // Якщо все супер — фіксуємо тип, викликаємо базове збереження та друкуємо
         _newSlipType = Details.SlipType;
         if (!await base.OnSaveAsync())
             return false;
@@ -81,22 +120,38 @@ public class StockSlipDetailsViewModel :
     }
 
     protected override void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
-  {
-    base.Details_PropertyChanged(sender, e);
-    if (!(e.PropertyName == "IsPriceEditable") || this.Details.IsPriceEditable)
-      return;
-    foreach (StockSlipLine line in (Collection<StockSlipLine>) this.Details.Lines)
     {
-      Stock fromStocksCache = this.GetFromStocksCache(line.StockId);
-      Decimal num = line.ActionQuantity / line.Quantity;
-      DateTime? date = new DateTime?(this.Details.Date);
-      StockPrice price = fromStocksCache.GetPrice(date);
-      line.Price = price.Price * num;
-      line.CurrencyId = price.CurrencyId;
-    }
-  }
+        base.Details_PropertyChanged(sender, e);
 
-  protected override async Task OnSelectedLineEditAsync()
+        // Якщо змінилася валюта документа ("DisplayCurrencyId")
+        if (e.PropertyName == "DisplayCurrencyId")
+        {
+            var newCurrencyId = this.Details.DisplayCurrencyId;
+            if (!string.IsNullOrEmpty(newCurrencyId))
+            {
+                foreach (var line in this.Details.Lines)
+                {
+                    line.CurrencyId = newCurrencyId;
+                }
+            }
+        }
+
+        // Твоя існуюча логіка для цін
+        if (!(e.PropertyName == "IsPriceEditable") || this.Details.IsPriceEditable)
+            return;
+
+        foreach (StockSlipLine line in (Collection<StockSlipLine>)this.Details.Lines)
+        {
+            Stock fromStocksCache = this.GetFromStocksCache(line.StockId);
+            Decimal num = line.ActionQuantity / line.Quantity;
+            DateTime? date = new DateTime?(this.Details.Date);
+            StockPrice price = fromStocksCache.GetPrice(date);
+            line.Price = price.Price * num;
+            line.CurrencyId = price.CurrencyId;
+        }
+    }
+
+    protected override async Task OnSelectedLineEditAsync()
   {
     StockSlipDetailsViewModel detailsViewModel = this;
     Stock stocksCacheAsync = await detailsViewModel.GetFromStocksCacheAsync(detailsViewModel.SelectedLine.StockId);
