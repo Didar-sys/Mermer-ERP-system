@@ -66,6 +66,20 @@
         </dxg:GridColumn>
         <dxg:GridColumn FieldName="Group" GroupIndex="0" Header="{Localize Group}"/>
       </dxg:GridControl.Columns>
-    </ctrl:StyledGridControl>
+            <dxg:GridControl.View>
+                <dxg:TableView AllowEditing="False" NavigationStyle="Row" ShowGroupPanel="False">
+                    <dxg:TableView.FormatConditions>
+                        <!-- Видалені перекази (червоний фон + закреслений текст) -->
+                        <dxg:FormatCondition Expression="[IsDisabled] = True" ApplyToRow="True" PredefinedFormatName="LightRedFillWithDarkRedText"/>
+                        <dxg:FormatCondition Expression="[IsDisabled] = True" ApplyToRow="True" PredefinedFormatName="StrikethroughText"/>
+
+                        <!-- Частково або повністю не прийняті перекази -->
+                        <dxg:FormatCondition Expression="[ActionReceivedTotal] &lt; [ActionTotal] And [IsDisabled] = False" 
+                                 ApplyToRow="True" 
+                                 PredefinedFormatName="LightRedFillWithDarkRedText"/>
+                    </dxg:TableView.FormatConditions>
+                </dxg:TableView>
+            </dxg:GridControl.View>
+        </ctrl:StyledGridControl>
   </DockPanel>
 </mvx:MvxWpfView>

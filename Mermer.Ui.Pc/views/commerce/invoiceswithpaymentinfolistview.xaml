@@ -16,8 +16,8 @@
     <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
       <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
       <menu:CommonReload/>
-      <menu:ListPrint x:Name="PrintButton"/>
-      <menu:ListFilter x:Name="FilterButton"/>
+            <menu:ListPrint x:Name="PrintButton" IsEnabled="{DXBinding '@e(GridControl).VisibleRowCount != 0'}"/>
+            <menu:ListFilter x:Name="FilterButton"/>
       <menu:CommonClose/>
     </dxwui:AppBar>
     <ctrl:ListFilterControl DockPanel.Dock="Left"
@@ -79,12 +79,12 @@
           </dxg:ColumnBase.EditSettings>
         </dxg:GridColumn>
         <dxg:GridColumn FieldName="Code" Header="{Localize Code}"/>
-        <dxg:GridColumn FieldName="PartnerId" Width="300" Header="{Localize Partner}">
+                <dxg:GridColumn FieldName="PartnerId" Width="300" Header="{Localize Partner}" ColumnFilterMode="DisplayText">
           <dxg:ColumnBase.EditSettings>
             <dxg:LookUpEditSettings DisplayMember="Fullname" ValueMember="Id" ItemsSource="{Binding Partners.List}"/>
           </dxg:ColumnBase.EditSettings>
         </dxg:GridColumn>
-        <dxg:GridColumn FieldName="OfficeId" Header="{Localize Office}">
+                <dxg:GridColumn FieldName="OfficeId" Header="{Localize Office}">
           <dxg:ColumnBase.EditSettings>
             <dxg:LookUpEditSettings DisplayMember="Name" ValueMember="Id" ItemsSource="{Binding Offices.List}"/>
           </dxg:ColumnBase.EditSettings>

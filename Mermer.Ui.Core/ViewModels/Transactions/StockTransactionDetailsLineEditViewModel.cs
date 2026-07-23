@@ -54,21 +54,13 @@ public class StockTransactionDetailsLineEditViewModel(
       this.PriceChanged = false;
     }
 
-    protected override void CalculatePriceOnCurrencyChange(string prevCurrencyId)
-    {
-      if (!this.ActionDate.HasValue || prevCurrencyId == this.CurrencyId)
-        return;
-      Currency currency1 = this.Currencies.SingleOrDefault<Currency>((Func<Currency, bool>) (x => x.Id == prevCurrencyId));
-      Currency currency2 = this.Currencies.SingleOrDefault<Currency>((Func<Currency, bool>) (x => x.Id == this.CurrencyId));
-      if (currency1 != null && currency2 != null)
-      {
-        CurrencyRate rate1 = currency1.GetRate(this.ActionDate);
-        CurrencyRate rate2 = currency2.GetRate(this.ActionDate);
-        this.Price = Math.Round(this.Price * rate1.Multiplier / rate1.Divider * rate2.Divider / rate2.Multiplier, currency2.Decimals);
-      }
-      this.PriceChanged = false;
+        protected override void CalculatePriceOnCurrencyChange(string prevCurrencyId)
+        {
+            // Вимикаємо автоперерахунок ціни при зміні валюти.
+            // Залишаємо суму точно такою, якою вона була або яку ввів користувач.
+            this.PriceChanged = false;
+        }
     }
-  }
 
   public class Result : BindableObject
   {

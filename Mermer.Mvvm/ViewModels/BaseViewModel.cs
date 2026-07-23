@@ -106,9 +106,9 @@ public abstract class BaseViewModel : MvxViewModel, IDisposable
     }
   }
 
-  public virtual Task<bool> OnCloseAsync() => this.NavigationService.Close((IMvxViewModel) this);
+    public virtual Task<bool> OnCloseAsync() => this.NavigationService.Close((IMvxViewModel)this);
 
-  public TaskCompletionSource<object> CloseCompletionSource { get; set; }
+    public TaskCompletionSource<object> CloseCompletionSource { get; set; }
 
   public override void ViewDestroy()
   {

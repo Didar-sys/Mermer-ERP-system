@@ -8,15 +8,16 @@ public partial class CommonClose : AppBarButton
 {
     public CommonClose() => InitializeComponent();
 
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    private void CloseButton_Click(object sender, System.Windows.RoutedEventArgs e)
     {
-        // 1. Знаходимо велике вікно (наприклад, InvoiceDetailsView), в якому лежить ця кнопка
-        var parentView = FindParentView(this);
-
-        if (parentView != null)
+        // Отримуємо поточну ViewModel нашої форми
+        if (this.DataContext is Mermer.Mvvm.ViewModels.BaseViewModel viewModel)
         {
-            // 2. Передаємо це вікно нашому кілеру вкладок!
-            Mermer.Ui.Pc.TabNavigationHelper.ForceCloseTab(parentView);
+            // Викликаємо правильну команду закриття з ViewModel (яка містить перевірку на IsDirty та біле вікно)
+            if (viewModel.CloseCommand != null && viewModel.CloseCommand.CanExecute(null))
+            {
+                viewModel.CloseCommand.Execute(null);
+            }
         }
     }
 

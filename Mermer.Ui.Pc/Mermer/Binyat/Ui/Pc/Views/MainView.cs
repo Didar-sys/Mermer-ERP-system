@@ -58,7 +58,7 @@ public partial class MainView : MvxWpfView
         });
     }
 
-    private void TabHiding(object sender, TabControlTabHidingEventArgs e)
+    private void TabHiding(object sender, DevExpress.Xpf.Core.TabControlTabHidingEventArgs e)
     {
         if (e.Item is FrameworkElement frameworkElement && frameworkElement.DataContext is BaseViewModel dataContext)
         {
@@ -124,35 +124,17 @@ public partial class MainView : MvxWpfView
 
     private void TabCloseButton_Click(object sender, RoutedEventArgs e)
     {
-        // Знаходимо кнопку та саму вкладку (DXTabItem), якій вона належить
-        if (sender is Button btn && btn.TemplatedParent is DXTabItem tabItem)
+        if (sender is Button btn && btn.TemplatedParent is DevExpress.Xpf.Core.DXTabItem tabItem)
         {
-            // Шукаємо View (форму) всередині вкладки
             var view = tabItem.Content as FrameworkElement ?? tabItem.DataContext as FrameworkElement;
 
-            // Отримуємо ViewModel цієї View
-            if (view?.DataContext is IMvxViewModel viewModel)
+            // ВАЖЛИВО: Звертаємося до ViewModel, щоб спрацювала логіка з білим вікном
+            if (view?.DataContext is BaseViewModel viewModel)
             {
-                try
+                if (viewModel.CloseCommand != null && viewModel.CloseCommand.CanExecute(null))
                 {
-                    // НАДІЙНИЙ СПОСІБ ЗАКРИТТЯ:
-                    // Викликаємо базовий навігаційний сервіс MvvmCross. 
-                    // Він гарантовано відправить запит у твій MainViewPresenter!
-                    var navService = MvvmCross.Platform.Mvx.Resolve<MvvmCross.Core.Navigation.IMvxNavigationService>();
-                    navService.Close(viewModel);
-                }
-                catch (Exception ex)
-                {
-                    // Якщо раптом щось піде не так (наприклад, стара версія MvvmCross)
-                    // використовуємо прямий виклик команди як запасний план
-
-                    // ВИПРАВЛЕНО ТУТ: використовуємо просто BaseViewModel
-                    if (viewModel is BaseViewModel baseVm &&
-                        baseVm.CloseCommand != null &&
-                        baseVm.CloseCommand.CanExecute(null))
-                    {
-                        baseVm.CloseCommand.Execute(null);
-                    }
+                    // Це запустить OnCloseAsync() у DetailsViewModel, де лежить наша перевірка!
+                    viewModel.CloseCommand.Execute(null);
                 }
             }
         }

@@ -191,13 +191,19 @@ public class DetailsViewModel<T> : BaseViewModel, IMvxViewModel<string>, IMvxVie
     {
         if (IsDirty)
         {
-            bool? nullable = UserInteractionService.ShowMessage(this["Closing"], this["Would you like to save?"], UserInteractionType.YesNoCancel);
-            if (!nullable.HasValue) return false;
+            // 1. Викликаємо фірмовий діалог з англійським текстом
+            bool? nullable = UserInteractionService.ShowMessage(
+                "Warning",
+                "Are you sure you want to close? Changes will be lost.",
+                UserInteractionType.YesNoCancel);
 
-            if (nullable.Value)
+            // 2. Якщо користувач натиснув No (false) або Cancel (null), скасовуємо закриття
+            if (nullable != true)
             {
-                if (!await OnSaveAsync()) return false;
+                return false;
             }
+
+            // Якщо натиснули "Yes" (true) - просто йдемо далі, щоб закрити вкладку без збереження
         }
 
         // ВАЖЛИВО: Викликаємо закриття вікна/вкладки через стандартний MvvmCross NavigationService

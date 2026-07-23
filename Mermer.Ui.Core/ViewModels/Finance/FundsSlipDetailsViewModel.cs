@@ -94,18 +94,35 @@ public class FundsSlipDetailsViewModel(
     {
         base.Details_PropertyChanged(sender, e);
 
-        // Якщо користувач змінив валюту документа
+        // Якщо користувач змінив головну валюту документа
         if (e.PropertyName == "DisplayCurrencyId")
         {
-            var newCurrencyId = this.Details.DisplayCurrencyId;
-            if (!string.IsNullOrEmpty(newCurrencyId))
+            // 1. Більше НЕ перезаписуємо line.CurrencyId у рядках!
+
+            // 2. Робимо мікро-паузу, щоб ядро встигло підтягнути правильний курс з бази
+            System.Threading.Tasks.Task.Run(async () =>
             {
-                // Оновлюємо валюту у всіх рядках
-                foreach (var line in this.Details.Lines)
+                await System.Threading.Tasks.Task.Delay(150);
+
+                // Повертаємось у головний потік інтерфейсу для оновлення UI
+                InvokeOnMainThread(() =>
                 {
-                    line.CurrencyId = newCurrencyId;
-                }
-            }
+                    if (this.Details.Lines != null)
+                    {
+                        foreach (var line in this.Details.Lines)
+                        {
+                            // Змушуємо існуючі рядки перерахувати свої суми для відображення
+                            line.RaisePropertyChanged("DisplayAmount");
+                            line.RaisePropertyChanged("DisplayTotal");
+                        }
+                    }
+
+                    // Примусово оновлюємо підсумок усього документа та таблицю внизу
+                    this.Details.RaisePropertyChanged("DisplayAmount");
+                    this.Details.RaisePropertyChanged("DisplayTotal");
+                    this.Details.RaisePropertyChanged("Lines");
+                });
+            });
         }
     }
 }

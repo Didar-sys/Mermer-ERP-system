@@ -58,6 +58,7 @@
     </FrameworkElement.Resources>
 
     <dxwui:HamburgerMenu x:Name="Menu" 
+                     dx:ThemeManager.ThemeName="Office2016Black"
                      Margin="0" Padding="0" Loaded="OnMenuLoaded"
                      PaneBackground="{StaticResource appBarBackgroundBrush}"
                      BottomBarBackground="{StaticResource appBarBackgroundBrush}"

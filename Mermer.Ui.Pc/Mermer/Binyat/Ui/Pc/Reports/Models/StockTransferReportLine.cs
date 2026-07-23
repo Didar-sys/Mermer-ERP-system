@@ -17,5 +17,6 @@ public class StockTransferReportLine : StockTransactionReportLine
 
   public Decimal ReceivedTotal { get; set; }
 
-  public bool IsConflicted => this.Total != this.ReceivedTotal;
+    // Тепер система вважає рядок конфліктним (червоним), якщо кількість не збігається абсолютно
+    public bool IsConflicted => this.Quantity != this.ReceivedQuantity;
 }

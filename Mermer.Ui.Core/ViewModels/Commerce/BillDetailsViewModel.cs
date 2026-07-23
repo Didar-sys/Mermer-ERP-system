@@ -120,6 +120,22 @@ public class BillDetailsViewModel :
 
     protected override async Task<bool> OnSaveAsync()
     {
+        try
+        {
+            // ПЕРЕВІРКА: Якщо PartnerId порожній, блокуємо збереження
+            if (string.IsNullOrEmpty(Details.PartnerId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Partner"]]);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Виводимо повідомлення користувачу та зупиняємо процес збереження
+            UserInteractionService.ShowExceptionMessage(ex);
+            return false;
+        }
+
+        // Якщо перевірку пройдено, виконуємо стандартне збереження
         if (!await base.OnSaveAsync())
             return false;
 

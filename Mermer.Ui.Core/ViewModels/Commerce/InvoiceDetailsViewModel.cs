@@ -183,6 +183,20 @@ public class InvoiceDetailsViewModel :
     {
         base.Details_PropertyChanged(sender, e);
 
+        // Передаємо бекенду правильний системний ID валюти
+        if (e.PropertyName == "DisplayCurrencyId")
+        {
+            StockSearcher.CurrencyId = Details.DisplayCurrencyId;
+
+            if (!string.IsNullOrEmpty(StockSearcher.SearchText))
+            {
+                var temp = StockSearcher.SearchText;
+                StockSearcher.SearchText = "";
+                StockSearcher.SearchText = temp;
+            }
+        }
+        // ========================================================
+
         if (e.PropertyName == "Date" || e.PropertyName == "PartnerId" || e.PropertyName == "WarehouseId" || e.PropertyName == "DisplayCurrencyId")
             UpdatePartnerBalance();
         else if (e.PropertyName == "DisplayDebitCreditTotal")
@@ -316,50 +330,44 @@ public class InvoiceDetailsViewModel :
             var result = await NavigationService.Navigate<InvoicePaymentDialogViewModel, IpdParams, IpdParams>(parameters);
             if (result == null) return;
 
-            // Отримуємо коефіцієнт конвертації поточної валюти екрану
-            var currencyConvertion = CurrencyConverter(Details.DisplayCurrencyId);
-
-            // Якщо операція проводиться у валюті, де Divider/Multiplier змінені, 
-            // система потребує збереження в базових величинах для FluentValidation ядра.
-            // Якщо ж валюта збігається з базовою (курс 1 до 1), коефіцієнт буде рівний 1.
-            decimal rate = 1M;
-            if (currencyConvertion != null && currencyConvertion.Divider != 0)
-            {
-                rate = currencyConvertion.Multiplier / currencyConvertion.Divider;
-            }
-
-            // 1. Оновлюємо Знижки (Discounts)
+            // 1. Оновлюємо Знижки
             if (Details.DisplayDiscountsTotal != result.DiscountsTotal)
             {
                 Details.Discounts.Clear();
                 if (result.DiscountsTotal > 0M)
                 {
-                    // Якщо курс 20, а операція в ТМТ, ядро очікує суму, очищену від множника системи
-                    decimal finalDiscount = rate != 0 ? result.DiscountsTotal / rate : result.DiscountsTotal;
-                    Details.Discounts.Add(new InvoiceDiscount { Amount = finalDiscount, Type = InvoiceDiscountType.Flat });
+                    // Отримуємо коефіцієнти конвертації
+                    var currencyConvertion = Details.CurrencyConverter(Details.DisplayCurrencyId);
+
+                    // ЗВЕРНИ УВАГУ НА ЗНАКИ: тепер множимо на Multiplier і ділимо на Divider!
+                    decimal baseDiscountAmount = result.DiscountsTotal * currencyConvertion.Multiplier / currencyConvertion.Divider;
+
+                    Details.Discounts.Add(new InvoiceDiscount
+                    {
+                        Amount = baseDiscountAmount,
+                        Type = InvoiceDiscountType.Flat
+                    });
                 }
             }
 
-            // 2. Оновлюємо Оплату (Payments)
+            // 2. Оновлюємо Оплату (без множення на rate!)
             if (Details.DisplayPaymentsTotal != result.PaymentsTotal)
             {
                 Details.Payments.Clear();
                 if (result.PaymentsTotal > 0M)
                 {
-                    // Перевіряємо, чи ядро подвійно множить суму. Якщо так — ділимо на rate, якщо ні — залишаємо чистий result.PaymentsTotal
-                    decimal finalPayment = rate != 0 ? result.PaymentsTotal / rate : result.PaymentsTotal;
-                    Details.Payments.Add(new InvoicePayment { Amount = finalPayment, CurrencyId = Details.DisplayCurrencyId });
+                    // Зберігаємо суму рівно такою, як ти ввів (300), у поточній валюті
+                    Details.Payments.Add(new InvoicePayment { Amount = result.PaymentsTotal, CurrencyId = Details.DisplayCurrencyId });
                 }
             }
 
-            // 3. Оновлюємо Решту (Changes)
+            // 3. Оновлюємо Решту (без множення на rate!)
             if (Details.DisplayChangesTotal != result.ChangesTotal)
             {
                 Details.Changes.Clear();
                 if (result.ChangesTotal > 0M)
                 {
-                    decimal finalChange = rate != 0 ? result.ChangesTotal / rate : result.ChangesTotal;
-                    Details.Changes.Add(new InvoicePayment { Amount = finalChange, CurrencyId = Details.DisplayCurrencyId });
+                    Details.Changes.Add(new InvoicePayment { Amount = result.ChangesTotal, CurrencyId = Details.DisplayCurrencyId });
                 }
             }
 

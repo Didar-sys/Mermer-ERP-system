@@ -43,10 +43,18 @@ public partial class InvoiceDetailsView : MvxWpfView
     }
 
     // ========================================================
-    // ВСЕ, ЩО ТОБІ ТЕПЕР ПОТРІБНО ДЛЯ ЗАКРИТТЯ
+    // ПРАВИЛЬНЕ ЗАКРИТТЯ ЧЕРЕЗ VIEWMODEL
     // ========================================================
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
-        TabNavigationHelper.ForceCloseTab(this);
+        // Отримуємо поточну ViewModel
+        if (this.DataContext is Mermer.Mvvm.ViewModels.BaseViewModel viewModel)
+        {
+            // Викликаємо правильну команду закриття з ViewModel (де лежить наше оригінальне біле вікно)
+            if (viewModel.CloseCommand != null && viewModel.CloseCommand.CanExecute(null))
+            {
+                viewModel.CloseCommand.Execute(null);
+            }
+        }
     }
 }

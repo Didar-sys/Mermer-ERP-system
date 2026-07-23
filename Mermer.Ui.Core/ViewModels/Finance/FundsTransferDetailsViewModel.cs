@@ -4,20 +4,21 @@
 // MVID: DC92D011-8413-44AC-9F10-F866D891CF66
 // Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
 
-using MvvmCross.Core.Navigation;
-using MvvmCross.Core.ViewModels;
 using Mermer.Authorization.Services;
+using Mermer.Data.Authorizers;
+using Mermer.Data.Storage;
 using Mermer.Enterprise.Models;
 using Mermer.Finance.Models;
 using Mermer.FundsManagement.Models;
-using Mermer.Transactions.Services;
-using Mermer.Ui.Core.Helpers;
-using Mermer.Ui.Core.ViewModels.Transactions;
-using Mermer.Data.Authorizers;
-using Mermer.Data.Storage;
+using Mermer.FundsManagement.Models.Extenders;
 using Mermer.Mvvm.Services;
 using Mermer.Mvvm.ViewModels;
 using Mermer.Services;
+using Mermer.Transactions.Services;
+using Mermer.Ui.Core.Helpers;
+using Mermer.Ui.Core.ViewModels.Transactions;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Core.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -117,5 +118,88 @@ public class FundsTransferDetailsViewModel(
 
         // Якщо все заповнено правильно — викликаємо стандартне збереження
         return await base.OnSaveAsync();
+    }
+
+    protected override void Details_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == "DisplayCurrencyId")
+        {
+            var newCurrencyId = this.Details.DisplayCurrencyId;
+
+            // =========================================================
+            // БЛОК ПРАВИЛЬНОЇ КОНВЕРТАЦІЇ ФІНАНСІВ (USD <-> TMT)
+            // =========================================================
+            if (this.Details.Lines != null && !string.IsNullOrEmpty(newCurrencyId))
+            {
+                var targetCurrency = this.Currencies?.List?.FirstOrDefault(c => c.Id == newCurrencyId);
+
+                foreach (var line in this.Details.Lines)
+                {
+                    if (string.IsNullOrEmpty(line.CurrencyId) || line.CurrencyId == newCurrencyId)
+                        continue;
+
+                    var sourceCurrency = this.Currencies?.List?.FirstOrDefault(c => c.Id == line.CurrencyId);
+
+                    if (sourceCurrency != null && targetCurrency != null)
+                    {
+                        var sourceRate = sourceCurrency.GetRate(this.Details.Date);
+                        var targetRate = targetCurrency.GetRate(this.Details.Date);
+
+                        if (sourceRate != null && targetRate != null && sourceRate.Divider != 0 && targetRate.Multiplier != 0)
+                        {
+                            decimal sMult = sourceRate.Multiplier;
+                            decimal sDiv = sourceRate.Divider;
+                            decimal tMult = targetRate.Multiplier;
+                            decimal tDiv = targetRate.Divider;
+
+                            // Вираховуємо загальний коефіцієнт конвертації
+                            decimal conversionRate = (sMult / sDiv) * (tDiv / tMult);
+
+                            // Конвертуємо ВІДПРАВЛЕНУ суму
+                            line.Amount = Math.Round(line.Amount * conversionRate, targetCurrency.Decimals);
+
+                            // ДОДАНО: Конвертуємо ПРИЙНЯТУ суму
+                            line.ReceivedAmount = Math.Round(line.ReceivedAmount * conversionRate, targetCurrency.Decimals);
+
+                            line.CurrencyId = newCurrencyId;
+                        }
+                    }
+                }
+            }
+            // =========================================================
+
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(150);
+                InvokeOnMainThread(() =>
+                {
+                    if (this.Details.Lines != null)
+                    {
+                        foreach (var line in this.Details.Lines)
+                        {
+                            line.RaisePropertyChanged("Amount");
+                            line.RaisePropertyChanged("DisplayAmount");
+                            line.RaisePropertyChanged("DisplayTotal");
+
+                            // ДОДАНО: Сигнал для оновлення колонок переміщення
+                            line.RaisePropertyChanged("ActionTotal");
+                            line.RaisePropertyChanged("ActionReceivedTotal");
+                        }
+                    }
+                    this.Details.RaisePropertyChanged("DisplayAmount");
+                    this.Details.RaisePropertyChanged("DisplayTotal");
+
+                    // ДОДАНО: Сигнал для оновлення загальних підсумків унизу екрана
+                    this.Details.RaisePropertyChanged("ActionTotal");
+                    this.Details.RaisePropertyChanged("ActionReceivedTotal");
+
+                    this.Details.RaisePropertyChanged("Lines");
+                });
+            });
+
+            return;
+        }
+
+        base.Details_PropertyChanged(sender, e);
     }
 }

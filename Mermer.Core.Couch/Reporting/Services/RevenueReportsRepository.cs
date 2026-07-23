@@ -113,9 +113,11 @@ public class RevenueReportsRepository : IRevenueReportsRepository
             }
             else if (item.TransactionType == "SalesReturn")
             {
-              (Decimal, Decimal) costsAsync = await this.GetCostsAsync((StockAction) item, new Decimal?(usage));
-              initial += costsAsync.Item1;
-              overheads += costsAsync.Item2;
+              // Передаємо негативний usage, щоб функція шукала минулі продажі (Sales), а не закупівлі.
+              // Оскільки функція поверне негативну собівартість, ми використовуємо "-=", щоб додати її до нашої.
+              (Decimal, Decimal) costsAsync = await this.GetCostsAsync((StockAction) item, new Decimal?(-usage));
+              initial -= costsAsync.Item1;
+              overheads -= costsAsync.Item2;
             }
             else
               initial += usage * item.ActionPrice;

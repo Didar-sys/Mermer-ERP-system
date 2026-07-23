@@ -28,7 +28,8 @@
         <dxlc:LayoutItem Label="{Localize Quantity}">
           <dxlc:LayoutGroup>
             <dxe:SpinEdit x:Name="FirstFocus" MinValue="0"
-                          EditValue="{Binding Details.Quantity, UpdateSourceTrigger=PropertyChanged}"/>
+              EditValue="{Binding Details.Quantity, UpdateSourceTrigger=PropertyChanged}"
+              PreviewKeyDown="Quantity_PreviewKeyDown"/>
             <dxg:LookUpEdit AutoPopulateColumns="false" DisplayMember="Name" ValueMember="Id"
                             EditValue="{Binding Details.UnitId, UpdateSourceTrigger=PropertyChanged}"
                             ItemsSource="{Binding Details.Units}">

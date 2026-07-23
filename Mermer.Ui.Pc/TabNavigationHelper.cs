@@ -17,17 +17,20 @@ namespace Mermer.Ui.Pc
         {
             if (currentView == null) return;
 
+            // ========================================================
+            // 2. СТАНДАРТНЕ ЗАКРИТТЯ ВКЛАДКИ
+            // ========================================================
             var tabControl = FindParent<DXTabControl>(currentView);
 
             if (tabControl != null)
             {
-                // 1. Видаляємо вкладку
+                // Видаляємо вкладку
                 if (tabControl.ItemsSource is System.Collections.IList list)
                     list.Remove(currentView);
                 else
                     tabControl.Items.Remove(currentView);
 
-                // 2. АНТИ-СІРИЙ ЕКРАН: Якщо вкладок більше немає, перемальовуємо меню
+                // АНТИ-СІРИЙ ЕКРАН: Якщо вкладок більше немає, перемальовуємо меню
                 int count = (tabControl.ItemsSource as System.Collections.IList)?.Count ?? tabControl.Items.Count;
                 if (count == 0)
                 {
@@ -42,7 +45,7 @@ namespace Mermer.Ui.Pc
             // Завжди ховаємо саму форму
             currentView.Visibility = Visibility.Collapsed;
 
-            // 3. Очищаємо ресурси накладної
+            // Очищаємо ресурси накладної
             if (currentView.DataContext is IDisposable disposable)
             {
                 disposable.Dispose();
@@ -85,4 +88,3 @@ namespace Mermer.Ui.Pc
         }
     }
 }
-

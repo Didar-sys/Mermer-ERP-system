@@ -66,6 +66,22 @@
         </dxg:GridColumn>
         <dxg:GridColumn FieldName="Group" GroupIndex="0" Header="{Localize Group}"/>
       </dxg:GridControl.Columns>
+        <!-- ДОДАЙ ОСЬ ЦЕЙ БЛОК ВІДОБРАЖЕННЯ ТА ФОРМАТУВАННЯ -->
+            <dxg:GridControl.View>
+                <dxg:TableView AllowEditing="False" NavigationStyle="Row" ShowGroupPanel="False">
+                    <dxg:TableView.FormatConditions>
+                        <!-- 1. Повертаємо видалені товари (червоний фон + закреслений текст) -->
+                        <dxg:FormatCondition Expression="[IsDisabled] = True" ApplyToRow="True" PredefinedFormatName="LightRedFillWithDarkRedText"/>
+                        <dxg:FormatCondition Expression="[IsDisabled] = True" ApplyToRow="True" PredefinedFormatName="StrikethroughText"/>
+
+                        <!-- 2. Наше правило для частково прийнятих (які ще не приїхали повністю) -->
+                        <dxg:FormatCondition Expression="[ActionReceivedTotal] &lt; [ActionTotal] And [IsDisabled] = False" 
+                                 ApplyToRow="True" 
+                                 PredefinedFormatName="LightRedFillWithDarkRedText"/>
+                    </dxg:TableView.FormatConditions>
+                </dxg:TableView>
+            </dxg:GridControl.View>
+            <!-- КІНЕЦЬ ДОДАНОГО БЛОКУ -->
     </ctrl:StyledGridControl>
   </DockPanel>
 </mvx:MvxWpfView>

@@ -4,11 +4,16 @@
 // MVID: DC92D011-8413-44AC-9F10-F866D891CF66
 // Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
 
-using MvvmCross.Core.Navigation;
-using MvvmCross.Core.ViewModels;
 using Mermer.Authorization.Services;
+using Mermer.Data;
+using Mermer.Data.Authorizers;
+using Mermer.Data.Storage;
 using Mermer.Enterprise.Models;
 using Mermer.FundsManagement.Models;
+using Mermer.FundsManagement.Models.Extenders;
+using Mermer.Mvvm.Services;
+using Mermer.Mvvm.ViewModels;
+using Mermer.Services;
 using Mermer.StockManagement.Models;
 using Mermer.StockManagement.Services;
 using Mermer.Transactions.Services;
@@ -17,12 +22,8 @@ using Mermer.Ui.Core.Services;
 using Mermer.Ui.Core.ViewModels.Common;
 using Mermer.Ui.Core.ViewModels.Transactions;
 using Mermer.Warehousing.Models;
-using Mermer.Data;
-using Mermer.Data.Authorizers;
-using Mermer.Data.Storage;
-using Mermer.Mvvm.Services;
-using Mermer.Mvvm.ViewModels;
-using Mermer.Services;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Core.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -134,6 +135,7 @@ public class StockTransferDetailsViewModel :
         return await base.OnSaveAsync();
     }
 
+
     protected override StockTransferLine CreateNewLine(
     Stock stock,
     Decimal? quantity = null,
@@ -147,30 +149,30 @@ public class StockTransferDetailsViewModel :
     return newLine;
   }
 
-  protected override async Task OnSelectedLineEditAsync()
-  {
-    StockTransferDetailsViewModel detailsViewModel = this;
-    Stock stocksCacheAsync = await detailsViewModel.GetFromStocksCacheAsync(detailsViewModel.SelectedLine.StockId);
-    IMvxNavigationService navigationService = detailsViewModel.NavigationService;
-    StockTransferDetailsLineEditViewModel.Params @params = new StockTransferDetailsLineEditViewModel.Params();
-    @params.StockCode = stocksCacheAsync.Code;
-    @params.StockName = stocksCacheAsync.Name;
-    @params.Quantity = detailsViewModel.SelectedLine.Quantity;
-    @params.UnitId = detailsViewModel.SelectedLine.UnitId;
-    @params.ReceivedQuantity = detailsViewModel.SelectedLine.ReceivedQuantity;
-    @params.ReceivedUnitId = detailsViewModel.SelectedLine.ReceivedUnitId;
-    @params.Units = (IEnumerable<StockUnit>) stocksCacheAsync.Units;
-    CancellationToken cancellationToken = new CancellationToken();
-    StockTransferDetailsLineEditViewModel.Result result = await navigationService.Navigate<StockTransferDetailsLineEditViewModel, StockTransferDetailsLineEditViewModel.Params, StockTransferDetailsLineEditViewModel.Result>(@params, cancellationToken: cancellationToken);
-    if (result == null)
-      return;
-    detailsViewModel.SelectedLine.Quantity = result.Quantity;
-    detailsViewModel.SelectedLine.UnitId = result.UnitId;
-    detailsViewModel.SelectedLine.ReceivedQuantity = result.ReceivedQuantity;
-    detailsViewModel.SelectedLine.ReceivedUnitId = result.ReceivedUnitId;
-  }
+    protected override async Task OnSelectedLineEditAsync()
+    {
+        StockTransferDetailsViewModel detailsViewModel = this;
+        Stock stocksCacheAsync = await detailsViewModel.GetFromStocksCacheAsync(detailsViewModel.SelectedLine.StockId);
+        IMvxNavigationService navigationService = detailsViewModel.NavigationService;
+        StockTransferDetailsLineEditViewModel.Params @params = new StockTransferDetailsLineEditViewModel.Params();
+        @params.StockCode = stocksCacheAsync.Code;
+        @params.StockName = stocksCacheAsync.Name;
+        @params.Quantity = detailsViewModel.SelectedLine.Quantity;
+        @params.UnitId = detailsViewModel.SelectedLine.UnitId;
+        @params.ReceivedQuantity = detailsViewModel.SelectedLine.ReceivedQuantity;
+        @params.ReceivedUnitId = detailsViewModel.SelectedLine.ReceivedUnitId;
+        @params.Units = (IEnumerable<StockUnit>)stocksCacheAsync.Units;
+        CancellationToken cancellationToken = new CancellationToken();
+        StockTransferDetailsLineEditViewModel.Result result = await navigationService.Navigate<StockTransferDetailsLineEditViewModel, StockTransferDetailsLineEditViewModel.Params, StockTransferDetailsLineEditViewModel.Result>(@params, cancellationToken: cancellationToken);
+        if (result == null)
+            return;
+        detailsViewModel.SelectedLine.Quantity = result.Quantity;
+        detailsViewModel.SelectedLine.UnitId = result.UnitId;
+        detailsViewModel.SelectedLine.ReceivedQuantity = result.ReceivedQuantity;
+        detailsViewModel.SelectedLine.ReceivedUnitId = result.ReceivedUnitId;
+    }
 
-  protected override bool AllowStockTracking()
+    protected override bool AllowStockTracking()
   {
     return this.Details != null && this.Details.IsCompleted && !this.Details.IsConflicted;
   }
@@ -238,7 +240,88 @@ public class StockTransferDetailsViewModel :
     await detailsViewModel._printingService.PrintStockTransfer(detailsViewModel.Details, true);
   }
 
-  public class Params
+    protected override void Details_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == "DisplayCurrencyId")
+        {
+            var newCurrencyId = this.Details.DisplayCurrencyId;
+
+            // Оновлюємо пошуковик
+            if (StockSearcher != null && !string.IsNullOrEmpty(newCurrencyId))
+            {
+                var prop = StockSearcher.GetType().GetProperty("CurrencyId");
+                if (prop != null)
+                {
+                    prop.SetValue(StockSearcher, newCurrencyId);
+                }
+            }
+
+            // =========================================================
+            // БЛОК ПРАВИЛЬНОЇ КОНВЕРТАЦІЇ ЦІН (USD <-> TMT)
+            // =========================================================
+            if (this.Details.Lines != null && !string.IsNullOrEmpty(newCurrencyId))
+            {
+                var targetCurrency = this.Currencies?.List?.FirstOrDefault(c => c.Id == newCurrencyId);
+
+                foreach (var line in this.Details.Lines)
+                {
+                    // Пропускаємо, якщо рядок вже в потрібній валюті
+                    if (string.IsNullOrEmpty(line.CurrencyId) || line.CurrencyId == newCurrencyId)
+                        continue;
+
+                    var sourceCurrency = this.Currencies?.List?.FirstOrDefault(c => c.Id == line.CurrencyId);
+
+                    if (sourceCurrency != null && targetCurrency != null)
+                    {
+                        var sourceRate = sourceCurrency.GetRate(this.Details.Date);
+                        var targetRate = targetCurrency.GetRate(this.Details.Date);
+
+                        if (sourceRate != null && targetRate != null && sourceRate.Divider != 0 && targetRate.Multiplier != 0)
+                        {
+                            decimal sMult = sourceRate.Multiplier;
+                            decimal sDiv = sourceRate.Divider;
+                            decimal tMult = targetRate.Multiplier;
+                            decimal tDiv = targetRate.Divider;
+
+                            // Правильна математика: Ціна * (КурсСтароїВалюти) / (КурсНовоїВалюти)
+                            line.Price = Math.Round(line.Price * (sMult / sDiv) * (tDiv / tMult), targetCurrency.Decimals);
+                            line.CurrencyId = newCurrencyId;
+                        }
+                    }
+                }
+            }
+            // =========================================================
+
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(150);
+                InvokeOnMainThread(() =>
+                {
+                    if (this.Details.Lines != null)
+                    {
+                        foreach (var line in this.Details.Lines)
+                        {
+                            line.RaisePropertyChanged("Price");
+                            line.RaisePropertyChanged("DisplayTotal");
+                            line.RaisePropertyChanged("ActionTotal");
+                            line.RaisePropertyChanged("ActionReceivedTotal");
+                        }
+                    }
+                    this.Details.RaisePropertyChanged("DisplayTotal");
+                    this.Details.RaisePropertyChanged("ActionTotal");
+                    this.Details.RaisePropertyChanged("ActionReceivedTotal");
+                    this.Details.RaisePropertyChanged("Lines");
+                });
+            });
+
+            // Блокуємо старий, зламаний код ядра
+            return;
+        }
+
+        base.Details_PropertyChanged(sender, e);
+    }
+
+    public class Params
   {
     public string SourceWarehouseId { get; set; }
 

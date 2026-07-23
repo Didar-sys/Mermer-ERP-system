@@ -123,24 +123,53 @@ public class StockSlipDetailsViewModel :
     {
         base.Details_PropertyChanged(sender, e);
 
-        // Якщо змінилася валюта документа ("DisplayCurrencyId")
         if (e.PropertyName == "DisplayCurrencyId")
         {
             var newCurrencyId = this.Details.DisplayCurrencyId;
-            if (!string.IsNullOrEmpty(newCurrencyId))
+
+            // 1. ВИМОГА ЛЕОНА: Оновлюємо валюту в пошуковику товарів
+            if (StockSearcher != null && !string.IsNullOrEmpty(newCurrencyId))
             {
-                foreach (var line in this.Details.Lines)
+                // Використовуємо Reflection для надійності, якщо властивість прихована
+                var prop = StockSearcher.GetType().GetProperty("CurrencyId");
+                if (prop != null)
                 {
-                    line.CurrencyId = newCurrencyId;
+                    prop.SetValue(StockSearcher, newCurrencyId);
                 }
             }
+
+            // 2. ЛІКУЄМО РОЗСИНХРОН: Робимо мікро-паузу для завантаження курсів
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                // Чекаємо 150 мілісекунд, поки ядро ERP підтягне CurrencyConvertions
+                await System.Threading.Tasks.Task.Delay(150);
+
+                // Повертаємось у головний потік інтерфейсу
+                InvokeOnMainThread(() =>
+                {
+                    if (this.Details.Lines != null)
+                    {
+                        foreach (var line in this.Details.Lines)
+                        {
+                            // Оновлюємо кожну клітинку
+                            line.RaisePropertyChanged("DisplayTotal");
+                        }
+                    }
+
+                    // Примусово оновлюємо підсумок документа
+                    this.Details.RaisePropertyChanged("DisplayTotal");
+
+                    // Цей магічний рядок змушує DevExpress GridControl миттєво перерахувати TotalSummary внизу екрану!
+                    this.Details.RaisePropertyChanged("Lines");
+                });
+            });
         }
 
-        // Твоя існуюча логіка для цін
+        // Існуюча логіка для розрахунку цін залишається без змін
         if (!(e.PropertyName == "IsPriceEditable") || this.Details.IsPriceEditable)
             return;
 
-        foreach (StockSlipLine line in (Collection<StockSlipLine>)this.Details.Lines)
+        foreach (StockSlipLine line in (System.Collections.ObjectModel.Collection<StockSlipLine>)this.Details.Lines)
         {
             Stock fromStocksCache = this.GetFromStocksCache(line.StockId);
             Decimal num = line.ActionQuantity / line.Quantity;

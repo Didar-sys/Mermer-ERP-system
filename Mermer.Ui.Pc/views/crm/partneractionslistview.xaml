@@ -99,12 +99,12 @@
             <dxg:GridColumn FieldName="TransactionGroup" Visible="false" Header="{Localize Group}"/>
           </dxg:GridControlBand>
           <dxg:GridControlBand Header="{Localize Action}">
-            <dxg:GridColumn FieldName="ActionOfficeId" Header="{Localize Office}">
+                        <dxg:GridColumn FieldName="ActionOfficeId" Header="{Localize Office}" ColumnFilterMode="DisplayText">
               <dxg:ColumnBase.EditSettings>
                 <dxg:LookUpEditSettings DisplayMember="Name" ValueMember="Id" ItemsSource="{Binding Offices.List}"/>
               </dxg:ColumnBase.EditSettings>
             </dxg:GridColumn>
-            <dxg:GridColumn FieldName="ActionPartnerId" Header="{Localize Partner}">
+                        <dxg:GridColumn FieldName="ActionPartnerId" Header="{Localize Partner}" ColumnFilterMode="DisplayText">
               <dxg:ColumnBase.EditSettings>
                 <dxg:LookUpEditSettings DisplayMember="Fullname" ValueMember="Id" ItemsSource="{Binding Partners.List}"/>
               </dxg:ColumnBase.EditSettings>

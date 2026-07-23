@@ -57,12 +57,18 @@
                         <dxg:LookUpEditSettings DisplayMember="Name" ValueMember="Id" ItemsSource="{Binding Depositories.List}"/>
                     </dxg:ColumnBase.EditSettings>
                 </dxg:GridColumn>
-                <dxg:GridColumn FieldName="PartnerId" Header="{Localize Partner}">
+                <dxg:GridColumn FieldName="PartnerId" Header="{Localize Partner}" ColumnFilterMode="DisplayText">
                     <dxg:ColumnBase.EditSettings>
-                        <dxg:LookUpEditSettings DisplayMember="Fullname" ValueMember="Id" ItemsSource="{Binding Partners.List}"/>
+                        <dxg:LookUpEditSettings DisplayMember="Fullname" 
+                                    ValueMember="Id" 
+                                    ItemsSource="{Binding Partners.List}"
+                                    AutoComplete="True" 
+                                    IncrementalFiltering="True" 
+                                    ImmediatePopup="True" 
+                                    FilterCondition="Contains"/>
                     </dxg:ColumnBase.EditSettings>
-                </dxg:GridColumn>
-                <dxg:GridColumn FieldName="ActionTotal" Style="{StaticResource AmountDisplayFormat}" Header="{Localize SubTotal}"/>
+                    </dxg:GridColumn>
+                    <dxg:GridColumn FieldName="ActionTotal" Style="{StaticResource AmountDisplayFormat}" Header="{Localize SubTotal}"/>
                 <dxg:GridColumn FieldName="ActionDiscountsTotal" Style="{StaticResource AmountDisplayFormat}" Header="{Localize DiscountsTotal}"/>
                 <dxg:GridColumn FieldName="ActionGrandTotal" Style="{StaticResource AmountDisplayFormat}" Header="{Localize GrandTotal}"/>
                 <dxg:GridColumn FieldName="IsCash" Width="50" Header="{Localize Cash}"/>

@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Core.ViewModels.MainViewModel
-// Assembly: Mermer.Ui.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: DC92D011-8413-44AC-9F10-F866D891CF66
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
-
-using MvvmCross.Core.Navigation;
+﻿using MvvmCross.Core.Navigation;
 using MvvmCross.Core.ViewModels;
 using Mermer.Authorization.Enums;
 using Mermer.Authorization.Models;
@@ -58,6 +52,7 @@ public class MainViewModel : BaseViewModel
   private bool _allowReporting;
   private bool _autoHideMenu = false;
     private static bool _isLanguageMetadataOverridden = false;
+    private static bool _isFirstAppLoad = true; // ДОДАЄМО НАШ ПРАПОРЕЦЬ
     public MainViewModel(
     ILoginService loginService,
     IConfigurator configurator,
@@ -130,7 +125,19 @@ public class MainViewModel : BaseViewModel
         this.IsAdmin = this._loginService.Session.IsAdmin;
 
         AppSettings config = this._configurator.GetConfig<AppSettings>();
-        this.OpenPosOnLoad = config?.OpenPosOnLoad ?? false;
+
+        // ВИПРАВЛЕННЯ БАГУ POS: 
+        // Читаємо налаштування автозапуску тільки при першому старті програми
+        if (_isFirstAppLoad)
+        {
+            this.OpenPosOnLoad = config?.OpenPosOnLoad ?? false;
+            _isFirstAppLoad = false; // Вимикаємо автозапуск для наступних перезавантажень меню
+        }
+        else
+        {
+            this.OpenPosOnLoad = false; // Якщо це просто RestoreMainMenu - не відкриваємо POS
+        }
+
         this.AutoHideMenu = config?.AutoHideMenu ?? false;
 
         var connectionSettings = this._configurator.GetConfig<ConnectionSettings>();

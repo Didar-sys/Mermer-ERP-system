@@ -4,12 +4,17 @@
 // MVID: DC92D011-8413-44AC-9F10-F866D891CF66
 // Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
 
-using MvvmCross.Core.Navigation;
-using MvvmCross.Core.ViewModels;
 using Mermer.Authorization.Services;
 using Mermer.Common.Settings;
+using Mermer.Data;
+using Mermer.Data.Authorizers;
+using Mermer.Data.Extenders;
+using Mermer.Data.Storage;
 using Mermer.Enterprise.Models;
 using Mermer.FundsManagement.Models;
+using Mermer.Mvvm.Services;
+using Mermer.Mvvm.ViewModels;
+using Mermer.Services;
 using Mermer.StockManagement.Models;
 using Mermer.StockManagement.Services;
 using Mermer.Transactions.Models;
@@ -17,13 +22,9 @@ using Mermer.Transactions.Services;
 using Mermer.Ui.Core.Helpers;
 using Mermer.Ui.Core.ViewModels.Common;
 using Mermer.Ui.Core.ViewModels.StockManagement;
-using Mermer.Data;
-using Mermer.Data.Authorizers;
-using Mermer.Data.Extenders;
-using Mermer.Data.Storage;
-using Mermer.Mvvm.Services;
-using Mermer.Mvvm.ViewModels;
-using Mermer.Services;
+using Mermer.Ui.Core.ViewModels.Warehousing;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Core.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -322,9 +323,25 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     return instance;
     }
 
-    private IMvxAsyncCommand _forceCloseCommand; // Оголошуємо правильне поле
+    // 1. Створюємо публічний метод перевірки (щоб викликати його з вікна при натисканні на X)
+    public bool CheckCanClose()
+    {
+        if (!this.IsDirty)
+            return true;
 
-public ICommand ForceCloseCommand
+        // Використовуємо вбудований сервіс для стилізованого оверлею
+        var result = this.UserInteractionService.ShowMessage(
+            "Warning",
+            "Are you sure you want to close? Changes will be lost.",
+            Mermer.Mvvm.Services.UserInteractionType.YesNoCancel);
+
+        // Повертаємо true ТІЛЬКИ якщо натиснули "Yes"
+        return result == true;
+    }
+
+    private IMvxAsyncCommand _forceCloseCommand;
+
+    public ICommand ForceCloseCommand
     {
         get
         {
@@ -332,26 +349,29 @@ public ICommand ForceCloseCommand
             {
                 _forceCloseCommand = new MvxAsyncCommand(async () =>
                 {
+                    // Перевіряємо, чи є незбережені зміни
                     if (this.IsDirty)
                     {
-                        var result = System.Windows.MessageBox.Show(
-                            "Ви внесли зміни в документ. Бажаєте закрити вкладку БЕЗ збереження?",
-                            "Увага: незбережені дані",
-                            System.Windows.MessageBoxButton.YesNo,
-                            System.Windows.MessageBoxImage.Warning);
+                        // ВИКОРИСТОВУЄМО ВАШ ФІРМОВИЙ СЕРВІС ЗАМІСТЬ СИСТЕМНОГО MESSAGEBOX
+                        var result = this.UserInteractionService.ShowMessage(
+                            "Warning",
+                            "Are you sure you want to close? Changes will be lost.",
+                            Mermer.Mvvm.Services.UserInteractionType.YesNoCancel);
 
-                        if (result == System.Windows.MessageBoxResult.No)
+                        // Метод повертає bool?. Якщо натиснуто ЩОСЬ ІНШЕ крім "Yes" (true) — перериваємо закриття
+                        if (result != true)
                         {
                             return;
                         }
                     }
+
+                    // Якщо змін не було, або користувач натиснув "Yes" — закриваємо
                     await this.NavigationService.Close(this);
                 });
             }
             return _forceCloseCommand;
         }
     }
-
     private void DoCloseTransaction()
     {
         // Цей метод відправляє сигнал закриття, який ми ловимо в MainViewPresenter
@@ -392,32 +412,32 @@ public ICommand ForceCloseCommand
     }
   }
 
-  protected virtual async Task OnSelectedLineEditAsync()
-  {
-    StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    Stock stocksCacheAsync = await detailsViewModel.GetFromStocksCacheAsync(detailsViewModel.SelectedLine.StockId);
-    IMvxNavigationService navigationService = detailsViewModel.NavigationService;
-    StockTransactionDetailsLineEditViewModel.Params @params = new StockTransactionDetailsLineEditViewModel.Params();
-    @params.StockCode = stocksCacheAsync.Code;
-    @params.StockName = stocksCacheAsync.Name;
-    @params.Quantity = detailsViewModel.SelectedLine.Quantity;
-    @params.UnitId = detailsViewModel.SelectedLine.UnitId;
-    @params.Units = (IEnumerable<StockUnit>) stocksCacheAsync.Units;
-    @params.Price = detailsViewModel.SelectedLine.Price;
-    @params.CurrencyId = detailsViewModel.SelectedLine.CurrencyId;
-    @params.Currencies = detailsViewModel.Currencies.List;
-    @params.ActionDate = new DateTime?(detailsViewModel.Details.Date);
-    CancellationToken cancellationToken = new CancellationToken();
-    StockTransactionDetailsLineEditViewModel.Result result = await navigationService.Navigate<StockTransactionDetailsLineEditViewModel, StockTransactionDetailsLineEditViewModel.Params, StockTransactionDetailsLineEditViewModel.Result>(@params, cancellationToken: cancellationToken);
-    if (result == null)
-      return;
-    detailsViewModel.SelectedLine.Quantity = result.Quantity;
-    detailsViewModel.SelectedLine.UnitId = result.UnitId;
-    detailsViewModel.SelectedLine.Price = result.Price;
-    detailsViewModel.SelectedLine.CurrencyId = result.CurrencyId;
-  }
+    protected virtual async Task OnSelectedLineEditAsync()
+    {
+        StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
+        Stock stocksCacheAsync = await detailsViewModel.GetFromStocksCacheAsync(detailsViewModel.SelectedLine.StockId);
+        IMvxNavigationService navigationService = detailsViewModel.NavigationService;
+        StockTransactionDetailsLineEditViewModel.Params @params = new StockTransactionDetailsLineEditViewModel.Params();
+        @params.StockCode = stocksCacheAsync.Code;
+        @params.StockName = stocksCacheAsync.Name;
+        @params.Quantity = detailsViewModel.SelectedLine.Quantity;
+        @params.UnitId = detailsViewModel.SelectedLine.UnitId;
+        @params.Units = (IEnumerable<StockUnit>)stocksCacheAsync.Units;
+        @params.Price = detailsViewModel.SelectedLine.Price;
+        @params.CurrencyId = detailsViewModel.SelectedLine.CurrencyId;
+        @params.Currencies = detailsViewModel.Currencies.List;
+        @params.ActionDate = new DateTime?(detailsViewModel.Details.Date);
+        CancellationToken cancellationToken = new CancellationToken();
+        StockTransactionDetailsLineEditViewModel.Result result = await navigationService.Navigate<StockTransactionDetailsLineEditViewModel, StockTransactionDetailsLineEditViewModel.Params, StockTransactionDetailsLineEditViewModel.Result>(@params, cancellationToken: cancellationToken);
+        if (result == null)
+            return;
+        detailsViewModel.SelectedLine.Quantity = result.Quantity;
+        detailsViewModel.SelectedLine.UnitId = result.UnitId;
+        detailsViewModel.SelectedLine.Price = result.Price;
+        detailsViewModel.SelectedLine.CurrencyId = result.CurrencyId;
+    }
 
-  public ICommand SelectedLineDeleteCommand
+    public ICommand SelectedLineDeleteCommand
   {
     get
     {
