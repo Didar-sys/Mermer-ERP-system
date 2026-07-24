@@ -61,3 +61,5 @@ STAGE1_REPORT.md
 
 # Build output
 publish/
+/Mermer.Core/Localization/tk.json
+/Mermer.Core/Localization/ru.json
