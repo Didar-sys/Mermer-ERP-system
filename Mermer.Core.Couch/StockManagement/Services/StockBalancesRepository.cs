@@ -164,7 +164,7 @@ public class StockBalancesRepository : CouchView, IStockBalancesRepository
     {
         _authorizer.Authorize();
 
-        // ВИПРАВЛЕНО: М'яка перевірка на null замість throw new ArgumentNullException
+        
         if (warehouseIds == null || !warehouseIds.Any() || stockIds == null || !stockIds.Any())
         {
             return Array.Empty<StockBalance>();
@@ -205,7 +205,7 @@ public class StockBalancesRepository : CouchView, IStockBalancesRepository
     {
         _authorizer.Authorize();
 
-        // ВИПРАВЛЕНО: М'яка перевірка на null замість throw new ArgumentNullException
+        
         if (warehouseIds == null || !warehouseIds.Any() || stockBalanceDates == null || !stockBalanceDates.Any())
         {
             return Array.Empty<StockBalance>();

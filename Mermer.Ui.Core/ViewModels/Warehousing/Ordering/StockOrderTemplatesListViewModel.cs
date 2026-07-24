@@ -103,7 +103,6 @@ public class StockOrderTemplatesListViewModel : ListViewModel<StockOrderTemplate
             templatesListViewModel.IsBusy = true;
         try
         {
-            // 1. Безпечна перевірка на null
             string tag = filter?.Tag?.ToString() ?? string.Empty;
 
             switch (tag)
@@ -134,7 +133,6 @@ public class StockOrderTemplatesListViewModel : ListViewModel<StockOrderTemplate
 
     protected virtual Task<int> CountByFilterAsync(ListFilter filter)
     {
-        // Безпечна перевірка на null
         string tag = filter?.Tag?.ToString() ?? string.Empty;
 
         switch (tag)

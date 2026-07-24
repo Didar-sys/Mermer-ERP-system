@@ -11,7 +11,7 @@ using System.Windows;
 using System.Windows.Markup;
 using Mermer.Mvvm.Tools;
 
-// Атрибут має бути ТУТ, одразу після всіх using
+// Атрибут должен быть ЗДЕСЬ, сразу после всех using
 [assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "Mermer.Ui.Core.Pc.Tools")]
 
 namespace Mermer.Ui.Core.Pc.Tools
@@ -20,12 +20,12 @@ namespace Mermer.Ui.Core.Pc.Tools
     [MarkupExtensionReturnType(typeof(string))]
     public class LocalizeExtension : UpdatableMarkupExtension
     {
-        // ВИДАЛЕНО: private readonly IMvxTextProvider _textProvicer;
+        // УДАЛЕНО: private readonly IMvxTextProvider _textProvicer;
         private string _fallBackText;
 
         public LocalizeExtension()
         {
-            // ВИДАЛЕНО: весь блок try-catch з Mvx.Resolve, він нам більше не потрібен!
+            // УДАЛЕНО: весь блок try-catch с Mvx.Resolve, он нам больше не нужен!
         }
 
         public LocalizeExtension(string text) : this()
@@ -85,16 +85,16 @@ namespace Mermer.Ui.Core.Pc.Tools
                 .ToArray();
         }
 
-        // ЄДИНИЙ МЕТОД, ЯКИЙ НАМ ТЕПЕР ПОТРІБЕН ДЛЯ ОТРИМАННЯ ТЕКСТУ
+        // ЕДИНЫЙ МЕТОД, КОТОРЫЙ НАМ ТЕПЕРЬ НУЖЕН ДЛЯ ПОЛУЧЕНИЯ ТЕКСТА
         private string GetText()
         {
             if (string.IsNullOrEmpty(Text)) return string.Empty;
 
-            // ЗВЕРТАЄМОСЯ НАПРЯМУ ДО ТВОГО МЕНЕДЖЕРА!
-            // Якщо ключ не знайдено, твій менеджер повертає сам ключ (наприклад, "common.save").
+            // ОБРАЩАЕМСЯ НАПРЯМУЮ К ТВОЕМУ МЕНЕДЖЕРУ!
+            // Если ключ не найден, твой менеджер возвращает сам ключ (например, "common.save").
             string text = LocalizationManager.Instance.Get(Text, GetParams());
 
-            // Якщо повернувся сам ключ (перекладу немає) і в нас є FallBackText, використовуємо FallBack
+            // Если вернулся сам ключ (перевода нет) и у нас есть FallBackText, используем FallBack
             if (text == Text && !string.IsNullOrEmpty(_fallBackText))
             {
                 return string.Format(_fallBackText, GetParams());

@@ -130,7 +130,6 @@ public class SyncDataFixerViewModel : DialogViewModel
 
     private async Task OnCheckAsync()
     {
-        // Захист: якщо нічого не вибрано
         if (!CheckMain && !CheckStocks && !CheckInvoiceTransactions && !CheckBillTransactions &&
             !CheckStockTransactions && !CheckStockRevisions && !CheckOtherTransactions)
         {
@@ -197,7 +196,6 @@ public class SyncDataFixerViewModel : DialogViewModel
             }
             catch (Exception ex)
             {
-                // Більше ніякого мовчання!
                 dataFixerViewModel.UserInteractionService.ShowExceptionMessage(ex, $"Error processing {keyValuePair.Key}");
             }
         }
@@ -277,7 +275,7 @@ public class SyncDataFixerViewModel : DialogViewModel
                     }
                     catch (Exception ex)
                     {
-                        // Якщо конкретний документ не зберігся, виводимо хоча б у статус
+                        // Если конкретный документ не сохранился, выводим хотя бы статус
                         this.Status = $"Failed to update {typeof(T).Name} ID: {model.Id}. Error: {ex.Message}";
                     }
                 }
@@ -286,7 +284,7 @@ public class SyncDataFixerViewModel : DialogViewModel
         }
         catch (Exception ex)
         {
-            // Не мовчимо про критичні помилки бази даних!
+            
             this.UserInteractionService.ShowExceptionMessage(ex, $"Database error while processing {typeof(T).Name}");
         }
     }

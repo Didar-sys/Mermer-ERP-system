@@ -94,44 +94,44 @@ public class StockTransferDetailsViewModel :
     {
         try
         {
-            // 1. Перевірка вибору складу-відправника
+            // 1. Проверка выбора склада-отправителя
             if (string.IsNullOrEmpty(Details.WarehouseId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Source Warehouse"]]);
             }
 
-            // 2. Перевірка вибору складу-отримувача
+            // 2. Проверка выбора склада-получателя
             if (string.IsNullOrEmpty(Details.DestinationWarehouseId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Destination Warehouse"]]);
             }
 
-            // 3. Склад-відправник і склад-отримувач не повинні збігатися
+            // 3. Склад-отправитель и склад-получатель не должны совпадать
             if (Details.WarehouseId == Details.DestinationWarehouseId)
             {
                 throw new Exception(this["Source and destination warehouses must be different"]);
             }
 
-            // 5. Перевірка кожного рядка переміщення
+            // 5. Проверка каждой строки перемещения
             foreach (var line in Details.Lines)
             {
-                // Кількість має бути строго більшою за нуль
+                // Количество должно быть строго больше нуля
                 if (line.Quantity <= 0)
                     throw new Exception(this["Quantity must be greater than zero"]);
 
-                // Перевірка прив'язки валюти (якщо вона є в структурі StockTransferLine)
+                // Проверка привязки валюты (если она есть в структуре StockTransferLine)
                 if (string.IsNullOrEmpty(line.CurrencyId))
                     throw new Exception(this["Field '{0}' is required", this["Currency"]]);
             }
         }
         catch (Exception ex)
         {
-            // Перериваємо процес збереження та показуємо вікно з помилкою
+            // Прерываем процесс сохранения и показываем окно с ошибкой
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        // Якщо все заповнено коректно — виконуємо стандартне базове збереження
+        // Если всё заполнено корректно — выполняем стандартное базовое сохранение
         return await base.OnSaveAsync();
     }
 

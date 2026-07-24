@@ -100,13 +100,13 @@ public class StockAlternativeDetailsViewModel : DetailsViewModel<StockAlternativ
     {
         try
         {
-            // 1. Обов'язкова перевірка поля "Назва" (Name)
+            // 1. Обязательная проверка поля "Название" (Name)
             if (string.IsNullOrEmpty(Details.Name))
             {
                 throw new Exception(this["Field '{0}' is required", this["Name"]]);
             }
 
-            // 2. Заборона збереження документа без жодного товару-аналога
+            // 2. Запрет хранения документа без какого-либо товара-аналога
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
@@ -114,12 +114,11 @@ public class StockAlternativeDetailsViewModel : DetailsViewModel<StockAlternativ
         }
         catch (Exception ex)
         {
-            // Перехоплюємо помилку, показуємо локалізоване повідомлення і блокуємо збереження
+            
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        // Якщо всі перевірки пройдено — виконуємо стандартне збереження
         return await base.OnSaveAsync();
     }
 

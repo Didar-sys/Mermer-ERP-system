@@ -73,50 +73,50 @@ public class FundsTransferDetailsViewModel(
     {
         try
         {
-            // 1. Обов'язково має бути вказана каса-відправник
+            // 1. Обязательно должна быть указана касса-отправитель
             if (string.IsNullOrEmpty(Details.DepositoryId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Source Depository"]]);
             }
 
-            // 2. Обов'язково має бути вказана каса-одержувач
+            // 2. Обязательно должна быть указана касса-получатель
             if (string.IsNullOrEmpty(Details.DestinationDepositoryId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Destination Depository"]]);
             }
 
-            // 3. Логічний захист: каса-відправник і каса-одержувач не можуть бути однаковими
+            // 3. Логическая защита: касса-отправитель и касса-получатель не могут быть одинаковыми
             if (Details.DepositoryId == Details.DestinationDepositoryId)
             {
                 throw new Exception(this["Source and destination depositories cannot be the same"]);
             }
 
-            // 4. Документ не може бути порожнім
+            // 4. Документ не может быть пустым
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
             }
 
-            // 5. Перевірка кожного рядка в таблиці
+            // 5. Проверка каждой строки в таблице
             foreach (var line in Details.Lines)
             {
-                // Сума має бути більшою за нуль
+                // Сумма должна быть больше нуля
                 if (line.Amount <= 0)
                     throw new Exception(this["Amount must be greater than zero"]);
 
-                // Валюта є обов'язковою
+                // Валюта обязательна
                 if (string.IsNullOrEmpty(line.CurrencyId))
                     throw new Exception(this["Field '{0}' is required", this["Currency"]]);
             }
         }
         catch (Exception ex)
         {
-            // Виводимо повідомлення та блокуємо збереження
+            // Выводим сообщение и блокируем сохранение
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        // Якщо все заповнено правильно — викликаємо стандартне збереження
+        // Если всё заполнено правильно — вызываем стандартное сохранение
         return await base.OnSaveAsync();
     }
 
@@ -127,7 +127,7 @@ public class FundsTransferDetailsViewModel(
             var newCurrencyId = this.Details.DisplayCurrencyId;
 
             // =========================================================
-            // БЛОК ПРАВИЛЬНОЇ КОНВЕРТАЦІЇ ФІНАНСІВ (USD <-> TMT)
+            // БЛОК ПРАВИЛЬНОЙ КОНВЕРТАЦИИ ФИНАНСОВ (USD <-> TMT)
             // =========================================================
             if (this.Details.Lines != null && !string.IsNullOrEmpty(newCurrencyId))
             {
@@ -152,13 +152,13 @@ public class FundsTransferDetailsViewModel(
                             decimal tMult = targetRate.Multiplier;
                             decimal tDiv = targetRate.Divider;
 
-                            // Вираховуємо загальний коефіцієнт конвертації
+                            // Вычисляем общий коэффициент конвертации
                             decimal conversionRate = (sMult / sDiv) * (tDiv / tMult);
 
-                            // Конвертуємо ВІДПРАВЛЕНУ суму
+                            // Конвертируем ОТПРАВЛЕННУЮ сумму
                             line.Amount = Math.Round(line.Amount * conversionRate, targetCurrency.Decimals);
 
-                            // ДОДАНО: Конвертуємо ПРИЙНЯТУ суму
+                            // ДОБАВЛЕНО: Конвертируем ПОЛУЧЕННУЮ сумму
                             line.ReceivedAmount = Math.Round(line.ReceivedAmount * conversionRate, targetCurrency.Decimals);
 
                             line.CurrencyId = newCurrencyId;
@@ -181,7 +181,7 @@ public class FundsTransferDetailsViewModel(
                             line.RaisePropertyChanged("DisplayAmount");
                             line.RaisePropertyChanged("DisplayTotal");
 
-                            // ДОДАНО: Сигнал для оновлення колонок переміщення
+                            // ДОБАВЛЕНО: Сигнал для обновления колонок перемещения
                             line.RaisePropertyChanged("ActionTotal");
                             line.RaisePropertyChanged("ActionReceivedTotal");
                         }
@@ -189,7 +189,7 @@ public class FundsTransferDetailsViewModel(
                     this.Details.RaisePropertyChanged("DisplayAmount");
                     this.Details.RaisePropertyChanged("DisplayTotal");
 
-                    // ДОДАНО: Сигнал для оновлення загальних підсумків унизу екрана
+                    // ДОБАВЛЕНО: Сигнал для обновления общих итогов внизу экрана
                     this.Details.RaisePropertyChanged("ActionTotal");
                     this.Details.RaisePropertyChanged("ActionReceivedTotal");
 

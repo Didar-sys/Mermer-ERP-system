@@ -26,13 +26,13 @@ using System.Windows.Input;
 #nullable disable
 namespace Mermer.Ui.Core.ViewModels.FundsManagement;
 
-public class FundsBalancesListViewModel : 
+public class FundsBalancesListViewModel :
   ListViewModelBaseWithFilterDate<FundsBalanceByTypeWithBalance>
 {
-  private readonly IConfigurator _configurator;
-  private readonly IFundsBalancesRepository _repository;
-  private string _depositoryId;
-  private bool _loaded;
+    private readonly IConfigurator _configurator;
+    private readonly IFundsBalancesRepository _repository;
+    private string _depositoryId;
+    private bool _loaded;
     private string _currencyId;
 
     public virtual string CurrencyId
@@ -42,7 +42,7 @@ public class FundsBalancesListViewModel :
         {
             if (!this.SetProperty<string>(ref this._currencyId, value, nameof(CurrencyId)) || this.IsBusy)
                 return;
-            this.ApplyCustomCurrencyRate(); // Перерахунок при зміні
+            this.ApplyCustomCurrencyRate(); // Пересчет при изменении
         }
     }
 
@@ -51,7 +51,7 @@ public class FundsBalancesListViewModel :
     IMvxMessenger messenger,
     IConfigurator configurator,
     Reference<Depository> depositories,
-    Reference<Currency> currencies, // ДОДАНО
+    Reference<Currency> currencies, // ДОБАВЛЕНО
     IFundsBalancesRepository repository,
     IMvxNavigationService navigationService,
     IUserInteractionService userInteractionService)
@@ -61,21 +61,21 @@ public class FundsBalancesListViewModel :
         this._repository = repository;
         this.Depositories = depositories;
 
-        this.Currencies = currencies; // ДОДАНО
+        this.Currencies = currencies; // ДОБАВЛЕНО
     }
 
     public virtual string DepositoryId
-  {
-    get => this._depositoryId;
-    set
     {
-      if (!this.SetProperty<string>(ref this._depositoryId, value, nameof (DepositoryId)) || this.IsBusy)
-        return;
-      this.Initialize();
+        get => this._depositoryId;
+        set
+        {
+            if (!this.SetProperty<string>(ref this._depositoryId, value, nameof(DepositoryId)) || this.IsBusy)
+                return;
+            this.Initialize();
+        }
     }
-  }
 
-  public Reference<Depository> Depositories { get; }
+    public Reference<Depository> Depositories { get; }
 
     protected override async Task PreLoad()
     {
@@ -87,10 +87,10 @@ public class FundsBalancesListViewModel :
         await Task.WhenAll(
             base.PreLoad(),
             this.Depositories.Initialize(),
-            this.Currencies.Initialize() // ДОДАНО
+            this.Currencies.Initialize() // ДОБАВЛЕНО
         );
 
-        // ДОДАНО: Дефолтна валюта
+        // ДОБАВЛЕНО: Дефолтная валюта
         if (string.IsNullOrEmpty(CurrencyId))
         {
             CurrencyId = Currencies.List.FirstOrDefault(x => x.IsDefault)?.Id;
@@ -136,56 +136,56 @@ public class FundsBalancesListViewModel :
     }
 
     public ICommand SelectOrViewDetailsCommand
-  {
-    get
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSelectOrViewDetailsAsync), (Func<bool>) (() => !this.IsBusy && this.SelectedItem != null));
+        get
+        {
+            return (ICommand)new MvxAsyncCommand(new Func<Task>(this.OnSelectOrViewDetailsAsync), (Func<bool>)(() => !this.IsBusy && this.SelectedItem != null));
+        }
     }
-  }
 
-  private Task OnSelectOrViewDetailsAsync()
-  {
-    return this.NavigationService.Navigate<FundsActionsListViewModel, FundsActionsFilter>(new FundsActionsFilter()
+    private Task OnSelectOrViewDetailsAsync()
     {
-      DepositoryIds = new string[1]
-      {
+        return this.NavigationService.Navigate<FundsActionsListViewModel, FundsActionsFilter>(new FundsActionsFilter()
+        {
+            DepositoryIds = new string[1]
+          {
         this.SelectedItem.DepositoryId
-      },
-      DateFrom = this.DateFilterFrom,
-      DateTill = this.DateFilterTill
-    });
-  }
-
-  public ICommand ShowActionsCommand
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnShowActionsAsync), (Func<bool>) (() => !this.IsBusy));
+          },
+            DateFrom = this.DateFilterFrom,
+            DateTill = this.DateFilterTill
+        });
     }
-  }
 
-  private Task OnShowActionsAsync()
-  {
-    return this.NavigationService.Navigate<FundsActionsListViewModel, FundsActionsFilter>(new FundsActionsFilter()
+    public ICommand ShowActionsCommand
     {
-      DepositoryIds = new string[1]{ this.DepositoryId },
-      DateFrom = this.DateFilterFrom,
-      DateTill = this.DateFilterTill
-    });
-  }
+        get
+        {
+            return (ICommand)new MvxAsyncCommand(new Func<Task>(this.OnShowActionsAsync), (Func<bool>)(() => !this.IsBusy));
+        }
+    }
+
+    private Task OnShowActionsAsync()
+    {
+        return this.NavigationService.Navigate<FundsActionsListViewModel, FundsActionsFilter>(new FundsActionsFilter()
+        {
+            DepositoryIds = new string[1] { this.DepositoryId },
+            DateFrom = this.DateFilterFrom,
+            DateTill = this.DateFilterTill
+        });
+    }
 
     protected override Expression<Func<FundsBalanceByTypeWithBalance, bool>> GetDateFilter(
       DateTime from,
       DateTime till)
     {
-        // Повертаємо вираз, який завжди істинний, щоб фільтрація не падала
+        // Возвращаем выражение, которое всегда истинно, чтобы фильтрация не падала
         return x => true;
     }
 
     protected override async Task<int> CountListAsync(params Expression<Func<FundsBalanceByTypeWithBalance, bool>>[] predicates)
     {
-        // Якщо DepositoryId порожній, передаємо null або пустий рядок в репозиторій,
-        // щоб він дістав баланси по ВСІХ касах, а не шукав касу з ім'ям "null"
+        // Если DepositoryId пустой, передаем null или пустую строку в репозиторий,
+        // чтобы он достал балансы по ВСЕМ кассам, а не искал кассу с именем "null"
         var depId = string.IsNullOrEmpty(this.DepositoryId) ? null : this.DepositoryId;
         var result = await this._repository.GetByTypeAsync(depId, null, null);
         return result != null ? result.Count() : 0;

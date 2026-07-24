@@ -3,7 +3,7 @@ using Mermer.Ui.Core.ViewModels.Commerce;
 using System.Windows.Input;
 using System.Windows;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
-using Mermer.Ui.Pc.Helpers; // ДОДАЙ ЦЕЙ РЯДОК, якщо helper в іншій папці
+using Mermer.Ui.Pc.Helpers;
 
 namespace Mermer.Ui.Pc.Views.Commerce;
 
@@ -43,14 +43,14 @@ public partial class InvoiceDetailsView : MvxWpfView
     }
 
     // ========================================================
-    // ПРАВИЛЬНЕ ЗАКРИТТЯ ЧЕРЕЗ VIEWMODEL
+    // ПРАВИЛЬНОЕ ЗАКРЫТИЕ ЧЕРЕЗ VIEWMODEL
     // ========================================================
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
-        // Отримуємо поточну ViewModel
+        // Получаем текущую ViewModel
         if (this.DataContext is Mermer.Mvvm.ViewModels.BaseViewModel viewModel)
         {
-            // Викликаємо правильну команду закриття з ViewModel (де лежить наше оригінальне біле вікно)
+            // Вызываем правильную команду закрытия из ViewModel (где лежит наше оригинальное белое окно)
             if (viewModel.CloseCommand != null && viewModel.CloseCommand.CanExecute(null))
             {
                 viewModel.CloseCommand.Execute(null);

@@ -27,10 +27,10 @@ public class ServerIdProviderService : IServerIdProviderService
     using (HttpClient client = new HttpClient())
     {
       client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{this._cluster.Username}:{this._cluster.Password}")));
-            // --- БЕЗПЕЧНЕ ФОРМУВАННЯ АДРЕСИ COUCHBASE ---
+            // --- БЕЗОПАСНОЕ ФОРМИРОВАНИЕ АДРЕСА COUCHBASE ---
             string safeUrl = string.IsNullOrWhiteSpace(this._cluster.Url) ? "127.0.0.1" : this._cluster.Url;
 
-            // Якщо адреса не має http://, додаємо його і стандартний порт Couchbase (8091)
+            // Если адрес не имеет http://, добавляем его и стандартный порт Couchbase (8091)
             if (!safeUrl.StartsWith("http"))
             {
                 safeUrl = safeUrl.Contains(":") ? $"http://{safeUrl}" : $"http://{safeUrl}:8091";
@@ -39,7 +39,7 @@ public class ServerIdProviderService : IServerIdProviderService
             string bucketName = string.IsNullOrWhiteSpace(this._cluster.DefaultBucket) ? "default" : this._cluster.DefaultBucket;
             string requestUri = $"{safeUrl}/pools/default/buckets/{bucketName}";
 
-            // Виконуємо запит за гарантовано правильною адресою
+            // Выполняем запрос по гарантированно правильному адресу
             var response = await client.GetAsync(requestUri);
             var contentString = await response.Content.ReadAsStringAsync();
 

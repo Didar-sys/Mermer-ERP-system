@@ -116,7 +116,6 @@ public class StocksListViewModel :
         {
             var facets = await this._repository.GetFacets("PriceGroupNames");
 
-            // Безпечна перевірка: якщо база повернула порожнечу, ми створимо пустий масив
             if (facets != null && facets.ContainsKey("PriceGroupNames") && facets["PriceGroupNames"] != null)
             {
                 this.PriceGroupNames = facets["PriceGroupNames"].Select(x => x.Key).ToArray();
@@ -143,18 +142,18 @@ public class StocksListViewModel :
     {
         try
         {
-            // 1. Захист від null. База даних падає, якщо передати їй null замість тексту.
+            // 1. Защита от null. База данных падает, если передать ей null вместо текста.
             string safeCurrency = AdditionalPriceCurrencyId ?? string.Empty;
             string safeGroup = AdditionalPriceGroup ?? string.Empty;
 
-            // 2. Отримуємо дані з репозиторію з безпечними параметрами
+            // 2. Получаем данные из репозитория с безопасными параметрами
             IEnumerable<StockInfo> infoAsync = await _repository.GetInfoAsync(safeCurrency, safeGroup);
 
-            // 3. Матеріалізуємо список
+            // 3. Материализуем список
             var stockList = infoAsync?.ToList() ?? new List<StockInfo>();
             List = stockList;
 
-            // 4. Відновлюємо виділений рядок (якщо він є)
+            // 4. Восстанавливаем выделенную строку (если она есть)
             if (!string.IsNullOrEmpty(ItemId) && stockList.Count > 0)
             {
                 SelectedItem = stockList.FirstOrDefault(x => x != null && x.Id == ItemId);
@@ -162,7 +161,7 @@ public class StocksListViewModel :
         }
         catch (Exception ex)
         {
-            // Відображаємо помилку і очищаємо список, щоб уникнути зависання
+            
             List = new List<StockInfo>();
             UserInteractionService.ShowExceptionMessage(ex);
         }
@@ -359,21 +358,20 @@ public class StocksListViewModel :
             {
                 var context = new BucketContext(bucket);
 
-                // ОЧИЩЕНИЙ ЗАПИТ: без зайвих кастів. 
-                // C# сам зрозуміє, що це Expression Tree, і Couchbase легко перекладе це в N1QL
+                
                 var query = context.Query<Stock>().Where(x =>
                     x.DocType == "Stock" &&
                     x.Id == N1QlFunctions.Key(x) &&
-                    x.Prices.Any(p => p.CurrencyId == null)); // default(string) — це просто null
+                    x.Prices.Any(p => p.CurrencyId == null));
 
                 foreach (Stock stock in await query.ExecuteAsync<Stock>())
                 {
-                    // Очищаємо ціни від тих, де CurrencyId пустий
+                    // Очищаем цены от тех, где CurrencyId пуст
                     stock.Prices = new WatchedObservableCollection<StockPrice>(
                         stock.Prices.Where(x => !string.IsNullOrEmpty(x.CurrencyId))
                     );
 
-                    // Оновлюємо документ у Couchbase
+                   
                     await bucket.ReplaceAsync(new Document<Stock>()
                     {
                         Id = stock.Id,
@@ -388,7 +386,6 @@ public class StocksListViewModel :
         }
         finally
         {
-            // Перенесено в finally, щоб завжди знімати блокування інтерфейсу
             stocksListViewModel.IsBusy = false;
         }
     }

@@ -61,7 +61,7 @@ public class FundsTransactionDetailsViewModel<T, TLine> : TransactionDetailsView
     {
         await base.PostLoad();
 
-        // Відновлена лямбда фільтрації (показуємо активні або вже вибраний)
+        // Восстановленная лямбда фильтрации (показываем активные или уже выбранные)
         Depositories.Filter = x => !x.IsDisabled || x.Id == Details.DepositoryId;
     }
 

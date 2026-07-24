@@ -13,7 +13,7 @@ namespace Mermer.Ui.Pc.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            // Якщо DevExpress підсовує заглушку під час завантаження - кажемо WPF нічого не робити
+            // Если DevExpress подсовывает заглушку во время загрузки – говорим WPF ничего не делать
             if (value != null && value.GetType().Name == "NotLoadedObject")
             {
                 return Binding.DoNothing;

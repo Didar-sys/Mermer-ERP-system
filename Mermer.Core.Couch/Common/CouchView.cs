@@ -122,7 +122,6 @@ public class CouchView
       }
             catch (Exception ex)
             {
-                // Хоча б викиньте помилку вище, щоб побачити її під час дебагу!
                 throw new Exception("Couchbase View Query Failed: " + ex.Message, ex);
             }
         }
@@ -136,11 +135,11 @@ public class CouchView
     {
         using (IBucket bucket = this.Cluster.OpenDefaultBucket())
         {
-            query.Reduce(true); // Обов'язково
+            query.Reduce(true); // Обязательно
             var result = await bucket.QueryAsync<dynamic>(query);
             if (!result.Success) throw new Exception(result.Message);
 
-            // Результат _count завжди лежить у першому елементі Values
+            // Результат _count всегда находится в первом элементе Values
             return (long)(result.Rows.FirstOrDefault()?.Value ?? 0);
         }
     }

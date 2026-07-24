@@ -202,7 +202,6 @@ public class AggregatedStockOrderDetailsViewModel :
         StockSearcher.WarehouseId = Details.WarehouseId;
         await LoadStocksCache();
 
-        // Відновлена лямбда фільтрації (типова логіка для складів)
         Warehouses.Filter = w => !w.IsDisabled || w.Id == Details.WarehouseId;
 
         GenerateColumns();
@@ -220,7 +219,7 @@ public class AggregatedStockOrderDetailsViewModel :
             Stock stocksCacheAsync = await GetFromStocksCacheAsync(line.StockId);
         }
 
-        // Виправлений виклик RaisePropertyChanged без декомпіляторного сміття
+       
         RaisePropertyChanged(() => StocksCache);
     }
 
@@ -400,13 +399,13 @@ public class AggregatedStockOrderDetailsViewModel :
     {
         try
         {
-            // 1. Обов'язкова перевірка вибору складу (Warehouse)
+           
             if (string.IsNullOrEmpty(Details.WarehouseId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
             }
 
-            // 2. Перевірка наявності товарних позицій (заборона збереження порожнього документа)
+            
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
@@ -414,12 +413,11 @@ public class AggregatedStockOrderDetailsViewModel :
         }
         catch (Exception ex)
         {
-            // Перехоплюємо помилку, показуємо повідомлення користувачу та блокуємо збереження
+            
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        // Якщо всі перевірки пройдено — виконуємо стандартне збереження
         return await base.OnSaveAsync();
     }
     public class Params

@@ -174,7 +174,6 @@ public class StockOrderDetailsViewModel :
         if (e.PropertyName != "UnitId")
             return;
 
-        // Виправлений синтаксис перевірки типу
         if (sender is StockOrderLine stockOrderLine)
         {
             UpdateStockUnitConvertion(stockOrderLine.StockId, stockOrderLine.UnitId);
@@ -244,34 +243,34 @@ public class StockOrderDetailsViewModel :
     {
         try
         {
-            // 1. Перевірка вибору складу
+   
             if (string.IsNullOrEmpty(Details.WarehouseId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
             }
 
-            // 2. Перевірка наявності товарних позицій (заборона порожнього документа)
+           
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
             }
 
-            // 3. Перевірка кожного рядка замовлення
+           
             foreach (var line in Details.Lines)
             {
-                // Кількість має бути строго більшою за нуль
+               
                 if (line.Quantity <= 0)
                     throw new Exception(this["Quantity must be greater than zero"]);
             }
         }
         catch (Exception ex)
         {
-            // Показуємо повідомлення та блокуємо збереження
+
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        // Якщо все заповнено коректно — виконуємо збереження в базу
+
         return await base.OnSaveAsync();
     }
 
@@ -349,7 +348,7 @@ public class StockOrderDetailsViewModel :
 
     protected virtual async Task OnSelectedLineEditAsync()
     {
-        // Відновлена лямбда пошуку стоку
+        
         Stock stock = StocksCache.Single(x => x.Id == SelectedLine.StockId);
 
         var parameters = new StockOrderDetailsLineEditViewModel.Params

@@ -2,13 +2,13 @@
 using AutoMapper;
 using System.Collections.Generic;
 
-namespace Mermer.Ui.Pc // Або інший простір імен, де ти його створиш
+namespace Mermer.Ui.Pc 
 {
     public class AutoMapperModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
-            // Реєструємо всі профілі мапінгу з поточних збірок
+            // Регистрируем все профили маппинга из текущих сборников
             builder.Register(context =>
             {
                 var profiles = context.Resolve<IEnumerable<Profile>>();

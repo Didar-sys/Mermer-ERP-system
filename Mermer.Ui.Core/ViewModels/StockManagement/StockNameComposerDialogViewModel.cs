@@ -86,8 +86,8 @@ public class StockNameComposerDialogViewModel :
             return Task.CompletedTask;
         }
 
-        // 2. Склеюємо назву з безпечних (перевірених) значень. 
-        // (Я трохи почистив код від декомпільованого сміття для кращої читабельності)
+        // 2. Склеиваем название из безопасных (проверенных) значений. 
+        // (Я немного почистил код от декомпилированного мусора для лучшей читабельности)
         return (Task)this.NavigationService.Close<SncParams>((IMvxViewModelResult<SncParams>)this, new SncParams()
         {
             ShortName = string.Join(" ", this.Values.Select(x => x.ShortName)),

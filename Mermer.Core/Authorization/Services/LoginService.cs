@@ -10,9 +10,8 @@ namespace Mermer.Core.Authorization.Services;
 
 public abstract class LoginService : ILoginService
 {
-    // --- ГЕНІАЛЬНИЙ ФІКС: РОБИМО СЕСІЮ СТАТИЧНОЮ ---
-    // Тепер усі екземпляри сервісу будуть використовувати одну спільну сесію.
-    // DI-контейнери більше не зможуть "згубити" твій логін.
+    // Теперь все экземпляры сервиса будут использовать одну общую сессию.
+    // DI-контейнеры больше не смогут "потерять" твой логин.
     private static UserSession? _staticSession;
 
     public UserSession? Session
@@ -20,7 +19,6 @@ public abstract class LoginService : ILoginService
         get => _staticSession;
         set => _staticSession = value;
     }
-    // ----------------------------------------------
 
     public virtual bool IsLoggedIn => this.Session != null;
 

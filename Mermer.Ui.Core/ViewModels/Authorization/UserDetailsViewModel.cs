@@ -67,13 +67,11 @@ public class UserDetailsViewModel : DetailsViewModel<User>
             Details.Roles.Select(x => new RoleAssignment { RoleId = x })
         );
 
-        // Відновлена втрачена лямбда b__2_1
         DirtynessController.ControlSubList(RoleAssignments, Details, x => IsDirty = true);
 
         if (Details.AccountPrivileges == null)
             Details.AccountPrivileges = new Dictionary<string, AccountAccessLevel>();
 
-        // Очищені та відновлені LINQ Join
         OfficeAssignments = new ObservableCollection<AccountAssignment>(
             Details.AccountPrivileges.Join(Offices.List,
                 x => x.Key,
@@ -98,7 +96,6 @@ public class UserDetailsViewModel : DetailsViewModel<User>
         );
         DirtynessController.ControlSubList(DepositoryAssignments, Details, x => IsDirty = true);
 
-        // Відновлені втрачені лямбди фільтрів
         Offices.Filter = x => !x.IsDisabled;
         Warehouses.Filter = x => !x.IsDisabled;
         Depositories.Filter = x => !x.IsDisabled;
@@ -110,7 +107,7 @@ public class UserDetailsViewModel : DetailsViewModel<User>
         Details.Roles = RoleAssignments.Select(x => x.RoleId).Distinct();
 
         if (!string.IsNullOrEmpty(Details.Password))
-            Details.Password = Details.Password.Hash(); // Якщо Hash() не знайдено, можливо потрібен using
+            Details.Password = Details.Password.Hash();
 
         Details.AccountPrivileges = OfficeAssignments
             .Union(WarehouseAssignments)

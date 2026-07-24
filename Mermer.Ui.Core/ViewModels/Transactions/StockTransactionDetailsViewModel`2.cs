@@ -50,7 +50,6 @@ public class StockTransactionDetailsViewModel<T, TLine> :
   private ObservableCollection<Stock> _stocksCache;
   private bool _allowReporting;
   private IEnumerable<CopyCreateLine> _stockLineCopies;
-    // Приватна змінна для зберігання команди
     private IMvxAsyncCommand _closeCommand;
     public StockTransactionDetailsViewModel(
     CopyCreate copyCreate,
@@ -158,7 +157,6 @@ public class StockTransactionDetailsViewModel<T, TLine> :
         await LoadStocksCache();
         Details.RaisePropertyChanged("LineQuantitiesSum");
 
-        // Відновлена лямбда фільтрації складів
         Warehouses.Filter = w => !w.IsDisabled || w.Id == Details.WarehouseId;
     }
 
@@ -210,7 +208,7 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     private async Task LoadStocksCache()
     {
         await UpdateStocksCacheAsync(Details.Lines.Select(x => x.StockId).ToArray());
-        RaisePropertyChanged(() => StocksCache); // Виправлено explicit non-virtual call
+        RaisePropertyChanged(() => StocksCache);
     }
 
     protected Stock GetFromStocksCache(string stockId)
@@ -231,7 +229,7 @@ public class StockTransactionDetailsViewModel<T, TLine> :
 
     protected async Task UpdateStocksCacheAsync(params string[] stockIds)
     {
-        // Відновлена лямбда фільтрації (завантажуємо тільки ті стоки, яких ще немає в кеші)
+        
         string[] array = stockIds.Distinct().Where(id => !StocksCache.Any(sc => sc.Id == id)).ToArray();
 
         if (!array.Any())
@@ -243,7 +241,7 @@ public class StockTransactionDetailsViewModel<T, TLine> :
 
     protected async Task UpdateStocksCacheByCodeAsync(params string[] stockCodes)
     {
-        // Відновлена лямбда фільтрації (завантажуємо тільки ті стоки, яких ще немає в кеші)
+        
         string[] stockCodesToAdd = stockCodes.Distinct().Where(code => !StocksCache.Any(sc => sc.Code == code)).ToArray();
 
         if (!stockCodesToAdd.Any())
@@ -323,19 +321,19 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     return instance;
     }
 
-    // 1. Створюємо публічний метод перевірки (щоб викликати його з вікна при натисканні на X)
+    // 1. Создаем публичный метод проверки (чтобы вызвать его из окна при нажатии на X)
     public bool CheckCanClose()
     {
         if (!this.IsDirty)
             return true;
 
-        // Використовуємо вбудований сервіс для стилізованого оверлею
+        // Используем встроенный сервис для стилизованной оверлей
         var result = this.UserInteractionService.ShowMessage(
             "Warning",
             "Are you sure you want to close? Changes will be lost.",
             Mermer.Mvvm.Services.UserInteractionType.YesNoCancel);
 
-        // Повертаємо true ТІЛЬКИ якщо натиснули "Yes"
+        // Возвращаем true ТОЛЬКО если нажали "Yes"
         return result == true;
     }
 
@@ -349,23 +347,21 @@ public class StockTransactionDetailsViewModel<T, TLine> :
             {
                 _forceCloseCommand = new MvxAsyncCommand(async () =>
                 {
-                    // Перевіряємо, чи є незбережені зміни
                     if (this.IsDirty)
                     {
-                        // ВИКОРИСТОВУЄМО ВАШ ФІРМОВИЙ СЕРВІС ЗАМІСТЬ СИСТЕМНОГО MESSAGEBOX
                         var result = this.UserInteractionService.ShowMessage(
                             "Warning",
                             "Are you sure you want to close? Changes will be lost.",
                             Mermer.Mvvm.Services.UserInteractionType.YesNoCancel);
 
-                        // Метод повертає bool?. Якщо натиснуто ЩОСЬ ІНШЕ крім "Yes" (true) — перериваємо закриття
+                        // Метод возвращает bool? Если нажато ЧТО-ТО ПРОЧЕЕ кроме "Yes" (true) - прерываем закрытие
                         if (result != true)
                         {
                             return;
                         }
                     }
 
-                    // Якщо змін не було, або користувач натиснув "Yes" — закриваємо
+                   
                     await this.NavigationService.Close(this);
                 });
             }
@@ -374,7 +370,7 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     }
     private void DoCloseTransaction()
     {
-        // Цей метод відправляє сигнал закриття, який ми ловимо в MainViewPresenter
+        // Этот метод отправляет сигнал закрытия, который мы ловим в MainViewPresenter
         this.Close(this);
     }
 
@@ -476,7 +472,6 @@ public class StockTransactionDetailsViewModel<T, TLine> :
 
     protected virtual bool AllowStockTracking()
     {
-        // Виправлений __Boxed<T>
         return Details != null && Details.IsStockIncome;
     }
 
@@ -515,7 +510,7 @@ public class StockTransactionDetailsViewModel<T, TLine> :
                     {
                         i++;
 
-                        // Використовуємо MvvmCross диспетчер
+                        // Используем MvvmCross диспетчер
                         InvokeOnMainThread(() =>
                         {
                             Status = this[$"Importing {i} of {itemsCount} lines"];

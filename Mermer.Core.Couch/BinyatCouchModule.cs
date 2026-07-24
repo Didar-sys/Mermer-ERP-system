@@ -20,7 +20,6 @@ public class BinyatCouchModule : BinyatCoreModule
 
     public BinyatCouchModule(string url, string bucket, string username, string password)
     {
-        // Присвоюємо ті значення, які приходять у параметрах
         _url = url;
         _bucket = bucket;
         _username = username;
@@ -34,7 +33,7 @@ public class BinyatCouchModule : BinyatCoreModule
 
         builder.RegisterModule(new CouchModule(_url, _bucket, _username, _password));
 
-        // Очищений синтаксис сканування Autofac
+        // Очищенный синтаксис сканирования Autofac
         builder.RegisterAssemblyTypes(assembly)
                .Where(t => t.Name.EndsWith("Service") && t.Name != "CouchLoginService")
                .AsImplementedInterfaces();
@@ -61,7 +60,7 @@ public class BinyatCouchModule : BinyatCoreModule
         builder.RegisterType<Mermer.Data.Patcher.Patcher>().As<IPatcher>();
         builder.RegisterType<ChangeHelper>().As<IChangeHelper>();
 
-        // Просто створюємо об'єкти, а Visual Studio сама знайде їхній шлях
+        
         var instance = new CouchCluster();
         instance.Initialize(_url, _bucket, _username, _password);
         builder.RegisterInstance(instance).As<ICouchCluster>().SingleInstance();

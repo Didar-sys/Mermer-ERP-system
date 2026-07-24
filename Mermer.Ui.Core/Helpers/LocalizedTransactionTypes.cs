@@ -20,7 +20,6 @@ public class LocalizedTransactionTypes : BindableObject
 {
     private IEnumerable<ListHelper<string>> _list;
 
-    // ПРИБРАЛИ IMvxLanguageBinder з конструктора
     public LocalizedTransactionTypes(params string[] additionalTypes)
     {
         this.Initialize(additionalTypes);
@@ -32,7 +31,6 @@ public class LocalizedTransactionTypes : BindableObject
         set => this.SetProperty<IEnumerable<ListHelper<string>>>(ref this._list, value, nameof(List));
     }
 
-    // ПРИБРАЛИ IMvxLanguageBinder з параметрів
     public void Initialize(params string[] additionalTypes)
     {
         System.Collections.Generic.List<string> source = (additionalTypes != null ? ((IEnumerable<string>)additionalTypes).ToList<string>() : (System.Collections.Generic.List<string>)null) ?? new System.Collections.Generic.List<string>();
@@ -64,12 +62,11 @@ public class LocalizedTransactionTypes : BindableObject
         source.AddRange(Enum.GetValues(typeof(InvoiceType)).Cast<InvoiceType>().Select<InvoiceType, string>((Func<InvoiceType, string>)(x => x.ToString())));
         source.AddRange(Enum.GetValues(typeof(BillType)).Cast<BillType>().Select<BillType, string>((Func<BillType, string>)(x => x.ToString())));
 
-        // ПІДКЛЮЧАЄМО НОВИЙ МЕНЕДЖЕР
         var localizer = Mermer.Mvvm.Tools.LocalizationManager.Instance;
 
         this.List = source.Distinct<string>().Select<string, ListHelper<string>>((Func<string, ListHelper<string>>)(x => new ListHelper<string>()
         {
-            Text = localizer.Get(x), // Більше ніяких помилок!
+            Text = localizer.Get(x),
             Value = x
         }));
     }

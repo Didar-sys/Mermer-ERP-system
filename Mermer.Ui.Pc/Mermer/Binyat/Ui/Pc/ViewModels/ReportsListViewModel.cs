@@ -43,7 +43,7 @@ public class ReportsListViewModel(
     };
     return base.OnLoad();
   }
-    // Команда для подвійного кліку (Вибрати або Переглянути)
+    // Команда для двойного клика (Выбрать или Просмотр)
     public ICommand SelectOrViewDetailsCommand => new MvxAsyncCommand(OnSelectOrViewDetailsCommandAsync, () => !IsBusy);
 
     protected virtual Task OnSelectOrViewDetailsCommandAsync()
@@ -68,7 +68,7 @@ public class ReportsListViewModel(
         return Task.CompletedTask;
     }
 
-    // Команда для кнопки "Переглянути деталі"
+    // Команда для кнопки "Просмотр деталей"
     public ICommand ViewDetailsCommand => new MvxAsyncCommand(OnViewDetailsCommandAsync, () => !IsBusy);
 
     protected virtual Task OnViewDetailsCommandAsync()

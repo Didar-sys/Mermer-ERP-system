@@ -44,15 +44,12 @@ public class UsersRepository(
                     model.Password = documentAsync.Content.Password;
             }
         }
-
-        // ВИПРАВЛЕНО: Прибрано машинні артефакти декомпілятора
         await base.UpdateAsync(model);
         model.Password = null;
     }
 
     public override async Task<User> GetAsync(string id)
     {
-        // ВИПРАВЛЕНО: Змінну 'async' перейменовано на 'result'
         User result = await base.GetAsync(id);
         if (result != null)
             result.Password = null;
@@ -61,7 +58,6 @@ public class UsersRepository(
 
     public override async Task<IEnumerable<User>> GetAsync(params Expression<Func<User, bool>>[] predicates)
     {
-        // ВИПРАВЛЕНО: Покращено роботу з колекціями та перейменовано 'async'
         IEnumerable<User> items = await base.GetAsync(predicates);
         var userList = items.ToList();
 

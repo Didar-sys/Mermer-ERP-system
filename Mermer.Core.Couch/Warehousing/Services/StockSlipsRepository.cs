@@ -45,7 +45,7 @@ public class StockSlipsRepository : CouchRepositoryWithFacet<StockSlip>
     public override async Task ValidateAsync(StockSlip model)
     {
         var config = await _configurator.GetConfigAsync<AppSettings>();
-        await Validator.ValidateAndThrowAsync(model); // Використовуємо стандартний валідатор
+        await Validator.ValidateAndThrowAsync(model); // Используем стандартный валидтор
     }
 
     public override Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)

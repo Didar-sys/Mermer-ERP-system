@@ -56,68 +56,69 @@ public class FundsSlipDetailsViewModel(
     {
         try
         {
-            // 1. Обов'язково має бути вибрана Каса (Depository)
+            // 1. Обязательно должна быть выбрана Касса (Depository)
             if (string.IsNullOrEmpty(Details.DepositoryId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Depository"]]);
             }
 
-            // 2. Документ не може бути порожнім
+            // 2. Документ не может быть пустым
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
             }
 
-            // 3. Перевірка кожного рядка в таблиці
+            // 3. Проверка каждой строки в таблице
             foreach (var line in Details.Lines)
             {
-                // Сума має бути більшою за нуль
+                // Сумма должна быть больше нуля
                 if (line.Amount <= 0)
                     throw new Exception(this["Amount must be greater than zero"]);
 
-                // Валюта є обов'язковою
+                // Валюта обязательна
                 if (string.IsNullOrEmpty(line.CurrencyId))
                     throw new Exception(this["Field '{0}' is required", this["Currency"]]);
             }
         }
         catch (Exception ex)
         {
-            // Виводимо повідомлення та блокуємо збереження
+            // Выводим сообщение и блокируем сохранение
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        // Якщо все заповнено правильно — викликаємо стандартне збереження
+        // Если всё заполнено правильно — вызываем стандартное сохранение
         return await base.OnSaveAsync();
     }
+
     protected override void Details_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         base.Details_PropertyChanged(sender, e);
 
-        // Якщо користувач змінив головну валюту документа
+        // Если пользователь изменил главную валюту документа
         if (e.PropertyName == "DisplayCurrencyId")
         {
-            // 1. Більше НЕ перезаписуємо line.CurrencyId у рядках!
+            // 1. Больше НЕ перезаписываем line.CurrencyId в строках!
 
-            // 2. Робимо мікро-паузу, щоб ядро встигло підтягнути правильний курс з бази
+            // 2. Делаем микро-паузу, чтобы ядро успело подтянуть правильный курс из базы
             System.Threading.Tasks.Task.Run(async () =>
             {
                 await System.Threading.Tasks.Task.Delay(150);
 
-                // Повертаємось у головний потік інтерфейсу для оновлення UI
+                // Возвращаемся в главный поток интерфейса для обновления UI
                 InvokeOnMainThread(() =>
                 {
                     if (this.Details.Lines != null)
                     {
                         foreach (var line in this.Details.Lines)
                         {
-                            // Змушуємо існуючі рядки перерахувати свої суми для відображення
+                            // Заставляем существующие строки пересчитать свои суммы для отображения
                             line.RaisePropertyChanged("DisplayAmount");
                             line.RaisePropertyChanged("DisplayTotal");
                         }
                     }
 
-                    // Примусово оновлюємо підсумок усього документа та таблицю внизу
+                    // Принудительно обновляем итог всего документа и таблицу внизу
                     this.Details.RaisePropertyChanged("DisplayAmount");
                     this.Details.RaisePropertyChanged("DisplayTotal");
                     this.Details.RaisePropertyChanged("Lines");

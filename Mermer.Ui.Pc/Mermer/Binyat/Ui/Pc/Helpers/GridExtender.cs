@@ -1,6 +1,6 @@
 ﻿using DevExpress.Xpf.Grid;
 using System.Windows;
-// Явно вказуємо ButtonBase
+
 using ButtonBase = System.Windows.Controls.Primitives.ButtonBase;
 
 namespace Mermer.Ui.Pc.Helpers;

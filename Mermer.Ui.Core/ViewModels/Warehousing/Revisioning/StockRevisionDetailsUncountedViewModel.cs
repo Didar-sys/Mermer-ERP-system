@@ -122,14 +122,13 @@ public class StockRevisionDetailsUncountedViewModel :
         IsBusy = true;
         try
         {
-            // Відновлена логіка замість загубленого b__25_0
             var list = await Task.Run(() =>
         {
-            return List.Select(info => new StockRevisionLine // Прибрали довгий префікс
+            return List.Select(info => new StockRevisionLine 
             {
                 Id = Guid.NewGuid().ToString(),
                 StockId = info.StockId,
-                UnitId = info.StockUnitId, // Твоя правильна правка!
+                UnitId = info.StockUnitId,
                 Quantity = 0
             }).ToList();
         });

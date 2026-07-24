@@ -101,7 +101,7 @@ public partial class MainView : MvxWpfView
 
     private async void CheckUpdatesBtn_Click(object sender, System.Windows.RoutedEventArgs e)
     {
-        // Викликаємо наш готовий метод із головного вікна
+
         if (Mermer.Ui.Pc.MainWindow.Instance != null)
         {
             await Mermer.Ui.Pc.MainWindow.Instance.CheckForUpdates(true);
@@ -128,12 +128,12 @@ public partial class MainView : MvxWpfView
         {
             var view = tabItem.Content as FrameworkElement ?? tabItem.DataContext as FrameworkElement;
 
-            // ВАЖЛИВО: Звертаємося до ViewModel, щоб спрацювала логіка з білим вікном
+
             if (view?.DataContext is BaseViewModel viewModel)
             {
                 if (viewModel.CloseCommand != null && viewModel.CloseCommand.CanExecute(null))
                 {
-                    // Це запустить OnCloseAsync() у DetailsViewModel, де лежить наша перевірка!
+                    
                     viewModel.CloseCommand.Execute(null);
                 }
             }

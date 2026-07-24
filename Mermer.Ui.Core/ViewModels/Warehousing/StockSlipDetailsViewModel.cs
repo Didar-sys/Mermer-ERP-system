@@ -75,42 +75,41 @@ public class StockSlipDetailsViewModel :
     {
         try
         {
-            // 1. Обов'язково має бути вибраний склад (Warehouse)
+            
             if (string.IsNullOrEmpty(Details.WarehouseId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
             }
 
-            // 2. Документ не може бути без товарних позицій
+  
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
             }
 
-            // 3. Валідація кожного рядка накладної
+            // Валидация каждой строки накладной
             foreach (var line in Details.Lines)
             {
-                // Кількість товару повинна бути більшою за нуль
+                
                 if (line.Quantity <= 0)
                     throw new Exception(this["Quantity must be greater than zero"]);
 
-                // Якщо увімкнено редагування ціни, вона не повинна бути від'ємною
+                
                 if (Details.IsPriceEditable && line.Price < 0)
                     throw new Exception(this["Price cannot be negative"]);
 
-                // Перевірка наявності прив'язки до валюти
                 if (string.IsNullOrEmpty(line.CurrencyId))
                     throw new Exception(this["Field '{0}' is required", this["Currency"]]);
             }
         }
         catch (Exception ex)
         {
-            // Відображаємо помилку користувачу та перериваємо ланцюжок збереження/друку
+           
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        // Якщо все супер — фіксуємо тип, викликаємо базове збереження та друкуємо
+        
         _newSlipType = Details.SlipType;
         if (!await base.OnSaveAsync())
             return false;
@@ -127,10 +126,10 @@ public class StockSlipDetailsViewModel :
         {
             var newCurrencyId = this.Details.DisplayCurrencyId;
 
-            // 1. ВИМОГА ЛЕОНА: Оновлюємо валюту в пошуковику товарів
+            // 1. ТРЕБОВАНИЕ ЛЕОНА: Обновляем валюту в поисковике товаров
             if (StockSearcher != null && !string.IsNullOrEmpty(newCurrencyId))
             {
-                // Використовуємо Reflection для надійності, якщо властивість прихована
+                // Используем Reflection для надежности, если свойство скрыто
                 var prop = StockSearcher.GetType().GetProperty("CurrencyId");
                 if (prop != null)
                 {
@@ -138,34 +137,34 @@ public class StockSlipDetailsViewModel :
                 }
             }
 
-            // 2. ЛІКУЄМО РОЗСИНХРОН: Робимо мікро-паузу для завантаження курсів
+            // 2. ЛЕЧИМ РАССИНХРОН: Делаем микро-паузу для загрузки курсов
             System.Threading.Tasks.Task.Run(async () =>
             {
-                // Чекаємо 150 мілісекунд, поки ядро ERP підтягне CurrencyConvertions
+                // Ждем 150 миллисекунд, пока ядро ERP подтянет CurrencyConvertions
                 await System.Threading.Tasks.Task.Delay(150);
 
-                // Повертаємось у головний потік інтерфейсу
+                // Возвращаемся в главный поток интерфейса
                 InvokeOnMainThread(() =>
                 {
                     if (this.Details.Lines != null)
                     {
                         foreach (var line in this.Details.Lines)
                         {
-                            // Оновлюємо кожну клітинку
+                            // Обновляем каждую ячейку
                             line.RaisePropertyChanged("DisplayTotal");
                         }
                     }
 
-                    // Примусово оновлюємо підсумок документа
+                    // Принудительно обновляем итог документа
                     this.Details.RaisePropertyChanged("DisplayTotal");
 
-                    // Цей магічний рядок змушує DevExpress GridControl миттєво перерахувати TotalSummary внизу екрану!
+                    // Эта магическая строка заставляет DevExpress GridControl мгновенно пересчитать TotalSummary внизу экрана!
                     this.Details.RaisePropertyChanged("Lines");
                 });
             });
         }
 
-        // Існуюча логіка для розрахунку цін залишається без змін
+        // Существующая логика для расчета цен остается без изменений
         if (!(e.PropertyName == "IsPriceEditable") || this.Details.IsPriceEditable)
             return;
 

@@ -38,7 +38,7 @@ public class StockTransfersRepository : CouchRepositoryWithFacet<StockTransfer>
     public override async Task ValidateAsync(StockTransfer model)
     {
         var config = await _configurator.GetConfigAsync<AppSettings>();
-        await Validator.ValidateAndThrowAsync(model); // Використовуємо стандартний валідатор
+        await Validator.ValidateAndThrowAsync(model); // Используем стандартный валидтор
     }
 
     public override Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)

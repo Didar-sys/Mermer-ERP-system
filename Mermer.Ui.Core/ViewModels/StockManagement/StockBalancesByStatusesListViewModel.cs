@@ -60,7 +60,6 @@ public class StockBalancesByStatusesListViewModel : ListViewModelBaseWithFilter<
         Currencies = currencies;
         Warehouses = warehouses;
 
-        // Очищений масив фільтрів
         Filters = new[]
         {
         new ListFilter
@@ -160,7 +159,7 @@ public class StockBalancesByStatusesListViewModel : ListViewModelBaseWithFilter<
 
         _loaded = true;
         await PreLoadBalances();
-        await base.PreLoad(); // Відновлено base
+        await base.PreLoad(); 
     }
 
     private async Task PreLoadBalances()
@@ -188,7 +187,7 @@ public class StockBalancesByStatusesListViewModel : ListViewModelBaseWithFilter<
         var displayCurrencyRate = displayCurrency.GetRate();
         int displayCurrencyDecimals = displayCurrency.Decimals;
 
-        // Відновлений людський LINQ
+       
         var query =
             from s in stocks
             join c in Currencies.List on s.CurrencyId equals c.Id
@@ -258,7 +257,6 @@ public class StockBalancesByStatusesListViewModel : ListViewModelBaseWithFilter<
     base.Dispose();
     this._messageToken?.Dispose();
   }
-    // Команда, яку шукає XAML
     public ICommand SelectOrViewDetailsCommand => new MvxAsyncCommand(OnSelectOrViewDetailsCommandAsync, () => !IsBusy);
 
     protected virtual Task OnSelectOrViewDetailsCommandAsync()

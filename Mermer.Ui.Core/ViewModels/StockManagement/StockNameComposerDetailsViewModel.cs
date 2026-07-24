@@ -30,19 +30,19 @@ public class StockNameComposerDetailsViewModel(
     {
         try
         {
-            // 1. Обов'язкова перевірка поля "Назва" (Name)
+            
             if (string.IsNullOrEmpty(Details.Name))
             {
                 throw new Exception(this["Field '{0}' is required", this["Name"]]);
             }
 
-            // 2. Заборона створення порожнього конструктора без значень
+           
             if (Details.Values == null || !Details.Values.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
             }
 
-            // 3. Тепер ми можемо легально і прямо записати унікальний ідентифікатор!
+            
             foreach (var valueItem in Details.Values)
             {
                 if (string.IsNullOrEmpty(valueItem.Id))
@@ -57,7 +57,7 @@ public class StockNameComposerDetailsViewModel(
             return false;
         }
 
-        // Стандартне і безпечне збереження
+
         return await base.OnSaveAsync();
     }
 }

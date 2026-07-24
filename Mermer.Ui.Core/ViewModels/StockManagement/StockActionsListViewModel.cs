@@ -55,7 +55,7 @@ public class StockActionsListViewModel :
         {
             if (!this.SetProperty<string>(ref this._currencyId, value, nameof(CurrencyId)) || this.IsBusy)
                 return;
-            this.ApplyCustomCurrencyRate(); // Перерахунок при зміні валюти
+            this.ApplyCustomCurrencyRate(); // Пересчет при смене валюты
         }
     }
 
@@ -65,7 +65,7 @@ public class StockActionsListViewModel :
     IConfigurator configurator,
     StockSearcher stockSearcher,
     Reference<Warehouse> warehouses,
-    Reference<Currency> currencies, // ДОДАНО
+    Reference<Currency> currencies, 
     IStockActionsRepository repository,
     IRepository<Stock> stocksRepository,
     IMvxNavigationService navigationService,
@@ -81,7 +81,7 @@ public class StockActionsListViewModel :
         this.StockSearcher.ResultSelected += new SearchResultSelected(this.StockSearcher_ResultSelected);
         this.Types = new LocalizedTransactionTypes("Repricing");
 
-        this.Currencies = currencies; // ДОДАНО
+        this.Currencies = currencies; 
     }
 
     public System.Collections.Generic.List<object> SelectedWarehouseIds
@@ -165,14 +165,14 @@ public class StockActionsListViewModel :
             {
                 AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
 
-                // ВИПРАВЛЕНО: Захищаємо список від null-елемента
+                // Защищаем список от null-элемента
                 if (configAsync != null && !string.IsNullOrEmpty(configAsync.DefaultWarehouseId))
                 {
                     SelectedWarehouseIds = new List<object> { configAsync.DefaultWarehouseId };
                 }
                 else
                 {
-                    SelectedWarehouseIds = new List<object>(); // Чистий порожній список
+                    SelectedWarehouseIds = new List<object>();
                 }
             }
         }
@@ -186,10 +186,9 @@ public class StockActionsListViewModel :
             base.PreLoad(),
             Warehouses.Initialize(),
             StockSearcher.Initialize(),
-            Currencies.Initialize() // ДОДАНО
+            Currencies.Initialize()
         );
 
-        // ДОДАНО: Дефолтна валюта
         if (string.IsNullOrEmpty(CurrencyId))
         {
             CurrencyId = Currencies.List.FirstOrDefault(x => x.IsDefault)?.Id;
@@ -211,7 +210,7 @@ public class StockActionsListViewModel :
 
         return list.Select(item =>
         {
-            // Множимо суму грошей (GrandTotal) на курс
+           
             item.GrandTotalInCustomCurrency = item.GrandTotal * rate;
             return item;
         });

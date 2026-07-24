@@ -56,8 +56,8 @@ public class StockTransactionDetailsLineEditViewModel(
 
         protected override void CalculatePriceOnCurrencyChange(string prevCurrencyId)
         {
-            // Вимикаємо автоперерахунок ціни при зміні валюти.
-            // Залишаємо суму точно такою, якою вона була або яку ввів користувач.
+            // Выключаем автопересчет цены при изменении валюты.
+            // Оставляем сумму точно такой, какой она была или которую ввел пользователь.
             this.PriceChanged = false;
         }
     }

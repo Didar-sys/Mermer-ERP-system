@@ -11,26 +11,26 @@ namespace Mermer.Ui.Pc
     class TabNavigationHelper
     {
         // ========================================================
-        // ГОЛОВНИЙ МЕТОД ЗАКРИТТЯ
+        // ГЛАВНЫЙ МЕТОД ЗАКРЫТИЯ
         // ========================================================
         public static void ForceCloseTab(FrameworkElement currentView)
         {
             if (currentView == null) return;
 
             // ========================================================
-            // 2. СТАНДАРТНЕ ЗАКРИТТЯ ВКЛАДКИ
+            // 2. СТАНДАРТНОЕ ЗАКРЫТИЕ ВКЛАДКИ
             // ========================================================
             var tabControl = FindParent<DXTabControl>(currentView);
 
             if (tabControl != null)
             {
-                // Видаляємо вкладку
+                // Удаляем вкладку
                 if (tabControl.ItemsSource is System.Collections.IList list)
                     list.Remove(currentView);
                 else
                     tabControl.Items.Remove(currentView);
 
-                // АНТИ-СІРИЙ ЕКРАН: Якщо вкладок більше немає, перемальовуємо меню
+                // АНТИ-СЕРЫЙ ЭКРАН: Если вкладок больше нет, перерисовываем меню
                 int count = (tabControl.ItemsSource as System.Collections.IList)?.Count ?? tabControl.Items.Count;
                 if (count == 0)
                 {
@@ -42,10 +42,10 @@ namespace Mermer.Ui.Pc
                 RestoreMainMenu();
             }
 
-            // Завжди ховаємо саму форму
+            // Всегда скрываем саму форму
             currentView.Visibility = Visibility.Collapsed;
 
-            // Очищаємо ресурси накладної
+            // Очищаем ресурсы накладной
             if (currentView.DataContext is IDisposable disposable)
             {
                 disposable.Dispose();
@@ -53,17 +53,17 @@ namespace Mermer.Ui.Pc
         }
 
         // ========================================================
-        // ДЕФІБРИЛЯТОР МЕНЮ
+        // ДЕФИБРИЛЛЯТОР МЕНЮ
         // ========================================================
         private static void RestoreMainMenu()
         {
             try
             {
-                // Скидаємо кеш Презентера
+                // Сбрасываем кэш Презентера
                 var field = typeof(Mermer.Ui.Pc.MainViewPresenter).GetField("_tabControl", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
                 if (field != null) field.SetValue(null, null);
 
-                // Викликаємо Головне меню
+                // Вызываем Главное меню
                 Mvx.Resolve<IMvxNavigationService>().Navigate<MainViewModel>();
             }
             catch { }

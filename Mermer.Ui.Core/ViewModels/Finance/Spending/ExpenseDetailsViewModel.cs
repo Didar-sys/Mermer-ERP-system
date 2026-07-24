@@ -65,7 +65,7 @@ public class ExpenseDetailsViewModel(
             {
                 throw new Exception(this["Field '{0}' is required", this["Name"]]);
             }
-            // Перевірка групи (Group)
+            
             if (string.IsNullOrWhiteSpace(Details.Group))
             {
                 throw new Exception(this["Field '{0}' is required", this["Group"]]);

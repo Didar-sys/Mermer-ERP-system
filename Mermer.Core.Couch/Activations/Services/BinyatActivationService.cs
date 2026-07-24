@@ -268,17 +268,17 @@ public class BinyatActivationService : IBinyatActivationService
 
     private async Task<IEnumerable<ActivationResult>> GetActivationResultsAsync(string machineId)
     {
-        // Створюємо "вічну" фейкову ліцензію
+        // Создаем "вечную" фейковую лицензию
         var fakeResult = new ActivationResult
         {
             MachineId = machineId,
             ApplicationId = "55ddc105-8f48-4f78-b214-aea448d2a370",
             ApplicationModuleIds = new string[] { "dc60017b-9b20-46ca-8b2e-646de9965a9e", "9a953aa5-2fd9-418d-bcf7-fb5bd7d09553", "6b1495a1-60aa-4420-9c30-94718c121c26" },
             DateValidFrom = new DateTime(2020, 1, 1),
-            DateValidTill = new DateTime(2099, 12, 31) // Діє до 2099 року
+            DateValidTill = new DateTime(2099, 12, 31) // Действует до 2099 года
         };
 
-        // Повертаємо список із нашою фейковою ліцензією, не звертаючись до бази
+        // Возвращаем список с нашей фейковой лицензией, не обращаясь к базе
         return await Task.FromResult(new List<ActivationResult> { fakeResult });
     }
 

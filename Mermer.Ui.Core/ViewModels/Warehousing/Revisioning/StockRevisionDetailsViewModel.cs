@@ -247,7 +247,6 @@ public class StockRevisionDetailsViewModel : TransactionDetailsViewModel<StockRe
         if (string.IsNullOrEmpty(_lastSelectedLineId))
             return;
 
-        // Відновлена лямбда пошуку за ID
         SelectedLine = Lines.FirstOrDefault(x => x.UnitId == _lastSelectedLineId);
     }
 
@@ -275,15 +274,15 @@ public class StockRevisionDetailsViewModel : TransactionDetailsViewModel<StockRe
 
     private async Task<IEnumerable<StockBalance>> StockBalancesGetterAlt((string stockId, DateTime? balanceDate)[] stockBalanceDates)
     {
-        // Отримуємо список ID існуючих балансів
+        // Получаем список ID существующих балансов
         var existingStockIds = _stockBalances.Select(x => x.StockId).ToList();
 
-        // Фільтруємо ті, яких ще немає
+        // Фильтруем те, которых еще нет
         var array = stockBalanceDates.Where(x => !existingStockIds.Contains(x.stockId)).ToArray();
 
         if (array.Any())
         {
-            // Завантажуємо нові баланси і додаємо їх до загального списку
+            // Загружаем новые балансы и добавляем их в общий список
             var newBalances = await _stockBalancesRepository.GetAsync(Details.WarehouseId, array);
             _stockBalances.AddRange(newBalances);
         }
@@ -295,7 +294,7 @@ public class StockRevisionDetailsViewModel : TransactionDetailsViewModel<StockRe
     {
         await base.PostLoad();
 
-        // Відновлена лямбда фільтрації складів
+
         Warehouses.Filter = w => !w.IsDisabled || w.Id == Details.WarehouseId;
 
         if (_isLoaded)
@@ -603,35 +602,34 @@ public class StockRevisionDetailsViewModel : TransactionDetailsViewModel<StockRe
     {
         try
         {
-            // 1. Обов'язково має бути вибраний склад для інвентаризації
+            // 1. Обязательно должен быть выбран состав для инвентаризации
             if (string.IsNullOrEmpty(Details.WarehouseId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
             }
 
-            // 2. Документ інвентаризації не може бути без товарних позицій (рядків)
+            // 2. Документ инвентаризации не может быть без товарных позиций (строк)
             if (Lines == null || !Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
             }
 
-            // 3. За необхідності валідуємо кожен рядок (залежить від структури StockRevisionLine)
-            // Наприклад, забороняємо від'ємну фактичну кількість, якщо це заборонено логікою бізнесу
+            // 3. При необходимости валидируем каждую строчку (зависит от структуры StockRevisionLine)
+            // Например, запрещаем отрицательное фактическое количество, если это запрещено логикой бизнеса
             foreach (var line in Lines)
             {
-                // Якщо у вашій системі CountedQuantity (або подібне поле) не може бути < 0
+                // Если в вашей системе CountedQuantity (или подобное поле) не может быть < 0
                 // if (line.Quantity < 0) 
-                //     throw new Exception(this["Quantity cannot be negative"]);
+                // throw new Exception(this["Quantity cannot be negative"]);
             }
         }
         catch (Exception ex)
         {
-            // Відображаємо помилку користувачу та перериваємо збереження
+            
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        // Якщо все окей — зберігаємо
         return await base.OnSaveAsync();
     }
     protected virtual async Task OnCreateRevisionDeficitsSlipCommandAsync()

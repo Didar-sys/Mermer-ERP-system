@@ -184,39 +184,39 @@ public class PartnerTransferDetailsViewModel : TransactionDetailsViewModel<Partn
     {
         try
         {
-            // 1. Перевіряємо, чи таблиця не порожня
+            // 1. Проверяем, пуста ли таблица
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
             }
 
-            // 2. Перевіряємо кожен рядок у таблиці на правильність
+            // 2. Проверяем правильность каждой строки в таблице
             foreach (var line in Details.Lines)
             {
-                // Обов'язково має бути вказаний Партнер
+                // Обязательно должен быть указан Партнер
                 if (string.IsNullOrEmpty(line.PartnerId))
                     throw new Exception(this["Field '{0}' is required", this["Partner"]]);
 
-                // Обов'язково має бути вказаний Офіс
+                // Обязательно должен быть указан Офис
                 if (string.IsNullOrEmpty(line.OfficeId))
                     throw new Exception(this["Field '{0}' is required", this["Office"]]);
 
-                // Має бути хоч якась сума (або Дебет, або Кредит)
+                // Должна быть хоть какая-то сумма (либо Дебет, либо Кредит)
                 if (line.DebitAmount == 0 && line.CreditAmount == 0)
                     throw new Exception(this["Amount must be greater than zero"]);
 
-                // Якщо є Дебет - обов'язкова валюта Дебету
+                // Если есть Дебет - обязательна валюта Дебета
                 if (line.DebitAmount > 0 && string.IsNullOrEmpty(line.DebitCurrencyId))
                     throw new Exception(this["Field '{0}' is required", this["Currency"]]);
 
-                // Якщо є Кредит - обов'язкова валюта Кредиту
+                // Если есть Кредит - обязательна валюта Кредита
                 if (line.CreditAmount > 0 && string.IsNullOrEmpty(line.CreditCurrencyId))
                     throw new Exception(this["Field '{0}' is required", this["Currency"]]);
             }
         }
         catch (Exception ex)
         {
-            // Виводимо локалізовану помилку і блокуємо збереження
+            // Выводим локализованную ошибку и блокируем сохранение
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }

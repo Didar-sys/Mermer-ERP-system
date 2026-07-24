@@ -32,27 +32,27 @@ namespace Mermer.Ui.Pc
             MainViewPresenter._tabControl = tabControl;
             MainViewPresenter._tabControl.ItemsSource = MainViewPresenter.TabItems;
 
-            // ВИПРАВЛЕНО: Підписуємося на подію хрестика (закриття вкладки користувачем)
+            // ИСПРАВЛЕНО: Подписываемся на событие крестика (закрытие вкладки пользователем)
             MainViewPresenter._tabControl.TabHiding += TabControl_TabHiding;
         }
 
         // =========================================================================
-        // ОБРОБНИК НАТИСКАННЯ НА ХРЕСТИК В КЛАДЦІ
+        // ОБРАБОТЧИК НАЖАТИЯ НА КРЕСТИК В ВКЛАДКЕ
         // =========================================================================
         private static void TabControl_TabHiding(object sender, TabControlTabHidingEventArgs e)
         {
-            // Скасовуємо стандартне приховування DevExpress (воно зламане кастомним шаблоном)
+            // Отменяем стандартное скрытие DevExpress (оно сломано кастомным шаблоном)
             e.Cancel = true;
 
-            // e.Item містить сам FrameworkElement (View), який лежить в нашій колекції TabItems
+            // e.Item содержит сам FrameworkElement (View), который лежит в нашей коллекции TabItems
             if (e.Item is FrameworkElement viewToKill)
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    // Видаляємо з колекції — TabControl повністю знищить вкладку з інтерфейсу
+                    // Удаляем из коллекции — TabControl полностью уничтожит вкладку из интерфейса
                     MainViewPresenter.TabItems.Remove(viewToKill);
 
-                    // Очищаємо пам'ять і ресурси (копія вашої логіки з ChangePresentation)
+                    // Очищаем память и ресурсы (копия вашей логики из ChangePresentation)
                     viewToKill.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
                     if (viewToKill.DataContext is IDisposable disposable)
                     {
@@ -77,42 +77,42 @@ namespace Mermer.Ui.Pc
             else
             {
                 // ----------------------------------------------------
-                // ЛОГІКА ВИХОДУ З ПРОГРАМИ (LOGOUT)
+                // ЛОГИКА ВЫХОДА ИЗ ПРОГРАММЫ (LOGOUT)
                 // ----------------------------------------------------
                 if (dataContext != null && dataContext.GetType().Name.Contains("LoginViewModel"))
                 {
-                    // 1. Відв'язуємо TabControl і чистимо пам'ять вкладок
+                    // 1. Отвязываем TabControl и чистим память вкладок
                     MainViewPresenter._tabControl = null;
                     MainViewPresenter.TabItems.Clear();
 
-                    // 2. Замінюємо весь наш Mermer-інтерфейс на вікно Логіну
+                    // 2. Заменяем весь наш Mermer-интерфейс на окно Логина
                     this._contentControl.Content = frameworkElement;
                     return;
                 }
 
                 // ----------------------------------------------------
-                // ЛОГІКА ВІДКРИТТЯ НОВИХ ВКЛАДОК
+                // ЛОГИКА ОТКРЫТИЯ НОВЫХ ВКЛАДОК
                 // ----------------------------------------------------
                 if (MainViewPresenter._tabControl != null)
                 {
-                    // Ігноруємо спробу відкрити MainViewModel як звичайну вкладку
+                    // Игнорируем попытку открыть MainViewModel как обычную вкладку
                     if (dataContext != null && dataContext.GetType().Name.Contains("MainViewModel")) return;
 
-                    // Додаємо нову вкладку одразу після поточної
+                    // Добавляем новую вкладку сразу после текущей
                     MainViewPresenter.TabItems.Insert(MainViewPresenter._tabControl.SelectedIndex + 1, frameworkElement);
 
-                    // Жорстко перемикаємо фокус на щойно створену вкладку
+                    // Жестко переключаем фокус на только что созданную вкладку
                     MainViewPresenter._tabControl.SelectedItem = frameworkElement;
                     return;
                 }
 
-                // Перше завантаження (коли TabControl ще немає)
+                // Первая загрузка (когда TabControl еще нет)
                 this._contentControl.Content = frameworkElement;
             }
         }
 
         // ==========================================
-        // РАДАР: Шукає конкретну форму на всьому екрані
+        // РАДАР: Ищет конкретную форму на всем экране
         // ==========================================
         private static FrameworkElement FindElementByDataContext(DependencyObject root, object dataContext)
         {
@@ -152,7 +152,7 @@ namespace Mermer.Ui.Pc
                 {
                     try
                     {
-                        // 1. ДІАЛОГИ
+                        // 1. ДИАЛОГИ
                         if (MainViewPresenter.Dialogs.Count > 0)
                         {
                             var dialog = MainViewPresenter.Dialogs.Last();
@@ -161,7 +161,7 @@ namespace Mermer.Ui.Pc
                             return;
                         }
 
-                        // 2. КІЛЕР ВКЛАДОК (Програмне закриття через ViewModel)
+                        // 2. КИЛЛЕР ВКЛАДОК (Программное закрытие через ViewModel)
                         var viewToKill = MainViewPresenter.TabItems.FirstOrDefault(v => v.DataContext == closeHint.ViewModelToClose);
 
                         if (viewToKill != null)
@@ -177,7 +177,7 @@ namespace Mermer.Ui.Pc
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show("Помилка закриття вкладки: " + ex.Message);
+                        MessageBox.Show("Ошибка закрытия вкладки: " + ex.Message);
                     }
                 });
             }

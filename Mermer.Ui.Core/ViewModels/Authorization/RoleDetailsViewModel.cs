@@ -33,7 +33,7 @@ public class RoleDetailsViewModel : DetailsViewModel<Role>
 
     protected override async Task PostLoad()
     {
-        await base.PostLoad(); // Виправлений артефакт декомпілятора
+        await base.PostLoad();
 
         if (Details.Authorizations == null)
             Details.Authorizations = new Dictionary<string, int>();

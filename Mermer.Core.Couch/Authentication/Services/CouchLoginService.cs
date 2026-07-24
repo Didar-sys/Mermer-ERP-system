@@ -76,14 +76,11 @@ public class CouchLoginService : LoginService
         using (IBucket bucket = this._cluster.OpenDefaultBucket())
         {
             string passwordHash = password.Hash();
-
-            // ЗМІНА: Використовуємо SingleOrDefault замість Single
             user = await new BucketContext(bucket).Query<User>()
                 .Where<User>(x => x.DocType == "User" && x.Id == N1QlFunctions.Key(x) && x.Username == username && x.Password == passwordHash)
                 .ExecuteAsync<User, User>(q => q.SingleOrDefault<User>());
         }
 
-        // Якщо користувача не знайдено, викидаємо зрозумілу помилку для інтерфейсу
         if (user == null)
         {
             throw new Exception("Невірний логін або пароль!");

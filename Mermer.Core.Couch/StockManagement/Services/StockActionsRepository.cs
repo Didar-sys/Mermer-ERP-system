@@ -245,7 +245,6 @@ public class StockActionsRepository : CouchView, IStockActionsRepository
 
             if (array2.Any())
             {
-                // ВИПРАВЛЕНО: Додано явне іменування аргументу projector (усунено CS1503)
                 var records = projectorAll == null
                     ? await GetRecordsAsync<T>("stock-management", "stock-actions-by-warehouse-and-id-all", array2, reduce)
                     : await GetRecordsAsync<object, T>("stock-management", "stock-actions-by-warehouse-and-id-all", array2, reduce, projector: projectorAll);
@@ -259,7 +258,7 @@ public class StockActionsRepository : CouchView, IStockActionsRepository
 
             if (array3.Any())
             {
-                // ВИПРАВЛЕНО: Додано явне іменування аргументу projector (усунено CS1503)
+          
                 var records = projectorOwn == null
                     ? await GetRecordsAsync<T>("stock-management", "stock-actions-by-warehouse-and-id", array3, reduce)
                     : await GetRecordsAsync<object, T>("stock-management", "stock-actions-by-warehouse-and-id", array3, reduce, projector: projectorOwn);
@@ -275,7 +274,7 @@ public class StockActionsRepository : CouchView, IStockActionsRepository
 
             if (array4.Any())
             {
-                // ВИПРАВЛЕНО: Додано явне іменування аргументу projector (усунено CS1503)
+                
                 var records = projectorAll == null
                     ? await GetRecordsAsync<T>("stock-management", "stock-actions-by-warehouse-all", array4, reduce)
                     : await GetRecordsAsync<object, T>("stock-management", "stock-actions-by-warehouse-all", array4, reduce, projector: projectorAll);
@@ -289,7 +288,7 @@ public class StockActionsRepository : CouchView, IStockActionsRepository
 
             if (array5.Any())
             {
-                // ВИПРАВЛЕНО: Додано явне іменування аргументу projector (усунено CS1503)
+                
                 var records = projectorOwn == null
                     ? await GetRecordsAsync<T>("stock-management", "stock-actions-by-warehouse", array5, reduce)
                     : await GetRecordsAsync<object, T>("stock-management", "stock-actions-by-warehouse", array5, reduce, projector: projectorOwn);

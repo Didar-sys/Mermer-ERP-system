@@ -16,18 +16,18 @@ public partial class StockTransactionDetailsLineEditView : MvxWpfView
         e.Handled = true;
     }
 
-    // ДОДАЙ ЦЕЙ МЕТОД
+    // ДОБАВЬ ЭТОТ МЕТОД
     private void Quantity_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
         {
-            // 1. Перекидаємо фокус на поле "Ціна"
+            // 1. Перекидываем фокус на поле "Цена"
             PriceEdit.Focus();
 
-            // 2. Виділяємо весь текст, щоб касир міг одразу вводити нові цифри замість старих
+            // 2. Выделяем весь текст, чтобы кассир мог сразу вводить новые цифры вместо старых
             PriceEdit.SelectAll();
 
-            // 3. ВАЖЛИВО: Зупиняємо подію, щоб не спрацювала кнопка Update
+            // 3. ВАЖНО: Останавливаем событие, чтобы не сработала кнопка Update
             e.Handled = true;
         }
     }

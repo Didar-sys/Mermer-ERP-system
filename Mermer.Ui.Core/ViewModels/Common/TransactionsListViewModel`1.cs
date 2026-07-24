@@ -29,7 +29,7 @@ public abstract class TransactionsListViewModel<T> : ListViewModel<T> where T : 
     private IEnumerable<ListFilter> _filters;
     private ListFilter _selectedFilter;
 
-    // Жорстко прив'язуємо сьогоднішню дату до полів пам'яті
+    // Жестко привязываем сегодняшнюю дату к полям памяти
     private DateTime _dateFilterFrom = DateTime.Today;
     private DateTime _dateFilterTill = DateTime.Today;
 

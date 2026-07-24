@@ -102,7 +102,7 @@ public sealed class CouchChangesRepositoryService :
     });
   }
 
-    /// --- Виправлені заглушки для реалізації інтерфейсу ---
+    // --- Исправлены заглушки для реализации интерфейса ---
     public Task<Dictionary<string, IEnumerable<ChangeIdsRange>>> GetChangesIndexAsync()
     {
         throw new NotImplementedException();

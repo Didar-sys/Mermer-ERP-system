@@ -42,7 +42,6 @@ public partial class MainWindow : DXTabbedWindow
     {
         try
         {
-            // ВИКОРИСТОВУЄМО НОВИЙ МЕНЕДЖЕР ЗАМІСТЬ СТАРОГО BINDER'А
             var localizer = Mermer.Mvvm.Tools.LocalizationManager.Instance;
 
             bool? hasUpdates = await AppUpdaterService.CheckForUpdatesAsync();
@@ -61,7 +60,7 @@ public partial class MainWindow : DXTabbedWindow
             {
                 if (hasUpdates.Value)
                 {
-                    // Твій менеджер підтримує передачу параметрів (args), тому це виглядає дуже чисто!
+                    
                     string updatePrompt = localizer.Get(
                         "An updated version of this application is available.\nWould you like to update now?\n\nNew Version: {0}",
                         AppUpdaterService.UpdateVersion

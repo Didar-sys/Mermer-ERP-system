@@ -31,16 +31,16 @@ using System.Windows.Input;
 #nullable disable
 namespace Mermer.Ui.Core.ViewModels.FundsManagement;
 
-public class FundsActionsListViewModel : 
+public class FundsActionsListViewModel :
   ListViewModelBaseWithFilterDate<FundsAction>,
   IMvxViewModel<FundsActionsFilter>,
   IMvxViewModel
 {
-  private readonly IConfigurator _configurator;
-  private readonly IFundsActionsRepository _repository;
-  private System.Collections.Generic.List<object> _selectedDepositoryIds;
-  private FundsActionsFilter _parameter;
-  private bool _loaded;
+    private readonly IConfigurator _configurator;
+    private readonly IFundsActionsRepository _repository;
+    private System.Collections.Generic.List<object> _selectedDepositoryIds;
+    private FundsActionsFilter _parameter;
+    private bool _loaded;
     private string _currencyId;
 
     public virtual string CurrencyId
@@ -50,7 +50,7 @@ public class FundsActionsListViewModel :
         {
             if (!this.SetProperty<string>(ref this._currencyId, value, nameof(CurrencyId)) || this.IsBusy)
                 return;
-            this.ApplyCustomCurrencyRate(); // Викликаємо перерахунок
+            this.ApplyCustomCurrencyRate(); // Вызываем пересчет
         }
     }
 
@@ -60,7 +60,7 @@ public class FundsActionsListViewModel :
      IConfigurator configurator,
      Reference<Partner> partners,
      Reference<Depository> depositories,
-     Reference<Currency> currencies, // ДОДАНО
+     Reference<Currency> currencies, // ДОБАВЛЕНО
      IFundsActionsRepository repository,
      IMvxNavigationService navigationService,
      IUserInteractionService userInteractionService)
@@ -72,36 +72,36 @@ public class FundsActionsListViewModel :
         this.Depositories = depositories;
         this.Types = new LocalizedTransactionTypes("Repricing");
 
-        this.Currencies = currencies; // ДОДАНО
+        this.Currencies = currencies; // ДОБАВЛЕНО
     }
 
     public System.Collections.Generic.List<object> SelectedDepositoryIds
-  {
-    get => this._selectedDepositoryIds;
-    set
     {
-      if (this._selectedDepositoryIds != null && value != null && this._selectedDepositoryIds.SequenceEqual<object>((IEnumerable<object>) value) || !this.SetProperty<System.Collections.Generic.List<object>>(ref this._selectedDepositoryIds, value, nameof (SelectedDepositoryIds)) || this.IsBusy)
-        return;
-      this.Initialize();
+        get => this._selectedDepositoryIds;
+        set
+        {
+            if (this._selectedDepositoryIds != null && value != null && this._selectedDepositoryIds.SequenceEqual<object>((IEnumerable<object>)value) || !this.SetProperty<System.Collections.Generic.List<object>>(ref this._selectedDepositoryIds, value, nameof(SelectedDepositoryIds)) || this.IsBusy)
+                return;
+            this.Initialize();
+        }
     }
-  }
 
-  public string[] DepositoryIds
-  {
-    get
+    public string[] DepositoryIds
     {
-      System.Collections.Generic.List<object> selectedDepositoryIds = this.SelectedDepositoryIds;
-      return (selectedDepositoryIds != null ? selectedDepositoryIds.Cast<string>().ToArray<string>() : (string[]) null) ?? Array.Empty<string>();
+        get
+        {
+            System.Collections.Generic.List<object> selectedDepositoryIds = this.SelectedDepositoryIds;
+            return (selectedDepositoryIds != null ? selectedDepositoryIds.Cast<string>().ToArray<string>() : (string[])null) ?? Array.Empty<string>();
+        }
     }
-  }
 
-  public Reference<Partner> Partners { get; }
+    public Reference<Partner> Partners { get; }
 
-  public Reference<Depository> Depositories { get; }
+    public Reference<Depository> Depositories { get; }
 
-  public LocalizedTransactionTypes Types { get; }
+    public LocalizedTransactionTypes Types { get; }
 
-  public void Prepare(FundsActionsFilter parameter) => this._parameter = parameter;
+    public void Prepare(FundsActionsFilter parameter) => this._parameter = parameter;
 
     protected override async Task PreLoad()
     {
@@ -126,10 +126,10 @@ public class FundsActionsListViewModel :
             base.PreLoad(),
             Depositories.Initialize(),
             Partners.Initialize(),
-            Currencies.Initialize() // ДОДАНО
+            Currencies.Initialize() // ДОБАВЛЕНО
         );
 
-        // ДОДАНО: Ставимо дефолтну валюту при завантаженні
+        // ДОБАВЛЕНО: Ставим дефолтную валюту при загрузке
         if (string.IsNullOrEmpty(CurrencyId))
         {
             CurrencyId = Currencies.List.FirstOrDefault(x => x.IsDefault)?.Id;
@@ -157,83 +157,83 @@ public class FundsActionsListViewModel :
         });
     }
     protected override Task OnLoad()
-  {
-    if (this._parameter == null)
-      return base.OnLoad();
-    this._parameter = (FundsActionsFilter) null;
-    return this.LoadByDateAsync(false);
-  }
+    {
+        if (this._parameter == null)
+            return base.OnLoad();
+        this._parameter = (FundsActionsFilter)null;
+        return this.LoadByDateAsync(false);
+    }
 
-  protected override Task<int> CountFilteredListByDateAsync(DateTime from, DateTime till)
-  {
-    return this._repository.CountAsync(new DateTime?(from), new DateTime?(till), (string) null, this.DepositoryIds);
-  }
+    protected override Task<int> CountFilteredListByDateAsync(DateTime from, DateTime till)
+    {
+        return this._repository.CountAsync(new DateTime?(from), new DateTime?(till), (string)null, this.DepositoryIds);
+    }
 
-  protected override Task<int> CountFilteredListAsync(ListFilter filter)
-  {
-    return this._repository.CountAsync(new DateTime?(), new DateTime?(), (string) null, this.DepositoryIds);
-  }
+    protected override Task<int> CountFilteredListAsync(ListFilter filter)
+    {
+        return this._repository.CountAsync(new DateTime?(), new DateTime?(), (string)null, this.DepositoryIds);
+    }
 
     protected override async Task<IEnumerable<FundsAction>> GetFilteredListByDateAsync(DateTime from, DateTime till)
     {
         var result = await this._repository.GetAsync(from, till, (string)null, this.DepositoryIds);
-        return ApplyCustomCurrencyRate(result); // ДОДАНО ОБГОРТКУ
+        return ApplyCustomCurrencyRate(result); // ДОБАВЛЕНО ОБГОРТКУ (ОБЕРТКУ)
     }
 
     protected override async Task<IEnumerable<FundsAction>> GetFilteredListAsync(ListFilter filter)
     {
         var result = await this._repository.GetAsync(default(DateTime?), default(DateTime?), (string)null, this.DepositoryIds);
-        return ApplyCustomCurrencyRate(result); // ДОДАНО ОБГОРТКУ
+        return ApplyCustomCurrencyRate(result); // ДОБАВЛЕНО ОБГОРТКУ (ОБЕРТКУ)
     }
 
     protected override Task<int> CountListAsync(
     params Expression<Func<FundsAction, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
-
-  protected override Task<IEnumerable<FundsAction>> GetListAsync(
-    params Expression<Func<FundsAction, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
-
-  protected override Expression<Func<FundsAction, bool>> GetDateFilter(DateTime from, DateTime till)
-  {
-    throw new NotImplementedException();
-  }
-
-  public ICommand SelectOrViewDetailsCommand
-  {
-    get
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSelectOrViewDetailsAsync), (Func<bool>) (() => !this.IsBusy && this.SelectedItem != null));
+        throw new NotImplementedException();
     }
-  }
 
-  private Task OnSelectOrViewDetailsAsync()
-  {
-    switch (this.SelectedItem.TransactionType)
+    protected override Task<IEnumerable<FundsAction>> GetListAsync(
+      params Expression<Func<FundsAction, bool>>[] predicates)
     {
-      case "Collection":
-      case "Payment":
-        return this.NavigationService.Navigate<DetailsViewModel<Bill>, string>(this.SelectedItem.TransactionId);
-      case "ExpenseSlip":
-        return this.NavigationService.Navigate<DetailsViewModel<ExpenseSlip>, string>(this.SelectedItem.TransactionId);
-      case "FundsOpening":
-      case "FundsRevisionDeficit":
-      case "FundsRevisionExceed":
-        return this.NavigationService.Navigate<DetailsViewModel<FundsSlip>, string>(this.SelectedItem.TransactionId);
-      case "FundsTransferDestination":
-      case "FundsTransferSource":
-        return this.NavigationService.Navigate<DetailsViewModel<FundsTransfer>, string>(this.SelectedItem.TransactionId);
-      case "Purchase":
-      case "PurchaseReturn":
-      case "Sales":
-      case "SalesReturn":
-        return this.NavigationService.Navigate<DetailsViewModel<Invoice>, string>(this.SelectedItem.TransactionId);
-      default:
-        return Task.CompletedTask;
+        throw new NotImplementedException();
     }
-  }
+
+    protected override Expression<Func<FundsAction, bool>> GetDateFilter(DateTime from, DateTime till)
+    {
+        throw new NotImplementedException();
+    }
+
+    public ICommand SelectOrViewDetailsCommand
+    {
+        get
+        {
+            return (ICommand)new MvxAsyncCommand(new Func<Task>(this.OnSelectOrViewDetailsAsync), (Func<bool>)(() => !this.IsBusy && this.SelectedItem != null));
+        }
+    }
+
+    private Task OnSelectOrViewDetailsAsync()
+    {
+        switch (this.SelectedItem.TransactionType)
+        {
+            case "Collection":
+            case "Payment":
+                return this.NavigationService.Navigate<DetailsViewModel<Bill>, string>(this.SelectedItem.TransactionId);
+            case "ExpenseSlip":
+                return this.NavigationService.Navigate<DetailsViewModel<ExpenseSlip>, string>(this.SelectedItem.TransactionId);
+            case "FundsOpening":
+            case "FundsRevisionDeficit":
+            case "FundsRevisionExceed":
+                return this.NavigationService.Navigate<DetailsViewModel<FundsSlip>, string>(this.SelectedItem.TransactionId);
+            case "FundsTransferDestination":
+            case "FundsTransferSource":
+                return this.NavigationService.Navigate<DetailsViewModel<FundsTransfer>, string>(this.SelectedItem.TransactionId);
+            case "Purchase":
+            case "PurchaseReturn":
+            case "Sales":
+            case "SalesReturn":
+                return this.NavigationService.Navigate<DetailsViewModel<Invoice>, string>(this.SelectedItem.TransactionId);
+            default:
+                return Task.CompletedTask;
+        }
+    }
 }

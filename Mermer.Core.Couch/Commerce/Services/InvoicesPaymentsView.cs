@@ -33,8 +33,8 @@ public class InvoicesPaymentsView : CouchView
 
     public async Task<int> CountAsync(DateTime from, DateTime till, string officeId, string partnerId)
     {
-        // Якщо WPF передав порожній рядок "", примусово перетворюємо його в чистий null.
-        // Це змусить оригінальний оператор `??` всередині GetRecordsAsync відпрацювати як "all".
+        // Если WPF передал пустую строку "", принудительно превращаем его в чистый null.
+        // Это заставит оригинальный оператор `??` внутри GetRecordsAsync отработать как "all".
         string safeOfficeId = string.IsNullOrEmpty(officeId) ? null : officeId;
         string safePartnerId = string.IsNullOrEmpty(partnerId) ? null : partnerId;
 

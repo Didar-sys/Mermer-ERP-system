@@ -85,7 +85,7 @@ public class StockSearchServiceOld : IStockSearchService
                         Unit = s.Unit,
                         Price = s.Price,
                         CurrencyId = s.CurrencyId
-                        // ВИПРАВЛЕНО: Видалено неіснуючі в StockSearchResult поля: Type, Group, Tags, Barcodes
+                        
                     }
                 ).ToList())).ToList();
 

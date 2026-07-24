@@ -97,12 +97,12 @@ public class DetailsViewModel<T> : BaseViewModel, IMvxViewModel<string>, IMvxVie
 
     public override async Task Initialize()
     {
-        await base.Initialize(); // Виправлено кашу декомпілятора (\u003C\u003En__0)
+        await base.Initialize(); 
         IsDirty = false;
         if (Details == null)
             return;
 
-        // Виправлено кашу декомпілятора з лямбдою (\u003CInitialize\u003Eb__33_0)
+        
         DirtynessController.ControlDocument<T>(Details, _ => IsDirty = true);
     }
 
@@ -191,25 +191,25 @@ public class DetailsViewModel<T> : BaseViewModel, IMvxViewModel<string>, IMvxVie
     {
         if (IsDirty)
         {
-            // 1. Викликаємо фірмовий діалог з англійським текстом
+            // 1. Вызываем фирменный диалог с английским текстом
             bool? nullable = UserInteractionService.ShowMessage(
                 "Warning",
                 "Are you sure you want to close? Changes will be lost.",
                 UserInteractionType.YesNoCancel);
 
-            // 2. Якщо користувач натиснув No (false) або Cancel (null), скасовуємо закриття
+            // 2. Если пользователь нажал No(false) или Cancel(null), отменяем закрытие
             if (nullable != true)
             {
                 return false;
             }
 
-            // Якщо натиснули "Yes" (true) - просто йдемо далі, щоб закрити вкладку без збереження
+            // Если нажали "Yes" (true) – просто идем дальше, чтобы закрыть вкладку без сохранения
         }
 
-        // ВАЖЛИВО: Викликаємо закриття вікна/вкладки через стандартний MvvmCross NavigationService
+        // ВАЖНО: Вызываем закрытие окна/вкладки через стандартный MvvmCross NavigationService
         await this.NavigationService.Close(this);
 
-        // Залишаємо виклик делегата про всяк випадок (якщо інша логіка від нього залежить)
+        // Оставляем вызов делегата на всякий случай (если другая логика от него зависит)
         BaseViewModel.RequestComponentCloseAction?.Invoke(this);
 
         return true;

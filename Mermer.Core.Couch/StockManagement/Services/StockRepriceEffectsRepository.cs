@@ -36,15 +36,15 @@ public class StockRepriceEffectsRepository : CouchView, IStockRepriceEffectsRepo
 
     public async Task<int> CountAsync(DateTime from, DateTime till, params string[] warehouses)
     {
-        // Якщо передано конкретні склади — ми маємо рахувати точний результат,
-        // щоб сітка (Grid) не малювала порожні сторінки. Використовуємо готовий GetAsync.
+        // Если переданы конкретные составы — мы должны считать точный результат,
+        // чтобы сетка (Grid) не рисовала пустые страницы. Используем готовый GetAsync.
         if (warehouses != null && warehouses.Any())
         {
             var exactRecords = await GetAsync(from, till, warehouses);
             return exactRecords.Count();
         }
 
-        // Якщо склади не вибрані (рахуємо глобально) — використовуємо швидкий метод бази
+        // Если склады не выбраны (считаем глобально) — используем быстрый метод базы
         var records = await GetRecordsAsync<int>(from, till, true);
         return records.Sum();
     }

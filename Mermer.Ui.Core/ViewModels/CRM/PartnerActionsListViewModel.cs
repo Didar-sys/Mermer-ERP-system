@@ -70,7 +70,7 @@ public class PartnerActionsListViewModel :
         {
             if (!this.SetProperty<string>(ref this._currencyId, value, nameof(CurrencyId)) || this.IsBusy)
                 return;
-            this.ApplyCustomCurrencyRate(); // Виклик перерахунку при зміні валюти
+            this.ApplyCustomCurrencyRate(); // Вызов перерасчета при изменении валюты
         }
     }
 
@@ -138,10 +138,9 @@ public class PartnerActionsListViewModel :
             base.PreLoad(),
             Offices.Initialize(),
             Partners.Initialize(),
-            Currencies.Initialize() // ДОДАНО
+            Currencies.Initialize()
         );
 
-        // ДОДАНО: Ставимо дефолтну валюту при завантаженні
         if (string.IsNullOrEmpty(CurrencyId))
         {
             CurrencyId = Currencies.List.FirstOrDefault(x => x.IsDefault)?.Id;
@@ -169,13 +168,13 @@ public class PartnerActionsListViewModel :
     protected override async Task<IEnumerable<PartnerAction>> GetFilteredListByDateAsync(DateTime from, DateTime till)
     {
         var result = await this._repository.GetAsync(from, till, this.PartnerId, this.OfficeIds);
-        return ApplyCustomCurrencyRate(result); // ДОДАНО ОБГОРТКУ
+        return ApplyCustomCurrencyRate(result);
     }
 
     protected override async Task<IEnumerable<PartnerAction>> GetFilteredListAsync(ListFilter filter)
     {
         var result = await this._repository.GetAsync(default(DateTime?), default(DateTime?), this.PartnerId, this.OfficeIds);
-        return ApplyCustomCurrencyRate(result); // ДОДАНО ОБГОРТКУ
+        return ApplyCustomCurrencyRate(result);
     }
 
     protected override Expression<Func<PartnerAction, bool>> GetDateFilter(
@@ -242,7 +241,6 @@ public class PartnerActionsListViewModel :
 
         return list.Select(item =>
         {
-            // ТУТ ВИКОРИСТОВУЄТЬСЯ ТВОЯ НОВА ВЛАСТИВІСТЬ З КРОКУ 1
             item.ActionEffectInCustomCurrency = item.ActionEffect * rate;
             return item;
         });

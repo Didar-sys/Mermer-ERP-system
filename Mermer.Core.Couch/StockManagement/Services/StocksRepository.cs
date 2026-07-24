@@ -86,7 +86,7 @@ public class StocksRepository :
         if (!string.IsNullOrEmpty(additionalPriceCurrencyId))
         {
             var currencyList = await _currenciesRepository.GetAsync();
-            // Безпечно формуємо словник валют
+            // Безопасно формируем словарь валют
             currencies = currencyList?.Where(x => x != null && x.Id != null).ToDictionary(x => x.Id, x => x)
                          ?? new Dictionary<string, Currency>();
         }
@@ -98,7 +98,7 @@ public class StocksRepository :
         {
             if (stock == null) return null;
 
-            // 1. Безпечно отримуємо ціну. Якщо вона null — ставимо нуль за замовчуванням
+            // 1. Безопасно получаем цену. Если она null – ставим ноль по умолчанию
             var price = stock.GetPrice(null, additionalPriceGroup);
             if (price == null)
             {
@@ -111,7 +111,7 @@ public class StocksRepository :
                     Unit = stock.Unit,
                     Price = stock.Price,
                     CurrencyId = stock.CurrencyId,
-                    AdditionalPrice = 0, // Немає ціни — виводимо 0
+                    AdditionalPrice = 0, // Нету ценны — выводим 0
                     AdditionalPriceCurrencyId = additionalPriceCurrencyId,
                     Type = stock.Type,
                     Group = stock.Group,
@@ -124,10 +124,10 @@ public class StocksRepository :
             decimal num = price.Price;
             string str2 = price.CurrencyId;
 
-            // 2. Безпечний перерахунок курсів валют
+            // 2. Безопасный перерасчет курсов валют
             if (!string.IsNullOrEmpty(additionalPriceCurrencyId) && price.CurrencyId != additionalPriceCurrencyId && currencies != null)
             {
-                // Перевіряємо, чи існують обидві валюти в базі даних, щоб уникнути KeyNotFoundException
+                // Проверяем, существуют ли обе валюты в базе данных во избежание KeyNotFoundException
                 if (price.CurrencyId != null &&
                     currencies.TryGetValue(price.CurrencyId, out var currency1) &&
                     currencies.TryGetValue(additionalPriceCurrencyId, out var currency2))
@@ -135,7 +135,7 @@ public class StocksRepository :
                     var rate1 = currency1?.GetRate();
                     var rate2 = currency2?.GetRate();
 
-                    // Захист від ділення на нуль та null-рейтів
+                    // Защита от деления на ноль и null-рейтов
                     if (rate1 != null && rate2 != null && rate1.Divider != 0 && rate2.Multiplier != 0)
                     {
                         num = price.Price * rate1.Multiplier / rate1.Divider / rate2.Multiplier * rate2.Divider;
@@ -161,7 +161,7 @@ public class StocksRepository :
                 Barcodes = stock.Barcodes,
                 IsDisabled = stock.IsDisabled
             };
-        }).Where(x => x != null).ToList(); // .ToList() відразу матеріалізує список в безпечному місці
+        }).Where(x => x != null).ToList(); // .ToList() сразу материализует список в безопасном месте
     }
 
     public async Task MergeAsync(string mainStockId, string[] mergeStockIds, bool disableMergedItems)

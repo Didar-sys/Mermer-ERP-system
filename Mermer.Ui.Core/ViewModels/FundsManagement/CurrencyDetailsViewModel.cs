@@ -36,53 +36,53 @@ public class CurrencyDetailsViewModel(
     }
 
     private void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
-  {
-    if (!(e.PropertyName == "IsDefault"))
-      return;
-    if (this.Details.IsDefault)
     {
-      Currency details = this.Details;
-      ObservableCollection<CurrencyRate> observableCollection = new ObservableCollection<CurrencyRate>();
-      observableCollection.Add(new CurrencyRate()
-      {
-        ValidFrom = DateTime.Today,
-        Multiplier = 1M,
-        Divider = 1M
-      });
-      details.Rates = observableCollection;
+        if (!(e.PropertyName == "IsDefault"))
+            return;
+        if (this.Details.IsDefault)
+        {
+            Currency details = this.Details;
+            ObservableCollection<CurrencyRate> observableCollection = new ObservableCollection<CurrencyRate>();
+            observableCollection.Add(new CurrencyRate()
+            {
+                ValidFrom = DateTime.Today,
+                Multiplier = 1M,
+                Divider = 1M
+            });
+            details.Rates = observableCollection;
+        }
+        else
+            this.Details.Rates = new ObservableCollection<CurrencyRate>();
     }
-    else
-      this.Details.Rates = new ObservableCollection<CurrencyRate>();
-  }
 
     protected override async Task<bool> OnSaveAsync()
     {
         try
         {
-            // Перевіряємо, чи введено назву валюти (наприклад, "USD" або "Гривня")
+            // Проверяем, введено ли название валюты (например, "USD" или "Гривна")
             if (string.IsNullOrWhiteSpace(Details.Name))
             {
                 throw new Exception(this["Field '{0}' is required", this["Name"]]);
             }
 
-            // Додаткова перевірка: якщо валюта НЕ дефолтна, у неї має бути хоча б один курс
+            // Дополнительная проверка: если валюта НЕ дефолтная, у нее должен быть хотя бы один курс
             if (!Details.IsDefault && (Details.Rates == null || !Details.Rates.Any()))
             {
-                // Цю перевірку можна закоментувати, якщо у вас дозволено створювати валюти без курсів,
-                // але для фінансової системи зазвичай курс до базової валюти потрібен завжди.
+                // Эту проверку можно закомментировать, если у вас разрешено создавать валюты без курсов,
+                // но для финансовой системы обычно курс к базовой валюте нужен всегда.
                 // throw new Exception(this["Field '{0}' is required", this["Rates"]]);
             }
         }
         catch (Exception ex)
         {
-            // Виводимо повідомлення користувачу
+            // Выводим сообщение пользователю
             UserInteractionService.ShowExceptionMessage(ex);
 
-            // Блокуємо збереження
+            // Блокируем сохранение
             return false;
         }
 
-        // Якщо все добре — викликаємо базове збереження
+        // Если все хорошо — вызываем базовое сохранение
         return await base.OnSaveAsync();
     }
 }

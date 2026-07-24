@@ -345,31 +345,31 @@ public class StockDetailsViewModel : DetailsViewModel<Stock>
     {
         try
         {
-            // 1. Перевірка назви товару
+            // 1. Проверка названия товара
             if (string.IsNullOrEmpty(Details.Name))
             {
                 throw new Exception(this["Field '{0}' is required", this["Name"]]);
             }
 
-            // 2. Перевірка коду товару (якщо генератор коду чомусь не спрацював)
+            // 2. Проверка кода товара (если генератор кода почему-то не сработал)
             if (string.IsNullOrEmpty(Details.Code))
             {
                 throw new Exception(this["Field '{0}' is required", this["Code"]]);
             }
 
-            // 3. Одиниця виміру (Unit) обов'язкова для складського обліку
+            // 3. Единица измерения (Unit) обязательна для складского учета
             if (string.IsNullOrEmpty(Details.Unit))
             {
                 throw new Exception(this["Field '{0}' is required", this["Unit"]]);
             }
 
-            // 4. Перевірка базової ціни
+            // 4. Проверка базовой цены
             if (Details.Price < 0)
             {
                 throw new Exception(this["Price cannot be negative"]);
             }
 
-            // 5. Якщо ціна вказана, обов'язково має бути вибрана валюта
+            // 5. Если цена указана, обязательно должна быть выбрана валюта
             if (Details.Price > 0 && string.IsNullOrEmpty(Details.CurrencyId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Currency"]]);
@@ -377,12 +377,12 @@ public class StockDetailsViewModel : DetailsViewModel<Stock>
         }
         catch (Exception ex)
         {
-            // Показуємо еррор-меседж користувачу та зупиняємо збереження
+            // Показываем эррор-месседж пользователю и останавливаем сохранение
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        // Якщо валідація пройдена — викликаємо збереження в базу
+        // Если валидация пройдена — вызываем сохранение в базу
         return await base.OnSaveAsync();
     }
 }

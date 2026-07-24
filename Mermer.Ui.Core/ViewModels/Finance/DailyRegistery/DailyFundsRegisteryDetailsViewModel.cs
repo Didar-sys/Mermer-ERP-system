@@ -40,22 +40,22 @@ public class DailyFundsRegisteryDetailsViewModel(
     {
         try
         {
-            // 1. Обов'язково має бути вказана Каса (Depository)
+            // 1. Обязательно должна быть указана Касса (Depository)
             if (string.IsNullOrEmpty(Details.DepositoryId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Depository"]]);
             }
 
-            // 2. Документ реєстру не може бути порожнім
+            // 2. Документ реестра не может быть пустым
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
             }
 
-            // 3. Перевірка кожного рядка в таблиці
+            // 3. Проверка каждой строки в таблице
             foreach (var line in Details.Lines)
             {
-                // Валюта є обов'язковою для кожного рядка реєстру
+                // Валюта является обязательной для каждой строки реестра
                 if (string.IsNullOrEmpty(line.CurrencyId))
                 {
                     throw new Exception(this["Field '{0}' is required", this["Currency"]]);

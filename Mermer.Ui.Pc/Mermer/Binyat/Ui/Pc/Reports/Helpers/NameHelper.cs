@@ -98,7 +98,6 @@ public class NameHelper
       IRepository<T> itemsRepository)
       where T : IModel
     {
-        // Замість краху просто повертаємо порожнечу
         if (string.IsNullOrEmpty(id))
             return default(T);
 

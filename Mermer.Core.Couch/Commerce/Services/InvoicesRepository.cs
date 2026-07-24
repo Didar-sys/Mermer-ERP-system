@@ -56,9 +56,6 @@ public class InvoicesRepository :
     {
         AppSettings config = await _configurator.GetConfigAsync<AppSettings>();
 
-        // Відключаємо стару валідацію, як ми це зробили в базовому CouchRepository
-        // await this.Validator.AssertValidAsync(model);
-
         await Task.CompletedTask;
     }
 
@@ -89,7 +86,7 @@ public class InvoicesRepository :
     {
         this.Authorizer.Authorize();
 
-        // Очищена та спрощена робота з колекціями
+        // Очищенная и упрощенная работа с коллекциями
         var invoicePayments = (await this._paymentsView.GetAsync(from, till, officeId, partnerId)).ToList();
 
         string[] array = invoicePayments

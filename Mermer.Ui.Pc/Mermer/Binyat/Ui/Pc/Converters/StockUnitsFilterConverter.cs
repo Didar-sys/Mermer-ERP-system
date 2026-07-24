@@ -15,7 +15,7 @@ public class StockUnitsFilterConverter : MarkupExtension, IMultiValueConverter
 
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
-        // 1. Захист від порожнього масиву значень
+        // 1. Защита от пустого массива значений
         if (values == null || values.Length < 3)
             return null;
 
@@ -27,14 +27,14 @@ public class StockUnitsFilterConverter : MarkupExtension, IMultiValueConverter
             string stockId = values[0] as string;
             if (!string.IsNullOrEmpty(stockId))
             {
-                // Використовуємо FirstOrDefault і перевіряємо x на null
+                // Используем FirstOrDefault и проверяем x на null
                 Stock stock = source.FirstOrDefault(x => x != null && x.Id == stockId);
                 return stock?.Units;
             }
         }
 
-        // 2. БЕЗПЕЧНИЙ SELECTMANY: 
-        // Відфільтровуємо всі товари, які є null або у яких немає одиниць виміру
+        // 2. БЕЗОПАСНЫЙ SELECTMANY: 
+        // Отфильтровываем все товары, которые являются null или у которых нет единиц измерения
         return source
             .Where(x => x != null && x.Units != null)
             .SelectMany(x => x.Units);

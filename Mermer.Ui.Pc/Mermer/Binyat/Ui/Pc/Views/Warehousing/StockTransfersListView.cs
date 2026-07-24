@@ -11,22 +11,22 @@ public partial class StockTransfersListView : MvxWpfView
     {
         InitializeComponent();
 
-        // Підписуємося на завантаження вікна, щоб GridControl вже встиг створитися
+        // Подписываемся на загрузку окна, чтобы GridControl уже успел создаться
         this.Loaded += StockTransfersListView_Loaded;
     }
 
     private void StockTransfersListView_Loaded(object sender, RoutedEventArgs e)
     {
-        // Безпечно шукаємо внутрішню TableView у нашому кастомному GridControl
+        // Безопасно ищем внутреннюю TableView в нашем кастомном GridControl
         if (GridControl != null && GridControl.View is TableView tableView)
         {
-            // Очищаємо старі кастомні умови (якщо вони раптом були додані раніше)
+            // Очищаем старые кастомные условия (если они вдруг были добавлены ранее)
             var existingCondition = tableView.FormatConditions
                 .FirstOrDefault(x => x.Expression == "[ActionReceivedTotal] == 0");
 
             if (existingCondition == null)
             {
-                // Додаємо правило підсвічування рядків безпосередньо через C#
+                // Добавляем правило подсветки строк непосредственно через C#
                 tableView.FormatConditions.Add(new FormatCondition
                 {
                     Expression = "[ActionReceivedTotal] == 0",

@@ -221,13 +221,13 @@ public class StockOrderTemplateDetailsViewModel :
     {
         try
         {
-            // 1. Обов'язкова перевірка поля Назва (Name)
+            // 1. Обязательная проверка поля Название (Name)
             if (string.IsNullOrEmpty(Details.Name))
             {
                 throw new Exception(this["Field '{0}' is required", this["Name"]]);
             }
 
-            // 2. Перевірка наявності рядків (заборона збереження порожнього шаблону)
+            // 2. Проверка наличия строк (запрет сохранения пустого шаблона)
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
@@ -235,12 +235,11 @@ public class StockOrderTemplateDetailsViewModel :
         }
         catch (Exception ex)
         {
-            // Показуємо вікно з помилкою і блокуємо збереження в базу
+
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        // Якщо все заповнено — зберігаємо шаблон
         return await base.OnSaveAsync();
     }
     public class LineImport

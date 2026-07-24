@@ -18,10 +18,10 @@ public static class AssemblyResourceReaderExtension
     {
         string[] resources = assembly.GetManifestResourceNames();
 
-        // БЕЗПЕЧНИЙ ПОШУК РЕСУРСУ
+        // БЕЗОПАСНЫЙ ПОИСК РЕСУРСА
         string targetResource = resources.FirstOrDefault(x => x.EndsWith(resourceName));
 
-        // Якщо файл не знайдено, викидаємо зрозумілу помилку з іменем файлу
+        // Если файл не найден, выбрасываем понятную ошибку с именем файла
         if (targetResource == null)
         {
             throw new FileNotFoundException(

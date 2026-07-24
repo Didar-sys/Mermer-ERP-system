@@ -11,7 +11,7 @@ using System.Windows;
 
 namespace Mermer.Ui.Pc;
 
-// ДОДАНО: ключове слово partial, видалено IComponentConnector
+// ДОБАВЛЕНО: ключевое слово partial, удален IComponentConnector
 public partial class ReportDesigner : ThemedWindow
 {
     private readonly string _reportName;
@@ -21,10 +21,10 @@ public partial class ReportDesigner : ThemedWindow
     {
         _reportName = reportName;
 
-        // Цей метод тепер буде братися з автозгенерованої XAML-частини
+        // Этот метод теперь будет браться из автосгенерированной XAML-части
         InitializeComponent();
 
-        // Підписуємося на події тут, замість автозгенерованого конектора
+        // Подписываемся на события здесь, вместо автосгенерированного коннектора
         this.Loaded += OnLoaded;
         if (Designer != null)
         {
@@ -46,7 +46,7 @@ public partial class ReportDesigner : ThemedWindow
             {
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
-                    // leaveOpen: true, щоб MemoryStream не закрився раніше часу
+                    // leaveOpen: true, чтобы MemoryStream не закрылся раньше времени
                     using (StreamWriter streamWriter = new StreamWriter(memoryStream, Encoding.UTF8, 1024, true))
                     {
                         await streamWriter.WriteAsync(asyncText);

@@ -174,10 +174,10 @@ public class AggregatedReportViewModel : BaseViewModel
 
     public virtual Task OnPrintAsync()
     {
-        // Якщо самого звіту взагалі немає - тоді точно нічого друкувати
+        // Если самого отчета вообще нет – тогда точно нечего печатать
         if (Report == null) return Task.CompletedTask;
 
-        // БЕЗПЕЧНО збираємо касу (якщо null - створюємо порожній)
+        //БЕЗОПАСНО собираем кассу (если null - создаем пустой)
         var safeFundsReport = Report.FundsReport == null ? new FundsBalanceAggregated() : new FundsBalanceAggregated
         {
             Income = Report.FundsReport.Income,
@@ -187,12 +187,11 @@ public class AggregatedReportViewModel : BaseViewModel
             {
                 Income = x.Income,
                 Expense = x.Expense,
-                // FirstOrDefault не видасть помилку, якщо типу немає в словнику
+                // FirstOrDefault не выдаст ошибку, если типа нет в словаре
                 Type = Types?.List?.FirstOrDefault(i => i.Value == x.Type)?.Text ?? x.Type
             }) ?? Enumerable.Empty<FundsBalanceAggregatedLine>()
         };
 
-        // БЕЗПЕЧНО збираємо склади
         var safeStocksReport = Report.StocksReport == null ? new StockBalanceAggregated() : new StockBalanceAggregated
         {
             Income = Report.StocksReport.Income,
@@ -206,7 +205,6 @@ public class AggregatedReportViewModel : BaseViewModel
             }) ?? Enumerable.Empty<StockBalanceAggregatedLine>()
         };
 
-        // БЕЗПЕЧНО збираємо партнерів
         var safePartnersReport = Report.PartnersReport == null ? new PartnerBalanceAggregated() : new PartnerBalanceAggregated
         {
             Debit = Report.PartnersReport.Debit,
@@ -220,10 +218,9 @@ public class AggregatedReportViewModel : BaseViewModel
             }) ?? Enumerable.Empty<PartnerBalanceAggregatedLine>()
         };
 
-        // Безпечно формуємо список офісів
         var selectedOffices = Offices?.List?.Where(x => OfficeIds != null && OfficeIds.Contains(x.Id)).Select(x => x.Name).ToArray() ?? Array.Empty<string>();
 
-        // Відправляємо зібрані безпечні блоки на друк
+        
         return _printingService.PrintAggregatedReport(new AggregatedReport
         {
             FundsReport = safeFundsReport,

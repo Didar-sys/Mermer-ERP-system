@@ -81,16 +81,16 @@ public class PartnerDetailsViewModel : DetailsViewModel<Partner>
     {
         try
         {
-            // 1. Перевірка імені
+            
             if (string.IsNullOrWhiteSpace(Details.Name))
             {
                 throw new Exception(this["Field '{0}' is required", this["Name"]]);
             }
 
-            // 2. Перевірка телефону:
-            // - NullOrWhiteSpace перевіряє чи поле не порожнє
-            // - Regex перевіряє чи це рядок, що складається тільки з цифр, 
-            //   можливо з '+' на початку, і довжиною від 7 до 15 знаків.
+            // Проверка телефона:
+            // - NullOrWhiteSpace проверяет поле не пустое
+            // - Regex проверяет ли это строка, состоящая только из цифр, 
+            // возможно с '+' в начале и длиной от 7 до 15 знаков.
             string phonePattern = @"^\+?[0-9]{7,15}$";
 
             if (string.IsNullOrWhiteSpace(Details.Phone))
@@ -99,7 +99,7 @@ public class PartnerDetailsViewModel : DetailsViewModel<Partner>
             }
             else if (!Regex.IsMatch(Details.Phone, phonePattern))
             {
-                // Помилка, якщо введені букви або замало цифр
+                
                 throw new Exception(this["Field '{0}' is invalid", this["Phone"]]);
             }
         }

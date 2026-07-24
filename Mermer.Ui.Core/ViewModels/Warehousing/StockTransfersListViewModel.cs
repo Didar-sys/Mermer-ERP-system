@@ -39,7 +39,7 @@ public class StockTransfersListViewModel :
                 Title = this["Conflicted"],
                 CanLoad = x => !IsBusy,
                 Loader = x => LoadByFilterAsync(x),
-                Counter = CountByFilterAsync, // Виправлено: без кастів
+                Counter = CountByFilterAsync,
                 Tag = "Conflicted"
             },
             new ListFilterByDate

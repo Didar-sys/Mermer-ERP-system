@@ -179,10 +179,10 @@ public class StockSearcher : BindableObject
             {
                 if (value != null)
                 {
-                    // 1. Як тільки ми натиснули Enter, передаємо товар у головну програму!
+                    // 1. Как только мы нажали Enter, передаем товар в главную програму!
                     this.Select(value);
 
-                    // 2. Очищаємо вибір, щоб можна було шукати наступний товар
+                    // 2. Очищаем выбор, чтобы можно было искать следующий товар
                     this._selectedItem = null;
                     this.RaisePropertyChanged(() => this.SelectedItem);
                 }

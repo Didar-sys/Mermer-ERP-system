@@ -183,7 +183,7 @@ public class InvoiceDetailsViewModel :
     {
         base.Details_PropertyChanged(sender, e);
 
-        // Передаємо бекенду правильний системний ID валюти
+        // Передаем бэкенду правильный системный ID валюты
         if (e.PropertyName == "DisplayCurrencyId")
         {
             StockSearcher.CurrencyId = Details.DisplayCurrencyId;
@@ -195,7 +195,6 @@ public class InvoiceDetailsViewModel :
                 StockSearcher.SearchText = temp;
             }
         }
-        // ========================================================
 
         if (e.PropertyName == "Date" || e.PropertyName == "PartnerId" || e.PropertyName == "WarehouseId" || e.PropertyName == "DisplayCurrencyId")
             UpdatePartnerBalance();
@@ -251,13 +250,12 @@ public class InvoiceDetailsViewModel :
     {
         try
         {
-            // --- НОВА ПЕРЕВІРКА НА ОПЛАТУ (Точно за вимогами Леона) ---
-            // Якщо є якийсь неоплачений залишок (Left) І НЕ стоїть галочка "На запис"
+            // --- НОВАЯ ПРОВЕРКА НА ОПЛАТУ ---
+            // Если есть неоплаченный остаток (Left) и не стоит галочка "На запись"
             if (Details.DisplayLeftTotal > 0 && !Details.DebitCreditLeftAmount)
             {
                 throw new Exception("Оплата не прийнята повністю! Внесіть суму оплати або поставте галочку 'На запис' (Debit/Credit Left Amount).");
             }
-            // -----------------------------------------------------------
 
             if (!string.IsNullOrEmpty(Details.PartnerId))
             {
@@ -281,10 +279,9 @@ public class InvoiceDetailsViewModel :
         }
         catch (Exception ex)
         {
-            // Виводимо наше повідомлення про помилку
             UserInteractionService.ShowExceptionMessage(ex);
 
-            // Блокуємо збереження!
+            // Блокируем сохранность!
             return false;
         }
 
@@ -330,16 +327,14 @@ public class InvoiceDetailsViewModel :
             var result = await NavigationService.Navigate<InvoicePaymentDialogViewModel, IpdParams, IpdParams>(parameters);
             if (result == null) return;
 
-            // 1. Оновлюємо Знижки
+            // 1. Обновляем Скидки
             if (Details.DisplayDiscountsTotal != result.DiscountsTotal)
             {
                 Details.Discounts.Clear();
                 if (result.DiscountsTotal > 0M)
                 {
-                    // Отримуємо коефіцієнти конвертації
                     var currencyConvertion = Details.CurrencyConverter(Details.DisplayCurrencyId);
 
-                    // ЗВЕРНИ УВАГУ НА ЗНАКИ: тепер множимо на Multiplier і ділимо на Divider!
                     decimal baseDiscountAmount = result.DiscountsTotal * currencyConvertion.Multiplier / currencyConvertion.Divider;
 
                     Details.Discounts.Add(new InvoiceDiscount
@@ -350,18 +345,18 @@ public class InvoiceDetailsViewModel :
                 }
             }
 
-            // 2. Оновлюємо Оплату (без множення на rate!)
+            // 2. Обновляем Оплату (без умножения на rate!)
             if (Details.DisplayPaymentsTotal != result.PaymentsTotal)
             {
                 Details.Payments.Clear();
                 if (result.PaymentsTotal > 0M)
                 {
-                    // Зберігаємо суму рівно такою, як ти ввів (300), у поточній валюті
+                    
                     Details.Payments.Add(new InvoicePayment { Amount = result.PaymentsTotal, CurrencyId = Details.DisplayCurrencyId });
                 }
             }
 
-            // 3. Оновлюємо Решту (без множення на rate!)
+            // 3. Обновляем остаток (без умножения на rate!)
             if (Details.DisplayChangesTotal != result.ChangesTotal)
             {
                 Details.Changes.Clear();
@@ -429,11 +424,10 @@ public class InvoiceDetailsViewModel :
 
     protected virtual async Task OnPrintCommandAsync()
     {
-        // Захист: якщо товарів у списку немає
         if (Details?.Lines == null || Details.Lines.Count == 0)
         {
             UserInteractionService.ShowMessage("Error", "Cannot print an empty invoice!");
-            return; // Зупиняємо виконання, чек не друкується
+            return;
         }
 
         decimal balance = PartnerBalanceToDate?.Balance ?? 0M;

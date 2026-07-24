@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows.Markup;
 
-// Цей магічний атрибут каже XAML шукати наш клас без жодних префіксів!
 [assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "Mermer.Ui.Pc.Markup")]
 
 namespace Mermer.Ui.Pc.Markup
@@ -21,7 +20,7 @@ namespace Mermer.Ui.Pc.Markup
 
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
-            // Якщо є FallBackText - повертаємо його, інакше повертаємо ключ
+            // Если есть FallBackText – возвращаем его, иначе возвращаем ключ
             return FallBackText ?? Key ?? "";
         }
     }

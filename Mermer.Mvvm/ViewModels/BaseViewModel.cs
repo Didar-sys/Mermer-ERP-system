@@ -20,7 +20,7 @@ namespace Mermer.Mvvm.ViewModels;
 
 public abstract class BaseViewModel : MvxViewModel, IDisposable
 {
-    // Глобальний тригер для жорсткого закриття
+    // Глобальный триггер для жесткого закрытия
     public static Action<MvxViewModel> RequestComponentCloseAction { get; set; }
     protected readonly IMvxNavigationService NavigationService;
   protected readonly IUserInteractionService UserInteractionService;
@@ -130,8 +130,8 @@ public abstract class BaseViewModel : MvxViewModel, IDisposable
     {
         get
         {
-            // Повертаємо null, щоб відключити старий механізм MvvmCross.
-            // Ми тепер покладаємось виключно на наш LocalizationManager.
+            // Возвращаем null, чтобы отключить старый механизм MvvmCross.
+            // Мы теперь полагаемся исключительно на наш LocalizationManager.
             return null;
         }
     }
@@ -142,10 +142,10 @@ public abstract class BaseViewModel : MvxViewModel, IDisposable
         {
             try
             {
-                // ЗВЕРТАЄМОСЯ НАПРЯМУ ДО ТВОГО МЕНЕДЖЕРА!
+                // ОБРАЩАЕМСЯ НАПРАВЛЕНИЯ К ТВОЕМУ МЕНЕДЖЕРУ!
                 string text = Mermer.Mvvm.Tools.LocalizationManager.Instance.Get(textName, args);
 
-                // Якщо перекладу немає (повернувся сам ключ), малюємо решітку, як було в оригіналі
+                // Если перевода нет (вернулся сам ключ), рисуем решетку, как было в подлиннике
                 if (text == textName)
                 {
                     return args != null && args.Length > 0 ? string.Format("#" + textName, args) : "#" + textName;
@@ -155,7 +155,7 @@ public abstract class BaseViewModel : MvxViewModel, IDisposable
             }
             catch
             {
-                // Захист від битих аргументів форматування
+                // Защита от битых аргументов форматирования
                 return string.Format("#" + textName, args);
             }
         }

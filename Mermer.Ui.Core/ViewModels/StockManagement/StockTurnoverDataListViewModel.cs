@@ -39,7 +39,7 @@ public class StockTurnoverDataListViewModel : ListViewModelBaseWithFilter<StockT
     {
         if (SelectedItem != null)
         {
-            // Резерв під майбутнє відкриття деталей
+            // Резерв под предстоящее открытие деталей
         }
     });
     public StockTurnoverDataListViewModel(
@@ -55,7 +55,6 @@ public class StockTurnoverDataListViewModel : ListViewModelBaseWithFilter<StockT
         _configurator = configurator;
         _repository = repository;
 
-        // Чистий масив фільтрів без кастів декомпілятора
         Filters = new[]
         {
         new ListFilter
@@ -93,7 +92,7 @@ public class StockTurnoverDataListViewModel : ListViewModelBaseWithFilter<StockT
         new ListFilter
         {
             Title = this["All Records"],
-            Tag = "All", // Додав стандартний тег
+            Tag = "All", 
             CanLoad = x => !IsBusy,
             Loader = x => LoadByFilterAsync(x),
             Counter = CountByFilterAsync

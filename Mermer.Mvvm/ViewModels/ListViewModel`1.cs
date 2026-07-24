@@ -47,7 +47,6 @@ public class ListViewModel<T> :
         if (string.IsNullOrEmpty(ItemId))
             return;
 
-        // Виправлено кашу декомпілятора з лямбдою (\u003COnLoad\u003Eb__5_0)
         SelectedItem = List.SingleOrDefault(x => x.Id == ItemId);
     }
 

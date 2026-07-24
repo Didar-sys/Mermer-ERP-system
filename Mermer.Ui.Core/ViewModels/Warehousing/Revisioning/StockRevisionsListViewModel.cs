@@ -48,11 +48,10 @@ public class StockRevisionsListViewModel : TransactionsListViewModel<StockRevisi
         _codeGentor = codeGentor;
         Warehouses = warehouses;
 
-        // ПРИМУСОВЕ ВСТАНОВЛЕННЯ ДАТ:
         this.DateFilterFrom = DateTime.Today;
         this.DateFilterTill = DateTime.Today;
 
-        // Чистий масив фільтрів без зайвих кастів
+     
         Filters = new[]
         {
         new ListFilter

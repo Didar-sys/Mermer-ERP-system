@@ -47,7 +47,7 @@ public abstract class ListViewModelBaseWithFilterDate<TList, TFilter> :
         },
         new ListFilterByDate
         {
-            Title = this["Yesterday"], // До речі, виправив одруківку Yesturday :)
+            Title = this["Yesterday"],
             CanLoad = x => !IsBusy,
             Loader = x => LoadByFilterAsync(x),
             Counter = CountByFilterAsync,

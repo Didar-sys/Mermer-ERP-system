@@ -35,7 +35,6 @@ public class CouchCluster : ICouchCluster, IDisposable
             safeUrl = safeUrl.Contains(":") ? $"http://{safeUrl}" : $"http://{safeUrl}:8091";
         }
 
-        // БІЛЬШЕ НІЯКОГО ХАРДКОДУ! Привласнюємо реальні дані, які прийшли з налаштувань
         this.Url = safeUrl;
         this.DefaultBucket = defaultBucket;
         this.Username = username;

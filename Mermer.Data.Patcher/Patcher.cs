@@ -131,7 +131,7 @@ public class Patcher : IPatcher
                                 Type targetType = element.PropertyType;
                                 Type actualType = Nullable.GetUnderlyingType(targetType) ?? targetType;
 
-                                // 1. Якщо прийшов null - просто записуємо null і йдемо далі
+                                
                                 if (val == null)
                                 {
                                     element.SetValue(target, null);
@@ -140,12 +140,12 @@ public class Patcher : IPatcher
 
                                 try
                                 {
-                                    // 2. Безпечно перевіряємо та конвертуємо без "сліпих" помилок
+                                    
                                     if (actualType.IsEnum)
                                     {
                                         element.SetValue(target, Enum.Parse(actualType, val.ToString(), true));
                                     }
-                                    else if (val.GetType().Name.StartsWith("J")) // Якщо це складний JSON-об'єкт (JObject, JArray)
+                                    else if (val.GetType().Name.StartsWith("J")) // Если это сложный объект JSON (JObject, JArray)
                                     {
                                         element.SetValue(target, JsonConvert.DeserializeObject(JsonConvert.SerializeObject(val), targetType));
                                     }
@@ -156,7 +156,7 @@ public class Patcher : IPatcher
                                 }
                                 catch
                                 {
-                                    // Лише якщо дійсно сталася непередбачувана біда
+                                    
                                 }
                             }
                         }

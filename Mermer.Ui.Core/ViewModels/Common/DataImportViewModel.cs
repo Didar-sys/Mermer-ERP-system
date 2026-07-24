@@ -169,24 +169,23 @@ public class DataImportViewModel :
 
                     if (cellValue != null && !string.IsNullOrWhiteSpace(cellValue.ToString()))
                     {
-                        // Витягуємо базовий тип, якщо це Nullable (наприклад, decimal?)
+                        // Вытаскиваем базовый тип, если это Nullable (например, decimal?)
                         Type targetType = Nullable.GetUnderlyingType(property.Info.PropertyType) ?? property.Info.PropertyType;
 
                         object convertedValue;
 
-                        // Якщо це числове поле (Ціна, Ліміти тощо)
+                        
                         if (targetType == typeof(decimal) || targetType == typeof(double) || targetType == typeof(float))
                         {
-                            // 1. Прибираємо зайві пробіли
-                            // 2. Жорстко замінюємо будь-яку кому на крапку
+                           
                             string cleanNumStr = cellValue.ToString().Trim().Replace(",", ".");
 
-                            // 3. Конвертуємо, вказуючи InvariantCulture (міжнародний стандарт, який розуміє крапку)
+                            // 3. Конвертируем, указывая InvariantCulture (международный стандарт, понимающий точку)
                             convertedValue = Convert.ChangeType(cleanNumStr, targetType, System.Globalization.CultureInfo.InvariantCulture);
                         }
                         else
                         {
-                            // Для звичайного тексту або дат залишаємо стандартну конвертацію
+                            
                             convertedValue = Convert.ChangeType(cellValue, targetType);
                         }
                         property.Info.SetValue(instance, convertedValue);
@@ -200,7 +199,7 @@ public class DataImportViewModel :
                     row++;
                 }
 
-                Status = this["{0} items read", row - 1]; // -1 бо ми починаємо з 1 рядка
+                Status = this["{0} items read", row - 1];
             }
             while (hasDataInRow);
 

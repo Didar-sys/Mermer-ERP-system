@@ -68,30 +68,30 @@ public class ExpenseSlipDetailsViewModel :
     {
         try
         {
-            // 1. Обов'язково має бути вибрана Каса (Depository)
+            // 1. Обязательно должна быть выбрана Касса (Depository)
             if (string.IsNullOrEmpty(Details.DepositoryId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Depository"]]);
             }
 
-            // 2. Документ не може бути порожнім
+            // 2. Документ не может быть пустым
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
             }
 
-            // 3. Перевірка кожного рядка в таблиці
+            // 3. Проверка каждой строки в таблице
             foreach (var line in Details.Lines)
             {
-                // Має бути обрана стаття витрат (Expense)
+                // Должна быть выбрана статья расходов (Expense)
                 if (string.IsNullOrEmpty(line.ExpenseId))
                     throw new Exception(this["Field '{0}' is required", this["Expense"]]);
 
-                // Сума має бути більшою за нуль
+                // Сумма должна быть больше нуля
                 if (line.Amount <= 0)
                     throw new Exception(this["Amount must be greater than zero"]);
 
-                // Валюта є обов'язковою
+                // Валюта обязательна
                 if (string.IsNullOrEmpty(line.CurrencyId))
                     throw new Exception(this["Field '{0}' is required", this["Currency"]]);
             }
@@ -99,14 +99,14 @@ public class ExpenseSlipDetailsViewModel :
         catch (Exception ex)
         {
             UserInteractionService.ShowExceptionMessage(ex);
-            return false; // Блокуємо збереження
+            return false; // Блокируем сохранение
         }
 
-        // Оригінальна логіка збереження
+        // Оригинальная логика сохранения
         if (!await base.OnSaveAsync())
             return false;
 
-        // Оригінальна логіка автоматичного друку після успішного збереження
+        // Оригинальная логика автоматической печати после успешного сохранения
         await _printingService.PrintExpenseSlip(Details);
         return true;
     }

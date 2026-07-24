@@ -43,7 +43,6 @@ public class StockBalancesByDateAndWarehousesListViewModel : BaseViewModel
     {
         if (SelectedItem != null)
         {
-            // Резерв під майбутнє відкриття деталей
         }
     });
     public StockBalancesByDateAndWarehousesListViewModel(

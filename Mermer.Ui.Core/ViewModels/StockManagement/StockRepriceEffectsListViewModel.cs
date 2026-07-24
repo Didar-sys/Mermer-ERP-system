@@ -87,8 +87,8 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
         {
             var selectedWarehouseIds = this.SelectedWarehouseIds;
 
-            // Якщо список пустий (користувач прибрав усі галочки), 
-            // повертаємо null, щоб база відключила фільтр по складах і віддала ВСЕ.
+            // Если список пуст (пользователь убрал все галочки), 
+            // возвращаем null, чтобы база отключила фильтр по слогам и отдала ВСЕ.
             if (selectedWarehouseIds == null || selectedWarehouseIds.Count == 0)
             {
                 return null;
@@ -113,13 +113,11 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
 
     protected override Task<int> CountFilteredListAsync(ListFilter filter)
     {
-        // ДОДАНО: this.WarehouseIds
         return this._repository.CountAsync(DateTime.MinValue, DateTime.MaxValue, this.WarehouseIds);
     }
 
     protected override Task<int> CountFilteredListByDateAsync(DateTime from, DateTime till)
     {
-        // ДОДАНО: this.WarehouseIds
         return this._repository.CountAsync(from, till, this.WarehouseIds);
     }
 
@@ -137,19 +135,17 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
 
     protected override Task<int> CountListAsync(params Expression<Func<StockRepriceEffect, bool>>[] predicates)
     {
-        // ДОДАНО: this.WarehouseIds
         return this._repository.CountAsync(DateTime.MinValue, DateTime.MaxValue, this.WarehouseIds);
     }
 
     protected override Task<IEnumerable<StockRepriceEffect>> GetListAsync(params Expression<Func<StockRepriceEffect, bool>>[] predicates)
     {
-        // Дістаємо всі записи за весь час з урахуванням фільтру складів
+       
         return this._repository.GetAsync(DateTime.MinValue, DateTime.MaxValue, this.WarehouseIds);
     }
 
     protected override Expression<Func<StockRepriceEffect, bool>> GetDateFilter(DateTime from, DateTime till)
     {
-        // Повертаємо умову: Дата зміни повинна бути між From та Till
         return effect => effect.ChangeDate >= from && effect.ChangeDate <= till;
     }
 }

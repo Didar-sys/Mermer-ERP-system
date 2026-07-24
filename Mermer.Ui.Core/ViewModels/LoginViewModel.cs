@@ -1,4 +1,4 @@
-﻿// Додані using для конфігуратора та налаштувань
+﻿// Добавленные using для конфигуратора и настроек
 using Mermer.Activations.Services;
 using Mermer.Authorization.Services;
 using Mermer.Common.Settings;
@@ -22,11 +22,11 @@ public class LoginViewModel : BaseViewModel
 {
     private readonly ILoginService _loginService;
     private readonly IBinyatActivationService _activationService;
-    private readonly IConfigurator _configurator; // ДОДАНО
+    private readonly IConfigurator _configurator; // ДОБАВЛЕНО
     private string _username;
     private string _password;
 
-    // ДОДАНО IConfigurator configurator у параметри
+    // ДОБАВЛЕНО IConfigurator configurator в параметры
     public LoginViewModel(
     ILoginService loginService,
     IMvxNavigationService navigationService,
@@ -39,14 +39,14 @@ public class LoginViewModel : BaseViewModel
         this._activationService = activationService;
         this._configurator = configurator;
 
-        // === БЕЗПЕЧНА ЗМІНА МОВИ НА САМОМУ СТАРТІ ===
+        // === БЕЗОПАСНОЕ СМЕНА ЯЗЫКА НА САМОМ СТАРТЕ ===
         try
         {
             AppSettings config = configurator.GetConfig<AppSettings>();
             if (config != null && !string.IsNullOrEmpty(config.Culture))
             {
-                // Цього достатньо! MvvmCross побачить "ru-RU" і сам піде в рідний провайдер 
-                // шукати файл ru-RU.json
+                // Этого достаточно! MvvmCross увидит "ru-RU" и сам пойдет в родной провайдер 
+                // искать файл ru-RU.json
                 var culture = new System.Globalization.CultureInfo(config.Culture);
                 System.Threading.Thread.CurrentThread.CurrentCulture = culture;
                 System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
@@ -82,12 +82,12 @@ public class LoginViewModel : BaseViewModel
         loginViewModel.IsBusy = true;
         try
         {
-            // Режим Бога (вимкнена активація)
+            // Режим Бога (отключена активация)
             // await Task.WhenAll(loginViewModel._activationService.ValidateClientActivationAsync(), loginViewModel._activationService.ValidateServerActivationAsync());
 
             await loginViewModel._loginService.LoginAsync(loginViewModel.Username, loginViewModel.Password);
 
-            // Відкриваємо головне вікно програми
+            // Открываем главное окно программы
             await loginViewModel.NavigationService.Navigate<MainViewModel>();
         }
         catch (ApplicationException ex)

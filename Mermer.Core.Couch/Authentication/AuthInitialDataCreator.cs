@@ -36,14 +36,13 @@ public class AuthInitialDataCreator : IInitialDataCreator
     {
         using (IBucket bucket1 = this._cluster.OpenDefaultBucket())
         {
-            // Перевіряємо, чи існує адмін. Якщо індекс затупить - не страшно, нас врятує Upsert.
+            // Проверяем, существует ли админ. Если индекс затупит – не страшно, нас спасет Upsert.
             if (!(await new BucketContext(bucket1).Query<User>().Where<User>(x => x.DocType == typeof(User).Name && x.IsAdmin).ExecuteAsync<User>()).Any<User>())
             {
                 User user = new User();
 
-                // --- ВИПРАВЛЕНО: Жорсткий ID замість випадкового Guid ---
+                // Жесткий ID вместо случайного Guid ---
                 user.Id = "User_admin";
-                // ---------------------------------------------------------
 
                 user.Username = "admin";
                 user.Password = "admin".Hash();
@@ -68,8 +67,8 @@ public class AuthInitialDataCreator : IInitialDataCreator
 
                 await repositoryService.StorePatchesAsync((IEnumerable<CouchPatch>)patches, bucket2);
 
-                // --- ВИПРАВЛЕНО: Використовуємо UpsertAsync замість InsertAsync ---
-                // Тепер, навіть якщо кнопка спрацює двічі, вона не створить клона, а просто оновить єдиного адміна
+                // Используем UpsertAsync вместо InsertAsync ---
+                // Теперь, даже если кнопка сработает дважды, она не создаст клон, а просто обновит единого админа
                 IDocumentResult<User> documentResult = await bucket1.UpsertAsync<User>((IDocument<User>)new Document<User>()
                 {
                     Id = item.Id,

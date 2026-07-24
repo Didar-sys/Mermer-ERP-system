@@ -2,7 +2,7 @@
 using DevExpress.Xpf.Grid;
 using System.Windows;
 using System.Windows.Input;
-// Вирішуємо конфлікт KeyEventArgs
+
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace Mermer.Ui.Pc.Helpers;

@@ -26,7 +26,7 @@ public partial class App : System.Windows.Application
         }
 
         MainViewPresenter presenter = new MainViewPresenter(((MainWindow)this.MainWindow).Root);
-        // ВИПРАВЛЕНИЙ БЛОК:
+        // ИСПРАВЛЕННЫЙ БЛОК:
         presenter.AddPresentationHintHandler<MvxCloseAllPresentationHint>(hint =>
         {
             if (hint != null)
@@ -43,23 +43,23 @@ public partial class App : System.Windows.Application
 
         _setupComplete = true;
 
-        // ОСОЬ ТУТ — ОДИНАЙДЕНШЕ ПРАВИЛЬНЕ МІСЦЕ ДЛЯ ТЕМИ:
+        // ИМЕННО ЗДЕСЬ — ЕДИНСТВЕННО ПРАВИЛЬНОЕ МЕСТО ДЛЯ ТЕМЫ:
         DevExpress.Xpf.Core.ApplicationThemeHelper.ApplicationThemeName = "HybridApp";
-        // (Або спробуй "MetropolisLight", якщо хочеш повністю пласкі стрілочки)
+        // (Или попробуй "MetropolisLight", если хочешь полностью плоские стрелочки)
 
         DXGridDataController.DisableThreadingProblemsDetection = true;
 
         this.MainWindow.Show();
     }
 
-    // МИ ПЕРЕНЕСЛИ OnStartup СЮДИ! Це єдине правильне місце для старту.
+    // МЫ ПЕРЕНЕСЛИ OnStartup СЮДА! Это единственное правильное место для старта.
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
         DoSetup();
     }
 
-    // МЕТОД OnActivated ВИДАЛЕНО ПОВНІСТЮ, щоб вікно не рекурсувало при фокусі!
+    // МЕТОД OnActivated УДАЛЕН ПОЛНОСТЬЮ, чтобы окно не рекурсировало при фокусе!
 
     private void LoadMvxAssemblyResources()
     {

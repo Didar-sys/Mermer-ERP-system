@@ -44,7 +44,6 @@ public class StockOrdersListViewModel : TransactionsListViewModel<StockOrder>
         _loginService = loginService;
         Warehouses = warehouses;
 
-        // Чистий масив фільтрів
         Filters = new[]
         {
         new ListFilter

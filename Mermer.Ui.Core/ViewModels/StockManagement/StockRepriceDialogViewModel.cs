@@ -154,7 +154,6 @@ public class StockRepriceDialogViewModel :
         
         var loadedStocks = await _stocksRepository.GetAsync(expressionArray);
 
-            // Відновлений людський LINQ
             var batchReprices = loadedStocks
                 .Join(requestsBatch,
                       s => s.Id,

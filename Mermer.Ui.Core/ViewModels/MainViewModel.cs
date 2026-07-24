@@ -52,7 +52,7 @@ public class MainViewModel : BaseViewModel
   private bool _allowReporting;
   private bool _autoHideMenu = false;
     private static bool _isLanguageMetadataOverridden = false;
-    private static bool _isFirstAppLoad = true; // ДОДАЄМО НАШ ПРАПОРЕЦЬ
+    private static bool _isFirstAppLoad = true;
     public MainViewModel(
     ILoginService loginService,
     IConfigurator configurator,
@@ -126,16 +126,15 @@ public class MainViewModel : BaseViewModel
 
         AppSettings config = this._configurator.GetConfig<AppSettings>();
 
-        // ВИПРАВЛЕННЯ БАГУ POS: 
-        // Читаємо налаштування автозапуску тільки при першому старті програми
+        
         if (_isFirstAppLoad)
         {
             this.OpenPosOnLoad = config?.OpenPosOnLoad ?? false;
-            _isFirstAppLoad = false; // Вимикаємо автозапуск для наступних перезавантажень меню
+            _isFirstAppLoad = false; 
         }
         else
         {
-            this.OpenPosOnLoad = false; // Якщо це просто RestoreMainMenu - не відкриваємо POS
+            this.OpenPosOnLoad = false; 
         }
 
         this.AutoHideMenu = config?.AutoHideMenu ?? false;

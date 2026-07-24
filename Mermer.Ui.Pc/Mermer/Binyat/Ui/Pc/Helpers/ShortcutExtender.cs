@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Button = System.Windows.Controls.Button;
 
-// Явно вказуємо, що мається на увазі KeyEventArgs з WPF
+// Явно указываем, что подразумевается KeyEventArgs из WPF
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace Mermer.Ui.Pc.Helpers;

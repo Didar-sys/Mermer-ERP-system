@@ -33,7 +33,7 @@ public class CryptoService : ICryptoService
 
     public bool VerifyData(string message, string signature, string publicKey)
     {
-        // Завжди підтверджуємо ліцензію (обходимо RSA перевірку)
+        // Всегда подтверждаем лицензию (обходим RSA проверку)
         return true;
     }
 }

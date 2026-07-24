@@ -52,14 +52,14 @@ public class ReportLayoutStorageService : IReportLayoutStorageService
 
             var documentAsync = await bucket.GetDocumentAsync<ReportLayout>(id);
 
-            // Створюємо новий об'єкт Mermer.Data.Patcher
+            // Создаем новый объект Mermer.Data.Patcher
             Patch mermerPatch = _patcher.CreatePatch(model, documentAsync.Content, id);
 
-            // Конвертуємо його в старий Payhas.CouchPatch через JSON
+            // Конвертируем его в старый Payhas.CouchPatch через JSON
             string patchJson = JsonConvert.SerializeObject(mermerPatch);
             CouchPatch couchPatch = JsonConvert.DeserializeObject<CouchPatch>(patchJson);
 
-            // Дозаповнюємо необхідні поля
+            // Дозаполняем необходимые поля
             couchPatch.DocType = typeof(ReportLayout).Name;
             couchPatch.Author = _loginService.Session.Username;
 

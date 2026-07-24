@@ -29,7 +29,7 @@ using System.Windows.Threading;
 using Autofac.Core.Registration;
 using System.Linq;
 
-// Правильні простори імен для старих модулів
+// Правильные пространства имен для старых модулей
 using Mermer.Core.Couch;
 using Mermer.Authorization.Services;
 
@@ -58,19 +58,19 @@ public class Setup : MvxWpfSetup
 
         builder.Register<IConfigurator>(x => _configurator).As<IConfigurator>().SingleInstance();
 
-        // Отримуємо налаштування, які користувач ввів у вікні Connection Settings (або з реєстру)
+        // Получаем настройки, которые пользователь ввел в окне Connection Settings (или из реестра)
         ConnectionSettings config = _configurator.GetConfig<ConnectionSettings>();
 
         builder.RegisterModule<CoreUiModule>();
 
-        // Додаємо ?? "http://localhost:5000", щоб програма не падала через відсутність URL
+        // Добавляем ?? "http://localhost:5000", чтобы программа не падала из-за отсутствия URL
         builder.RegisterModule(new MermerLicensingClientModule(new ActivationConfiguration
         {
             ActivationUrl = Configuration["ActivationUrl"] ?? "http://localhost:5000",
             PublicKey = Configuration.GetSection("PublicKey").AsString() ?? "dummy_key"
         }));
 
-        // --- ДОДАЄМО ГЛОБАЛЬНИЙ HTTP КЛІЄНТ ---
+        // --- ДОБАВЛЯЕМ ГЛОБАЛЬНЫЙ HTTP КЛИЕНТ ---
         builder.Register(c =>
         {
             var client = new System.Net.Http.HttpClient();
@@ -79,7 +79,7 @@ public class Setup : MvxWpfSetup
             return client;
         }).AsSelf().SingleInstance();
 
-        // --- СУПЕР-УНІВЕРСАЛЬНИЙ СКАНЕР ВСІХ МОДУЛІВ MERMER ---
+        // --- СУПЕР-УНИВЕРСАЛЬНЫЙ СКАНЕР ВСЕХ МОДУЛЕЙ MERMER ---
         var mermerAssemblies = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "Mermer*.dll")
             .Select(Assembly.LoadFrom)
             .ToArray();
@@ -96,10 +96,10 @@ public class Setup : MvxWpfSetup
             .AsImplementedInterfaces()
             .InstancePerDependency();
 
-        // Реєструємо головний модуль бізнес-логіки
+        // Регистрируем главный модуль бизнес-логики
         builder.RegisterModule<Mermer.BinyatModule>();
 
-        // Реєструємо менеджер мов для FluentValidation
+        // Регистрируем менеджер языков для FluentValidation
         builder.RegisterType<FluentValidation.Resources.LanguageManager>()
                .As<FluentValidation.Resources.ILanguageManager>()
                .SingleInstance();
@@ -110,11 +110,11 @@ public class Setup : MvxWpfSetup
 
         builder.RegisterModule<AutoMapperModule>();
 
-        // !!! ХАК ДЛЯ "ПРИВИДІВ" ЗІ СТАРОЇ БАЗИ ДАНИХ !!!
+        // !!! ХАК ДЛЯ "ПРИЗРАКОВ" ИЗ СТАРОЙ БАЗЫ ДАННЫХ !!!
         builder.RegisterSource(new OldLocalizationSource());
 
-        // --- ДИНАМІЧНА ПРИВ'ЯЗКА БАЗИ ДАНИХ ---
-        // Тепер Autofac бере реальні дані, які користувач ввів в UI
+        // --- ДИНАМИЧЕСКАЯ ПРИВЯЗКА БАЗЫ ДАННЫХ ---
+        // Теперь Autofac берет реальные данные, которые пользователь ввел в UI
         builder.RegisterModule(new BinyatCouchModule(
              config.DatabaseAddress ?? "http://localhost:8091",
              config.DatabaseName ?? "binyat",
@@ -122,7 +122,7 @@ public class Setup : MvxWpfSetup
              config.DatabasePassword ?? ""
         ));
 
-        // --- АБСОЛЮТНИЙ ФІКС ДЛЯ СЕСІЇ (LOGIN SERVICE) ---
+        // --- АБСОЛЮТНЫЙ ФИКС ДЛЯ СЕССИИ (LOGIN SERVICE) ---
         var loginServiceType = mermerAssemblies
             .SelectMany(a => {
                 try { return a.GetTypes(); }
@@ -141,7 +141,7 @@ public class Setup : MvxWpfSetup
 
         var container = builder.Build();
 
-        // --- МЕТОД "КУВАЛДА": ВБИВАЄМО ВИПАДКОВИЙ КОНТЕЙНЕР ---
+        // --- МЕТОД "КУВАЛДА": УБИВАЕМ СЛУЧАЙНЫЙ КОНТЕЙНЕР ---
         var existingIoC = MvvmCross.Platform.Core.MvxSingleton<IMvxIoCProvider>.Instance;
         if (existingIoC != null)
         {
@@ -158,7 +158,7 @@ public class Setup : MvxWpfSetup
         return (IMvxIoCProvider)new AutofacMvxIocProvider(container);
     }
 
-    // Глибока перевірка всього дерева успадкування
+    // Глубокая проверка всего дерева наследования
     private static bool IsMvxSingletonDeep(Type type)
     {
         Type current = type;
@@ -182,13 +182,13 @@ public class Setup : MvxWpfSetup
 
     public override void Initialize()
     {
-        base.Initialize(); // Базова ініціалізація MvvmCross
+        base.Initialize(); // Базовая инициализация MvvmCross
 
-        // 1. Задаємо мову за замовчуванням
+        // 1. Задаем язык по умолчанию
         string cultureName = "ru-RU";
         string shortLocale = "ru";
 
-        // 2. Намагаємося дістати збережену мову з налаштувань
+        // 2. Пытаемся достать сохраненный язык из настроек
         try
         {
             var configurator = MvvmCross.Platform.Mvx.Resolve<Mermer.Services.IConfigurator>();
@@ -202,10 +202,10 @@ public class Setup : MvxWpfSetup
         }
         catch
         {
-            // Якщо файлу конфігурації ще немає, залишається дефолтна мова
+            // Если файла конфигурации еще нет, остается дефолтный язык
         }
 
-        // 3. БЕЗПЕЧНЕ встановлення системної культури (для дат і чисел)
+        // 3. БЕЗОПАСНАЯ установка системной культуры (для дат и чисел)
         System.Globalization.CultureInfo culture;
         try
         {
@@ -221,7 +221,7 @@ public class Setup : MvxWpfSetup
         System.Threading.Thread.CurrentThread.CurrentCulture = culture;
         System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
 
-        // 4. Ініціалізуємо кастомний LocalizationManager
+        // 4. Инициализируем кастомный LocalizationManager
         string locPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Localization");
         if (System.IO.Directory.Exists(locPath))
         {
@@ -248,7 +248,7 @@ public class Setup : MvxWpfSetup
     protected override IMvxTrace CreateDebugTrace() => new DebugTrace();
 }
 
-// --- КЛАСИ ДЛЯ ФЕЙКОВОГО СЕРВІСУ ---
+// --- КЛАССЫ ДЛЯ ФЕЙКОВОГО СЕРВИСА ---
 
 public class OldLocalizationSource : IRegistrationSource
 {

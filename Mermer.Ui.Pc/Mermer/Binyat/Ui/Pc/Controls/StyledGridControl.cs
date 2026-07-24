@@ -1,12 +1,12 @@
 ﻿using DevExpress.Xpf.Editors;
 using DevExpress.Xpf.Grid;
 using System.Windows;
-// Явно вказуємо, яку саме ButtonBase використовуємо
+
 using ButtonBase = System.Windows.Controls.Primitives.ButtonBase;
 
 namespace Mermer.Ui.Pc.Controls;
 
-// ДОДАНО: partial
+
 public partial class StyledGridControl : GridControl
 {
     public static readonly DependencyProperty AutoWidthProperty = DependencyProperty.Register(nameof(AutoWidth), typeof(bool), typeof(StyledGridControl), new PropertyMetadata((object)true));

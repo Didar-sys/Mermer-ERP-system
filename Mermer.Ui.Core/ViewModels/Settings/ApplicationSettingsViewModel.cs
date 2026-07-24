@@ -93,7 +93,7 @@ public class ApplicationSettingsViewModel : DialogViewModel
     {
         this.Config = await this._configurator.GetConfigAsync<AppSettings>();
 
-        // Якщо мова ще ніколи не зберігалася, ставимо дефолт
+        // Если язык еще никогда не сохранялся, ставим дефолт
         if (string.IsNullOrEmpty(this.Config?.Culture))
         {
             this.Config.Culture = "en-US";
@@ -123,7 +123,7 @@ public class ApplicationSettingsViewModel : DialogViewModel
         settingsViewModel.IsBusy = true;
         try
         {
-            // БІЛЬШЕ НІЧОГО НЕ ПЕРЕЗАПИСУЄМО! Інтерфейс сам оновив Config.Culture
+            // БОЛЬШЕ НИЧЕГО НЕ ПЕРЕЗАПИСАЕМ! Интерфейс сам обновил Config.Culture
             await settingsViewModel._configurator.SetConfigAsync<AppSettings>(settingsViewModel.Config);
             int num = await settingsViewModel.OnCloseAsync() ? 1 : 0;
         }

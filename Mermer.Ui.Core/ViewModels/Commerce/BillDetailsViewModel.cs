@@ -122,7 +122,7 @@ public class BillDetailsViewModel :
     {
         try
         {
-            // ПЕРЕВІРКА: Якщо PartnerId порожній, блокуємо збереження
+            // ПРОВЕРКА: Если PartnerId пуст, блокируем сохранение
             if (string.IsNullOrEmpty(Details.PartnerId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Partner"]]);
@@ -130,12 +130,11 @@ public class BillDetailsViewModel :
         }
         catch (Exception ex)
         {
-            // Виводимо повідомлення користувачу та зупиняємо процес збереження
+            
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        // Якщо перевірку пройдено, виконуємо стандартне збереження
         if (!await base.OnSaveAsync())
             return false;
 

@@ -42,7 +42,7 @@ public class CouchRepositoryWithFacet<T>(
     {
         using (IBucket bucket = this.Cluster.OpenDefaultBucket())
         {
-            // Явно приводимо fields до масиву об'єктів для Couchbase ViewQuery
+            // Явно приводим fields к массиву объектов для Couchbase ViewQuery
             object[] queryKeys = fields.Cast<object>().ToArray();
             var query = new ViewQuery().From(designDoc, view).Group(true).Keys(queryKeys);
 
@@ -53,13 +53,13 @@ public class CouchRepositoryWithFacet<T>(
                 throw viewResult.Exception ?? new Exception(viewResult.Message);
             }
 
-            // Створюємо словник під назвою facets
+            // Создаем словарь под названием facets
             var facets = viewResult.Rows.ToDictionary<ViewRow<Dictionary<string, int>>, string, Dictionary<string, int>>(
                 x => x.Key.ToString(),
                 x => x.Value ?? new Dictionary<string, int>()
             );
 
-            // Використовуємо ту саму назву - facets
+            // Используем то же название - facets
             foreach (string key in fields.Where(x => !facets.ContainsKey(x)))
             {
                 facets.Add(key, new Dictionary<string, int>());
