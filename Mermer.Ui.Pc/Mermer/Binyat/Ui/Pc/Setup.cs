@@ -117,7 +117,7 @@ public class Setup : MvxWpfSetup
         // Теперь Autofac берет реальные данные, которые пользователь ввел в UI
         builder.RegisterModule(new BinyatCouchModule(
              config.DatabaseAddress ?? "http://localhost:8091",
-             config.DatabaseName ?? "binyat",
+             config.DatabaseName ?? "mermer",
              config.DatabaseUser ?? "admin",
              config.DatabasePassword ?? ""
         ));

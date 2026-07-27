@@ -11,6 +11,6 @@ public partial class LoginView : MvxWpfView
 
     private void LoginView_OnLoaded(object sender, RoutedEventArgs e)
     {
-        VersionText.Text = ": " + FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
+        VersionText.Text = " v" + FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
     }
 }

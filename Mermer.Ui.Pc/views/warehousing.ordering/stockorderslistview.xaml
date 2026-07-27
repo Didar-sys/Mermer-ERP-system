@@ -47,7 +47,14 @@
             <dxg:LookUpEditSettings DisplayMember="Name" ValueMember="Id" ItemsSource="{Binding Warehouses.List}"/>
           </dxg:ColumnBase.EditSettings>
         </dxg:GridColumn>
-        <dxg:GridColumn FieldName="UserName" Header="{Localize Author}"/>
+                <!-- ДОБАВЛЕНАЯ КОЛОНКА ПАРТНЕРА -->
+                <dxg:GridColumn FieldName="PartnerId" Header="{Localize Partner}">
+                    <dxg:ColumnBase.EditSettings>
+                        <dxg:LookUpEditSettings DisplayMember="Name" ValueMember="Id" ItemsSource="{Binding Partners.List}"/>
+                    </dxg:ColumnBase.EditSettings>
+                </dxg:GridColumn>
+                <!-- КОНЕЦ ДОБАВЛЕНИЯ -->
+                <dxg:GridColumn FieldName="UserName" Header="{Localize Author}"/>
         <dxg:GridColumn FieldName="IsCompleted" Width="50" Header="{Localize Completed}"/>
         <dxg:GridColumn FieldName="IsDisabled" Width="50" Header="{Localize Deleted}"/>
         <dxg:GridColumn Binding="{Binding Tags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">

@@ -48,7 +48,7 @@ public class ConnectionSettings : BindableObject
 
   public virtual string DatabaseName
   {
-    get => this._databaseName ?? "binyat";
+    get => this._databaseName ?? "mermer";
     set => this.SetProperty<string>(ref this._databaseName, value, nameof (DatabaseName));
   }
 

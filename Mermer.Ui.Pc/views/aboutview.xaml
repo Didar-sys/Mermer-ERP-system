@@ -24,8 +24,8 @@
       <dxlc:LayoutControl Width="400" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center"
                           IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
         <dxlc:LayoutGroup>
-          <TextBlock Text="Binýat ERP" FontSize="24"/>
-          <TextBlock Text="Paýhas Döredijilik Merkezi" TextAlignment="Right"/>
+          <TextBlock Text="Mermer ERP" FontSize="24"/>
+          <TextBlock Text="Mermer Creation studio" TextAlignment="Right"/>
         </dxlc:LayoutGroup>
         <dxlc:LayoutGroup>
           <TextBlock Text="Wersiýa" HorizontalAlignment="Left"/>
@@ -36,7 +36,7 @@
         <dxlc:LayoutItem Height="15"/>
         <TextBlock Text="Kiçi, orta we uly telekeçiler üçin niýetlenen hasabat meýilnamasy"/>
         <TextBlock Text="Goşmaça maglumatlar we habarlaşmak üçin:"/>
-        <TextBlock Text="https://binyat.payhas.com"/>
+        <TextBlock Text="mermererp@gmail.com"/>
       </dxlc:LayoutControl>
       <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
         <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>

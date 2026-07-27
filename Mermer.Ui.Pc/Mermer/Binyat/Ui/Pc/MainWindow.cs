@@ -1,18 +1,20 @@
 ﻿using DevExpress.Xpf.Core;
 using DevExpress.Xpf.WindowsUI;
-using MvvmCross.Localization;
-using MvvmCross.Platform;
 using Mermer.Common.Settings;
+using Mermer.Services;
 using Mermer.Ui.Pc.Helpers;
 using Mermer.Ui.Pc.Services;
-using Mermer.Services;
+using MvvmCross.Core.ViewModels;
+using MvvmCross.Localization;
+using MvvmCross.Platform;
 using Squirrel;
 using System;
+using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using MvvmCross.Core.ViewModels;
 using Orientation = System.Windows.Controls.Orientation;
 
 namespace Mermer.Ui.Pc;
@@ -27,6 +29,10 @@ public partial class MainWindow : DXTabbedWindow
         Instance = this;
         GridExtender.MainForm = this;
         ShortcutExtender.MainForm = this;
+
+        // Устанавливаем заголовок динамически из AssemblyInfo
+        var version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
+        this.Title = $"Mermer ERP v{version}";
     }
 
     public ContentControl Root => ViewsRoot;

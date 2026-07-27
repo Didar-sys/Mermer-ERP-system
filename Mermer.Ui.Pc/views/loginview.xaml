@@ -19,9 +19,9 @@
             <dxlc:LayoutControl VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Vertical"
                           IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
                 <Image Source="../Resources/binyat-icon-004.png" Width="240" Height="240"/>
-                <dxlc:LayoutGroup Orientation="Horizontal" Margin="0,0,0,50">
-                    <TextBlock TextAlignment="Right" Text="{Localize Mermer}"/>
-                    <TextBlock x:Name="VersionText"/>
+                <dxlc:LayoutGroup Orientation="Horizontal" Margin="0,0,0,50" HorizontalAlignment="Center">
+                    <TextBlock Text="Mermer ERP" TextAlignment="Right"/>
+                    <TextBlock x:Name="VersionText" Loaded="LoginView_OnLoaded"/>
                 </dxlc:LayoutGroup>
                 <dxlc:LayoutGroup Orientation="Vertical" Width="300">
                     <dxlc:LayoutItem Label="{Localize Username}">

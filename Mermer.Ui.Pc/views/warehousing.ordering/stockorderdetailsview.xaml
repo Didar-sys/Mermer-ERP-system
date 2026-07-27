@@ -198,7 +198,31 @@
                                   Visibility="{Binding HasSaveAccess, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
                 </dxg:LookUpEdit>
               </dxlc:LayoutItem>
-              <dxlc:LayoutItem Label="{Localize Status}">
+                            <dxlc:LayoutItem Label="{Localize Partner}">
+                                <dxg:LookUpEdit DisplayMember="Name" ValueMember="Id" AutoPopulateColumns="false"
+                    EditValue="{Binding Details.PartnerId, UpdateSourceTrigger=PropertyChanged}"
+                    IsReadOnly="{Binding HasSaveAccess, Converter={dxmvvm:BooleanNegationConverter}}"
+                    ItemsSource="{Binding Partners.List}" AllowDefaultButton="{Binding HasSaveAccess}">
+                                    <dxe:PopupBaseEdit.PopupContentTemplate>
+                                        <ControlTemplate>
+                                            <dxg:GridControl Name="PART_GridControl" AutoExpandAllGroups="true">
+                                                <dxg:GridControl.Columns>
+                                                    <dxg:GridColumn FieldName="Name"/>
+                                                </dxg:GridControl.Columns>
+                                                <dxg:GridControl.View>
+                                                    <dxg:TableView AutoWidth="true"/>
+                                                </dxg:GridControl.View>
+                                            </dxg:GridControl>
+                                        </ControlTemplate>
+                                    </dxe:PopupBaseEdit.PopupContentTemplate>
+                                    <dxg:LookUpEdit.StyleSettings>
+                                        <dxg:SearchLookUpEditStyleSettings/>
+                                    </dxg:LookUpEdit.StyleSettings>
+                                    <dxe:ButtonInfo GlyphKind="Regular" Command="{Binding SelectPartnerCommand}"
+                        Visibility="{Binding HasSaveAccess, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
+                                </dxg:LookUpEdit>
+                            </dxlc:LayoutItem>
+                            <dxlc:LayoutItem Label="{Localize Status}">
                 <dxlc:LayoutGroup>
                   <dxe:CheckEdit Content="{Localize Completed}"
                                  EditValue="{Binding Details.IsCompleted, UpdateSourceTrigger=PropertyChanged}"

@@ -32,6 +32,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Mermer.CRM.Models;
 
 #nullable disable
 namespace Mermer.Ui.Core.ViewModels.Warehousing.Ordering;
@@ -51,13 +52,15 @@ public class StockOrderDetailsViewModel :
   private Decimal _addQuantity = 1M;
   private StockOrderLine _selectedLine;
 
-  public StockOrderDetailsViewModel(
+    public Reference<Partner> Partners { get; set; } // СВОЙСТВО ДЛЯ XAML
+    public StockOrderDetailsViewModel(
     CopyCreate copyCreate,
     IConfigurator configurator,
     ILoginService loginService,
     StockSearcher stockSearcher,
     IPrintingService printingService,
     Reference<Warehouse> warehouses,
+    Reference<Partner> partners, // ДОБАВЛЕНО
     IRepository<StockOrder> repository,
     IListAuthorizer<StockOrder> authorizer,
     IRepository<Stock> stocksRepository,
@@ -79,7 +82,8 @@ public class StockOrderDetailsViewModel :
     this.StockSearcher = stockSearcher;
     this.StockSearcher.ResultSelected += new SearchResultSelected(this.StockSearcher_ResultSelected);
     this.Warehouses = warehouses;
-  }
+    this.Partners = partners; // <--- ДОБАВЛЕНО
+    }
 
   public ObservableCollection<Stock> StocksCache
   {
@@ -115,7 +119,7 @@ public class StockOrderDetailsViewModel :
   protected override Task PreLoad()
   {
     this.StocksCache = new ObservableCollection<Stock>();
-    return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Warehouses.Initialize(), this.StockSearcher.Initialize());
+    return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Warehouses.Initialize(), this.Partners.Initialize(), this.StockSearcher.Initialize());
   }
 
     protected override async Task PostLoad()
@@ -158,8 +162,9 @@ public class StockOrderDetailsViewModel :
 
         await LoadStocksCache();
 
-        // Відновлена лямбда фільтрації
+        
         Warehouses.Filter = w => !w.IsDisabled || w.Id == Details.WarehouseId;
+        Partners.Filter = p => !p.IsDisabled || p.Id == Details.PartnerId; // <--- ДОБАВЛЕНО
     }
 
     private void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -249,7 +254,11 @@ public class StockOrderDetailsViewModel :
                 throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
             }
 
-           
+            if (string.IsNullOrEmpty(Details.PartnerId))
+            {
+                throw new Exception(this["Field '{0}' is required", this["Partner"]]);
+            }
+
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
@@ -377,7 +386,23 @@ public class StockOrderDetailsViewModel :
     }
   }
 
-  private async Task SelectWarehouseAsync()
+    public ICommand SelectPartnerCommand
+    {
+        get
+        {
+            return (ICommand)new MvxAsyncCommand(new Func<Task>(this.SelectPartnerAsync), (Func<bool>)(() => !this.IsBusy && this.HasSaveAccess));
+        }
+    }
+
+    private async Task SelectPartnerAsync()
+    {
+        StockOrderDetailsViewModel detailsViewModel = this;
+        StockOrder stockOrder = detailsViewModel.Details;
+        stockOrder.PartnerId = await detailsViewModel.NavigationService.Navigate<ListViewModel<Partner>, string, string>(detailsViewModel.Details.PartnerId);
+        stockOrder = (StockOrder)null;
+    }
+
+    private async Task SelectWarehouseAsync()
   {
     StockOrderDetailsViewModel detailsViewModel = this;
     StockOrder stockOrder = detailsViewModel.Details;

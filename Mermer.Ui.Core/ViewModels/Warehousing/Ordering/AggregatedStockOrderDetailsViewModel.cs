@@ -4,12 +4,18 @@
 // MVID: DC92D011-8413-44AC-9F10-F866D891CF66
 // Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
 
-using MvvmCross.Core.Navigation;
-using MvvmCross.Core.ViewModels;
 using Mermer.Authorization.Services;
 using Mermer.Common.Models;
 using Mermer.Common.Settings;
+using Mermer.CRM.Models;
+using Mermer.Data;
+using Mermer.Data.Authorizers;
+using Mermer.Data.Extenders;
+using Mermer.Data.Storage;
 using Mermer.Enterprise.Models;
+using Mermer.Mvvm.Services;
+using Mermer.Mvvm.ViewModels;
+using Mermer.Services;
 using Mermer.StockManagement.Models;
 using Mermer.StockManagement.Services;
 using Mermer.Transactions.Services;
@@ -17,12 +23,8 @@ using Mermer.Ui.Core.Helpers;
 using Mermer.Ui.Core.ViewModels.Common;
 using Mermer.Warehousing.Ordering.Models;
 using Mermer.Warehousing.Ordering.Services;
-using Mermer.Data;
-using Mermer.Data.Authorizers;
-using Mermer.Data.Extenders;
-using Mermer.Data.Storage;
-using Mermer.Mvvm.Services;
-using Mermer.Services;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Core.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -58,6 +60,7 @@ public class AggregatedStockOrderDetailsViewModel :
     ILoginService loginService,
     StockSearcher stockSearcher,
     Reference<Warehouse> warehouses,
+    Reference<Partner> partners, // ДОБАВЛЕНО
     IRepository<Stock> stocksRepository,
     IMvxNavigationService navigationService,
     ITransactionCodeGenerationService codegentor,
@@ -73,6 +76,7 @@ public class AggregatedStockOrderDetailsViewModel :
     this._stockBalancesRepository = stockBalancesRepository;
     this._orderActionsRepository = orderActionsRepository;
     this.Warehouses = warehouses;
+    this.Partners = partners; // ДОБАВЛЕНО
     this.StockSearcher = stockSearcher;
     this.StockSearcher.ResultSelected += new SearchResultSelected(this.StockSearcher_ResultSelected);
   }
@@ -81,7 +85,21 @@ public class AggregatedStockOrderDetailsViewModel :
 
   public Reference<Warehouse> Warehouses { get; }
 
-  public ObservableCollection<Stock> StocksCache
+  public Reference<Partner> Partners { get; set; }
+    public ICommand SelectPartnerCommand
+    {
+        get
+        {
+            return new MvxAsyncCommand(SelectPartnerAsync, () => !this.IsBusy && this.HasSaveAccess);
+        }
+    }
+
+    private async Task SelectPartnerAsync()
+    {
+        Details.PartnerId = await NavigationService.Navigate<ListViewModel<Partner>, string, string>(Details.PartnerId);
+    }
+
+    public ObservableCollection<Stock> StocksCache
   {
     get => this._stocksCache;
     set
@@ -170,7 +188,7 @@ public class AggregatedStockOrderDetailsViewModel :
   {
     this.StocksCache = new ObservableCollection<Stock>();
     this.StocksBalances = new ObservableCollection<ListHelper<string, Decimal>>();
-    return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Warehouses.Initialize(), this.StockSearcher.Initialize());
+    return Task.WhenAll(base.PreLoad(), this.LoadFacetsAsync(), this.Warehouses.Initialize(), this.Partners.Initialize(), this.StockSearcher.Initialize());
   }
 
     protected override async Task PostLoad()
@@ -203,6 +221,7 @@ public class AggregatedStockOrderDetailsViewModel :
         await LoadStocksCache();
 
         Warehouses.Filter = w => !w.IsDisabled || w.Id == Details.WarehouseId;
+        Partners.Filter = p => !p.IsDisabled || p.Id == Details.PartnerId; // <--- ДОБАВЛЕНО
 
         GenerateColumns();
     }

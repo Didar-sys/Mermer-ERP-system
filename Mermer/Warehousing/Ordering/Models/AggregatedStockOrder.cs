@@ -21,7 +21,9 @@ public class AggregatedStockOrder : TransactionModel
     set => this.SetProperty<string>(ref this._warehouseId, value, nameof (WarehouseId));
   }
 
-  public override string Type => nameof (AggregatedStockOrder);
+    public string PartnerId { get; set; }
+
+    public override string Type => nameof (AggregatedStockOrder);
 
   public WatchedObservableCollection<AggregatedStockOrderLine> Lines
   {

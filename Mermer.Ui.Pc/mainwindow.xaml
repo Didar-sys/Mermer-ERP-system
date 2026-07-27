@@ -3,7 +3,7 @@
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
                    xmlns:dxt="http://schemas.devexpress.com/winfx/2008/xaml/core/themekeys"
-                   Title="Binyat | Mermer" Height="700" Width="1100" SnapsToDevicePixels="true"
+                   Title="Mermer ERP V1" Height="700" Width="1100" SnapsToDevicePixels="true"
                    UseLayoutRounding="true" dx:ThemeManager.ThemeName="Office2016Black"
                    TabbedWindowMode="Compact" ShowTitle="false" ShowIcon="false" WindowStartupLocation="CenterScreen"
                    WindowState="Maximized" Padding="0" BorderThickness="0"

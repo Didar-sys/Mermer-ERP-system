@@ -5,6 +5,7 @@
 // Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
 
 using Mermer.Authorization.Services;
+using Mermer.CRM.Models;
 using Mermer.Data.Authorizers;
 using Mermer.Data.Storage;
 using Mermer.Enterprise.Models;
@@ -30,12 +31,13 @@ public class StockOrdersListViewModel : TransactionsListViewModel<StockOrder>
   private const string FilterOpenString = "Open";
   private const string FilterCompletedString = "Completed";
   private const string FilterDeletedString = "Deleted";
-
+    public Reference<Partner> Partners { get; }
     public StockOrdersListViewModel(
       ILoginService loginService,
       Reference<Warehouse> warehouses,
       IMvxMessenger messenger,
       IRepository<StockOrder> repository,
+      Reference<Partner> partners,
       IListAuthorizer<StockOrder> authorizer,
       IMvxNavigationService navigationService,
       IUserInteractionService userInteractionService)
@@ -43,7 +45,7 @@ public class StockOrdersListViewModel : TransactionsListViewModel<StockOrder>
     {
         _loginService = loginService;
         Warehouses = warehouses;
-
+        this.Partners = partners;
         Filters = new[]
         {
         new ListFilter
@@ -83,7 +85,7 @@ public class StockOrdersListViewModel : TransactionsListViewModel<StockOrder>
 
     public Reference<Warehouse> Warehouses { get; }
 
-  protected override Task PreLoad() => Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize());
+  protected override Task PreLoad() => Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize(), this.Partners.Initialize());
 
     protected override Task<int> CountFilteredListAsync(ListFilter filter)
     {

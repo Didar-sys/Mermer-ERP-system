@@ -20,7 +20,7 @@ public class StockOrderValidator : TransactionValidator<StockOrder>
             .Must(x => x != null && x.Any())
             .WithLocalizationMessageKey("{PropertyName} can not be empty");
 
-        // Перейшли на RuleForEach
+        // Перешли на RuleForEach
         RuleForEach(x => x.Lines).SetValidator(lineValidator);
 
         RuleFor(x => x.Lines)
@@ -31,7 +31,7 @@ public class StockOrderValidator : TransactionValidator<StockOrder>
             }))
             .WithLocalizationMessageKey("Not all stock units in {PropertyName} convertable");
 
-        // Перейшли на RuleForEach і прибрали зламаний LINQ
+        // Перешли на RuleForEach и убрали сломанный LINQ
         RuleForEach(x => x.StockUnitConvertions).SetValidator(stockUnitConvertionValidator);
 
         RuleFor(x => x.StockUnitConvertions)

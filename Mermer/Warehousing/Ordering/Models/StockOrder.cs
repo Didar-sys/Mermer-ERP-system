@@ -22,7 +22,9 @@ public class StockOrder : TransactionModel
     set => this.SetProperty<string>(ref this._warehouseId, value, nameof (WarehouseId));
   }
 
-  public override string Type => nameof (StockOrder);
+    public string PartnerId { get; set; }
+
+    public override string Type => nameof (StockOrder);
 
   public virtual ObservableCollection<StockOrderLine> Lines
   {
