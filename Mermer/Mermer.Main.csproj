@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mermer.Base\Mermer.csproj" />
-    <ProjectReference Include="..\Mermer.Data.Patcher\Mermer.Data.Patcher.csproj" />
     <ProjectReference Include="..\Mermer.Licensing.Client\Mermer.Licensing.Client.csproj" />
   </ItemGroup>
 

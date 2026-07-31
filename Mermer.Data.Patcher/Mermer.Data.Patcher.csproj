@@ -1,18 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <LangVersion>12.0</LangVersion>
     <AssemblyName>Mermer.Data.Patcher</AssemblyName>
     <RootNamespace>Mermer.Data.Patcher</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Mermer.Base\Mermer.csproj" />
+    <ProjectReference Include="..\Mermer.Core\Mermer.Core.csproj" />
+    <ProjectReference Include="..\Mermer.Data.Postgres\Mermer.Data.Postgres.csproj" />
+    <ProjectReference Include="..\Mermer\Mermer.Main.csproj" />
     <PackageReference Include="Castle.Core" Version="4.4.1" />
     <PackageReference Include="CouchbaseNetClient" Version="2.7.27" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.29" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Text.Json" Version="8.0.3" />
   </ItemGroup>
 </Project>

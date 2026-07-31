@@ -161,7 +161,6 @@
     <ProjectReference Include="..\Mermer.Data.Synchronizer.Core.Couch\Mermer.Data.Synchronizer.Core.Couch.csproj" />
     <ProjectReference Include="..\Mermer\Mermer.Main.csproj" />
     <ProjectReference Include="..\Mermer.Core\Mermer.Core.csproj" />
-    <ProjectReference Include="..\Mermer.Data.Patcher\Mermer.Data.Patcher.csproj" />
     <ProjectReference Include="..\Mermer.Data.Synchronizer.Core\Mermer.Data.Synchronizer.Core.csproj" />
   </ItemGroup>
 
