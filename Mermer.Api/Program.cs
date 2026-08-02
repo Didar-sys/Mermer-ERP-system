@@ -1,6 +1,8 @@
-﻿using Microsoft.OpenApi.Models;
-using Mermer.Api.Endpoints;
+﻿using Mermer.Api.Endpoints;
+using Mermer.Api.Services;
 using Mermer.Data.Postgres;
+using Mermer.Data.Postgres.Services;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +54,10 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(o =>
         System.Text.Json.JsonNamingPolicy.CamelCase;
 });
 
+// --- РЕГИСТРАЦИЯ СЕРВИСОВ СИНХРОНИЗАЦИИ ---
+builder.Services.AddScoped<IStockBalanceCalculator, StockBalanceCalculator>();
+builder.Services.AddScoped<ISyncService, SyncService>();
+
 var app = builder.Build();
 
 app.UseCors();
@@ -66,9 +72,11 @@ app.UseSwaggerUI(o =>
 app.MapGet("/", () => Results.Redirect("/swagger"))
    .ExcludeFromDescription();
 
+// --- РЕГИСТРАЦИЯ ЭНДПОИНТОВ ---
 app.MapHealthEndpoints();
 app.MapStocksEndpoints();
 app.MapInvoicesEndpoints();
 app.MapBalancesEndpoints();
+app.MapSyncEndpoints(); // <-- Добавлена регистрация эндпоинта /api/sync/push
 
 app.Run();
