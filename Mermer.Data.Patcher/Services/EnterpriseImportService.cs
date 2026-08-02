@@ -1,0 +1,622 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Mermer.Data.Postgres;
+using Mermer.Data.Postgres.Entities;
+using Mermer.Data.Patcher.DTOs; // Оставлено для CouchPartnerDto, если он там используется
+
+namespace Mermer.Data.Patcher.Services;
+
+public class EnterpriseImportService
+{
+    private readonly MermerDbContext _dbContext;
+
+    public EnterpriseImportService(MermerDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    /// <summary>
+    /// Универсальный метод для вывода структуры JSON документа любого типа
+    /// </summary>
+    public async Task DumpJsonAsync(string jsonFilePath, string targetDocType, int takeCount = 3)
+    {
+        Console.WriteLine($"--- Поиск {takeCount} записей с docType == {targetDocType} ---");
+        using var stream = File.OpenRead(jsonFilePath);
+        using var reader = new StreamReader(stream);
+        string? line;
+        int found = 0;
+
+        while ((line = await reader.ReadLineAsync()) != null && found < takeCount)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            using var doc = JsonDocument.Parse(line);
+            var root = doc.RootElement;
+
+            if (IsTargetDocType(root, targetDocType))
+            {
+                found++;
+                Console.WriteLine($"\n[Найден {targetDocType} #{found}]:");
+                Console.WriteLine(line);
+            }
+        }
+
+        if (found == 0) Console.WriteLine($"Записей {targetDocType} не найдено!");
+    }
+
+    /// <summary>
+    /// 1. Миграция контрагентов (Partner)
+    /// </summary>
+    public async Task MigratePartnersAsync(string jsonFilePath)
+    {
+        Console.WriteLine("Начинаем импорт справочника Partner...");
+
+        using var stream = File.OpenRead(jsonFilePath);
+        using var reader = new StreamReader(stream);
+
+        var batch = new List<PartnerEntity>();
+        var processedIds = new HashSet<Guid>(); // Добавлена защита от дубликатов для партнеров
+        string? line;
+        int totalImported = 0;
+
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            using var doc = JsonDocument.Parse(line);
+            var root = doc.RootElement;
+
+            if (IsTargetDocType(root, "Partner"))
+            {
+                var couchPartner = JsonSerializer.Deserialize<CouchPartnerDto>(line);
+
+                if (couchPartner != null && couchPartner.Id != Guid.Empty)
+                {
+                    if (!processedIds.Add(couchPartner.Id)) continue; // Пропускаем дубликат
+
+                    var pgPartner = new PartnerEntity
+                    {
+                        Id = couchPartner.Id,
+                        Code = couchPartner.Code ?? string.Empty,
+                        Name = couchPartner.Name ?? string.Empty,
+                        Phone = couchPartner.Phone,
+                        Address = couchPartner.Address,
+                        IsDisabled = couchPartner.IsDisabled
+                    };
+
+                    batch.Add(pgPartner);
+
+                    if (batch.Count >= 500)
+                    {
+                        await _dbContext.AddRangeAsync(batch);
+                        await _dbContext.SaveChangesAsync();
+                        _dbContext.ChangeTracker.Clear();
+
+                        totalImported += batch.Count;
+                        Console.WriteLine($"Сохранено контрагентов: {totalImported}...");
+                        batch.Clear();
+                    }
+                }
+            }
+        }
+
+        if (batch.Any())
+        {
+            await _dbContext.AddRangeAsync(batch);
+            await _dbContext.SaveChangesAsync();
+            _dbContext.ChangeTracker.Clear();
+            totalImported += batch.Count;
+        }
+
+        Console.WriteLine($"Готово! Всего импортировано Partner: {totalImported}");
+    }
+
+    /// <summary>
+    /// 2. Миграция Офисов (Office)
+    /// </summary>
+    public async Task MigrateOfficesAsync(string jsonFilePath)
+    {
+        Console.WriteLine("Начинаем импорт справочника Офисов (Office)...");
+
+        using var stream = File.OpenRead(jsonFilePath);
+        using var reader = new StreamReader(stream);
+
+        var batch = new List<OfficeEntity>();
+        var processedIds = new HashSet<Guid>();
+        string? line;
+        int totalImported = 0;
+
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            using var doc = JsonDocument.Parse(line);
+            var root = doc.RootElement;
+
+            if (IsTargetDocType(root, "Office"))
+            {
+                var entity = ExtractOfficeEntity(root);
+                if (entity != null)
+                {
+                    if (!processedIds.Add(entity.Id)) continue;
+
+                    batch.Add(entity);
+
+                    if (batch.Count >= 500)
+                    {
+                        await _dbContext.AddRangeAsync(batch);
+                        await _dbContext.SaveChangesAsync();
+                        _dbContext.ChangeTracker.Clear();
+
+                        totalImported += batch.Count;
+                        Console.WriteLine($"Сохранено офисов: {totalImported}...");
+                        batch.Clear();
+                    }
+                }
+            }
+        }
+
+        if (batch.Any())
+        {
+            await _dbContext.AddRangeAsync(batch);
+            await _dbContext.SaveChangesAsync();
+            _dbContext.ChangeTracker.Clear();
+            totalImported += batch.Count;
+        }
+
+        Console.WriteLine($"Готово! Всего импортировано уникальных Офисов: {totalImported}");
+    }
+
+    /// <summary>
+    /// 3. Миграция складов (Warehouse)
+    /// </summary>
+    public async Task MigrateWarehousesAsync(string jsonFilePath)
+    {
+        Console.WriteLine("Начинаем импорт справочника Складов (Warehouse)...");
+
+        var officeIdsList = await _dbContext.Offices.Select(o => o.Id).ToListAsync();
+        var existingOfficeIds = officeIdsList.ToHashSet();
+
+        using var stream = File.OpenRead(jsonFilePath);
+        using var reader = new StreamReader(stream);
+
+        var batch = new List<WarehouseEntity>();
+        var processedIds = new HashSet<Guid>();
+        string? line;
+        int totalImported = 0;
+
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            using var doc = JsonDocument.Parse(line);
+            var root = doc.RootElement;
+
+            if (IsTargetDocType(root, "Warehouse"))
+            {
+                var entity = ExtractWarehouseEntity(root, existingOfficeIds);
+                if (entity != null)
+                {
+                    if (!processedIds.Add(entity.Id)) continue;
+
+                    batch.Add(entity);
+                    if (batch.Count >= 500)
+                    {
+                        await _dbContext.AddRangeAsync(batch);
+                        await _dbContext.SaveChangesAsync();
+                        _dbContext.ChangeTracker.Clear();
+
+                        totalImported += batch.Count;
+                        Console.WriteLine($"Сохранено складов: {totalImported}...");
+                        batch.Clear();
+                    }
+                }
+            }
+        }
+
+        if (batch.Any())
+        {
+            await _dbContext.AddRangeAsync(batch);
+            await _dbContext.SaveChangesAsync();
+            _dbContext.ChangeTracker.Clear();
+            totalImported += batch.Count;
+        }
+
+        Console.WriteLine($"Готово! Всего импортировано уникальных Складов: {totalImported}");
+    }
+
+    /// <summary>
+    /// 4. Миграция касс (Depository)
+    /// </summary>
+    public async Task MigrateDepositoriesAsync(string jsonFilePath)
+    {
+        Console.WriteLine("Начинаем импорт справочника Касс (Depository)...");
+
+        var officeIdsList = await _dbContext.Offices.Select(o => o.Id).ToListAsync();
+        var existingOfficeIds = officeIdsList.ToHashSet();
+
+        using var stream = File.OpenRead(jsonFilePath);
+        using var reader = new StreamReader(stream);
+
+        var batch = new List<DepositoryEntity>();
+        var processedIds = new HashSet<Guid>();
+        string? line;
+        int totalImported = 0;
+
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            using var doc = JsonDocument.Parse(line);
+            var root = doc.RootElement;
+
+            if (IsTargetDocType(root, "Depository"))
+            {
+                var entity = ExtractDepositoryEntity(root, existingOfficeIds);
+                if (entity != null)
+                {
+                    if (!processedIds.Add(entity.Id)) continue;
+
+                    batch.Add(entity);
+                    if (batch.Count >= 500)
+                    {
+                        await _dbContext.AddRangeAsync(batch);
+                        await _dbContext.SaveChangesAsync();
+                        _dbContext.ChangeTracker.Clear();
+
+                        totalImported += batch.Count;
+                        Console.WriteLine($"Сохранено касс: {totalImported}...");
+                        batch.Clear();
+                    }
+                }
+            }
+        }
+
+        if (batch.Any())
+        {
+            await _dbContext.AddRangeAsync(batch);
+            await _dbContext.SaveChangesAsync();
+            _dbContext.ChangeTracker.Clear();
+            totalImported += batch.Count;
+        }
+
+        Console.WriteLine($"Готово! Всего импортировано уникальных Касс: {totalImported}");
+    }
+
+    /// <summary>
+    /// 5. Миграция валют (Currency)
+    /// </summary>
+    public async Task MigrateCurrenciesAsync(string jsonFilePath)
+    {
+        Console.WriteLine("Начинаем импорт справочника Валют (Currency) и Курсов...");
+
+        using var stream = File.OpenRead(jsonFilePath);
+        using var reader = new StreamReader(stream);
+
+        var currencyBatch = new List<CurrencyEntity>();
+        var ratesBatch = new List<CurrencyRateEntity>();
+        var processedCurrencyIds = new HashSet<Guid>();
+        var processedRateIds = new HashSet<Guid>();
+
+        string? line;
+        int totalImportedCurrencies = 0;
+        int totalImportedRates = 0;
+
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            using var doc = JsonDocument.Parse(line);
+            var root = doc.RootElement;
+
+            if (IsTargetDocType(root, "Currency"))
+            {
+                var targetContainer = GetTargetContainer(root);
+                if (!TryGetGuidProperty(root, targetContainer, "id", out var currencyId)) continue;
+
+                // 1. Импортируем или обновляем саму валюту
+                if (processedCurrencyIds.Add(currencyId))
+                {
+                    var currency = new CurrencyEntity
+                    {
+                        Id = currencyId,
+                        Name = GetStringProperty(targetContainer, "name") ?? "Unknown",
+                        Decimals = targetContainer.TryGetProperty("decimals", out var dec) && dec.ValueKind == JsonValueKind.Number ? dec.GetInt32() : 2,
+                        IsDefault = GetBoolProperty(targetContainer, "isDefault"),
+                        Description = GetStringProperty(targetContainer, "description"),
+                        IsDisabled = GetBoolProperty(targetContainer, "isDisabled"),
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        UpdatedAt = DateTimeOffset.UtcNow
+                    };
+
+                    currencyBatch.Add(currency);
+                }
+
+                // 2. Извлекаем курсы валют (subListPatches -> rates)
+                ExtractCurrencyRates(root, targetContainer, currencyId, ratesBatch, processedRateIds);
+
+                if (currencyBatch.Count >= 100 || ratesBatch.Count >= 500)
+                {
+                    if (currencyBatch.Any())
+                    {
+                        await _dbContext.Currencies.AddRangeAsync(currencyBatch);
+                        totalImportedCurrencies += currencyBatch.Count;
+                        currencyBatch.Clear();
+                    }
+
+                    if (ratesBatch.Any())
+                    {
+                        await _dbContext.Set<CurrencyRateEntity>().AddRangeAsync(ratesBatch);
+                        totalImportedRates += ratesBatch.Count;
+                        ratesBatch.Clear();
+                    }
+
+                    await _dbContext.SaveChangesAsync();
+                    _dbContext.ChangeTracker.Clear();
+                }
+            }
+        }
+
+        if (currencyBatch.Any())
+        {
+            await _dbContext.Currencies.AddRangeAsync(currencyBatch);
+            totalImportedCurrencies += currencyBatch.Count;
+        }
+
+        if (ratesBatch.Any())
+        {
+            await _dbContext.Set<CurrencyRateEntity>().AddRangeAsync(ratesBatch);
+            totalImportedRates += ratesBatch.Count;
+        }
+
+        await _dbContext.SaveChangesAsync();
+        _dbContext.ChangeTracker.Clear();
+
+        Console.WriteLine($"Готово! Валют: {totalImportedCurrencies}, Курсов: {totalImportedRates}");
+    }
+
+    /// <summary>
+    /// 6. Миграция пользователей (User)
+    /// </summary>
+    public async Task MigrateUsersAsync(string jsonFilePath)
+    {
+        Console.WriteLine("Начинаем импорт справочника Пользователей (User)...");
+
+        using var stream = File.OpenRead(jsonFilePath);
+        using var reader = new StreamReader(stream);
+
+        var batch = new List<UserEntity>();
+        var processedIds = new HashSet<Guid>();
+        string? line;
+        int totalImported = 0;
+
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            using var doc = JsonDocument.Parse(line);
+            var root = doc.RootElement;
+
+            if (IsTargetDocType(root, "User"))
+            {
+                var targetContainer = GetTargetContainer(root);
+                if (!TryGetGuidProperty(root, targetContainer, "id", out var id)) continue;
+
+                if (!processedIds.Add(id)) continue;
+
+                string username = GetStringProperty(targetContainer, "username") ?? string.Empty;
+                if (string.IsNullOrEmpty(username)) continue;
+
+                var user = new UserEntity
+                {
+                    Id = id,
+                    Username = username,
+                    Password = GetStringProperty(targetContainer, "password") ?? string.Empty,
+                    IsAdmin = GetBoolProperty(targetContainer, "isAdmin"),
+                    IsDisabled = GetBoolProperty(targetContainer, "isDisabled"),
+                    Description = GetStringProperty(targetContainer, "description"),
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow
+                };
+
+                batch.Add(user);
+
+                if (batch.Count >= 500)
+                {
+                    await _dbContext.Set<UserEntity>().AddRangeAsync(batch);
+                    await _dbContext.SaveChangesAsync();
+                    _dbContext.ChangeTracker.Clear();
+
+                    totalImported += batch.Count;
+                    batch.Clear();
+                }
+            }
+        }
+
+        if (batch.Any())
+        {
+            await _dbContext.Set<UserEntity>().AddRangeAsync(batch);
+            await _dbContext.SaveChangesAsync();
+            _dbContext.ChangeTracker.Clear();
+            totalImported += batch.Count;
+        }
+
+        Console.WriteLine($"Готово! Всего импортировано Пользователей: {totalImported}");
+    }
+
+    #region Вспомогательные методы безопасного парсинга JSON
+
+    private static bool IsTargetDocType(JsonElement root, string targetDocType)
+    {
+        if (root.ValueKind != JsonValueKind.Object) return false;
+
+        if (root.TryGetProperty("docType", out var dt) && dt.ValueKind == JsonValueKind.String)
+            return dt.GetString() == targetDocType;
+
+        if (root.TryGetProperty("patch", out var patch) && patch.ValueKind == JsonValueKind.Object &&
+            patch.TryGetProperty("docType", out var pdt) && pdt.ValueKind == JsonValueKind.String)
+            return pdt.GetString() == targetDocType;
+
+        return false;
+    }
+
+    private static OfficeEntity? ExtractOfficeEntity(JsonElement root)
+    {
+        var targetContainer = GetTargetContainer(root);
+        if (!TryGetGuidProperty(root, targetContainer, "id", out var id)) return null;
+
+        return new OfficeEntity
+        {
+            Id = id,
+            Name = GetStringProperty(targetContainer, "name") ?? "Без названия",
+            Region = GetStringProperty(targetContainer, "region"),
+            Description = GetStringProperty(targetContainer, "description"),
+            IsDisabled = GetBoolProperty(targetContainer, "isDisabled"),
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+    }
+
+    private static WarehouseEntity? ExtractWarehouseEntity(JsonElement root, HashSet<Guid> existingOfficeIds)
+    {
+        var targetContainer = GetTargetContainer(root);
+        if (!TryGetGuidProperty(root, targetContainer, "id", out var id)) return null;
+
+        Guid? officeId = null;
+        if (TryGetGuidProperty(root, targetContainer, "officeId", out var rawOfficeId) && existingOfficeIds.Contains(rawOfficeId))
+            officeId = rawOfficeId;
+
+        return new WarehouseEntity
+        {
+            Id = id,
+            OfficeId = officeId,
+            Name = GetStringProperty(targetContainer, "name") ?? string.Empty,
+            Description = GetStringProperty(targetContainer, "description"),
+            IsDisabled = GetBoolProperty(targetContainer, "isDisabled"),
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+    }
+
+    private static DepositoryEntity? ExtractDepositoryEntity(JsonElement root, HashSet<Guid> existingOfficeIds)
+    {
+        var targetContainer = GetTargetContainer(root);
+        if (!TryGetGuidProperty(root, targetContainer, "id", out var id)) return null;
+
+        Guid? officeId = null;
+        if (TryGetGuidProperty(root, targetContainer, "officeId", out var rawOfficeId) && existingOfficeIds.Contains(rawOfficeId))
+            officeId = rawOfficeId;
+
+        return new DepositoryEntity
+        {
+            Id = id,
+            OfficeId = officeId,
+            Name = GetStringProperty(targetContainer, "name") ?? string.Empty,
+            Description = GetStringProperty(targetContainer, "description"),
+            IsDisabled = GetBoolProperty(targetContainer, "isDisabled"),
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+    }
+
+    private static void ExtractCurrencyRates(
+    JsonElement root,
+    JsonElement targetContainer,
+    Guid currencyId,
+    List<CurrencyRateEntity> ratesBatch,
+    HashSet<Guid> processedRateIds)
+    {
+        // Ищем subListPatches -> rates
+        JsonElement subList = default;
+        if (targetContainer.TryGetProperty("subListPatches", out var slP)) subList = slP;
+        else if (root.TryGetProperty("patch", out var p) && p.TryGetProperty("subListPatches", out var slP2)) subList = slP2;
+
+        if (subList.ValueKind == JsonValueKind.Object && subList.TryGetProperty("rates", out var ratesArray) && ratesArray.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var rateItem in ratesArray.EnumerateArray())
+            {
+                if (!rateItem.TryGetProperty("id", out var idProp) || !Guid.TryParse(idProp.GetString(), out var rateId))
+                    continue;
+
+                if (!processedRateIds.Add(rateId)) continue;
+
+                JsonElement props = rateItem;
+                if (rateItem.TryGetProperty("propertyPatches", out var pProps) && pProps.ValueKind == JsonValueKind.Object)
+                    props = pProps;
+
+                DateTime validFrom = DateTime.UtcNow;
+                if (props.TryGetProperty("validFrom", out var vfProp) && vfProp.ValueKind == JsonValueKind.String)
+                {
+                    DateTime.TryParse(vfProp.GetString(), out validFrom);
+                }
+
+                decimal multiplier = 1m;
+                if (props.TryGetProperty("multiplier", out var mProp) && mProp.ValueKind == JsonValueKind.Number)
+                    multiplier = mProp.GetDecimal();
+
+                decimal divider = 1m;
+                if (props.TryGetProperty("divider", out var dProp) && dProp.ValueKind == JsonValueKind.Number)
+                    divider = dProp.GetDecimal();
+
+                ratesBatch.Add(new CurrencyRateEntity
+                {
+                    Id = rateId,
+                    CurrencyId = currencyId,
+                    ValidFrom = DateTime.SpecifyKind(validFrom, DateTimeKind.Utc),
+                    Multiplier = multiplier,
+                    Divider = divider,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
+        }
+    }
+
+    private static JsonElement GetTargetContainer(JsonElement root)
+    {
+        if (root.TryGetProperty("patch", out var patch) && patch.ValueKind == JsonValueKind.Object)
+        {
+            if (patch.TryGetProperty("propertyPatches", out var props) && props.ValueKind == JsonValueKind.Object)
+                return props;
+            return patch;
+        }
+        return root;
+    }
+
+    private static bool TryGetGuidProperty(JsonElement root, JsonElement container, string propertyName, out Guid result)
+    {
+        result = Guid.Empty;
+        if (container.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.String)
+            return Guid.TryParse(prop.GetString(), out result);
+
+        if (root.TryGetProperty("patch", out var patch) && patch.ValueKind == JsonValueKind.Object &&
+            patch.TryGetProperty(propertyName, out var patchProp) && patchProp.ValueKind == JsonValueKind.String)
+            return Guid.TryParse(patchProp.GetString(), out result);
+
+        if (root.TryGetProperty(propertyName, out var rootProp) && rootProp.ValueKind == JsonValueKind.String)
+            return Guid.TryParse(rootProp.GetString(), out result);
+
+        return false;
+    }
+
+    private static string? GetStringProperty(JsonElement container, string propertyName)
+    {
+        if (container.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.String)
+            return prop.GetString();
+        return null;
+    }
+
+    private static bool GetBoolProperty(JsonElement container, string propertyName)
+    {
+        if (container.TryGetProperty(propertyName, out var prop))
+        {
+            if (prop.ValueKind == JsonValueKind.True) return true;
+            if (prop.ValueKind == JsonValueKind.False) return false;
+        }
+        return false;
+    }
+    #endregion
+}

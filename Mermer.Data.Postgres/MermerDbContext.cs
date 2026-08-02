@@ -21,6 +21,7 @@ public class MermerDbContext : DbContext
     public DbSet<CurrencyEntity> Currencies => Set<CurrencyEntity>();
     public DbSet<CurrencyRateEntity> CurrencyRates => Set<CurrencyRateEntity>();
     public DbSet<PartnerEntity> Partners => Set<PartnerEntity>();
+    public DbSet<UserEntity> Users => Set<UserEntity>();
 
     // ── Stock Management ──
     public DbSet<StockEntity> Stocks => Set<StockEntity>();
@@ -28,6 +29,8 @@ public class MermerDbContext : DbContext
     public DbSet<StockPriceEntity> StockPrices => Set<StockPriceEntity>();
     public DbSet<StockAdditionalPriceEntity> StockAdditionalPrices => Set<StockAdditionalPriceEntity>();
     public DbSet<StockBalanceEntity> StockBalances => Set<StockBalanceEntity>();
+    public DbSet<StockSlipEntity> StockSlips => Set<StockSlipEntity>();
+    public DbSet<StockSlipLineEntity> StockSlipLines => Set<StockSlipLineEntity>();
 
     // ── Commerce ──
     public DbSet<InvoiceEntity> Invoices => Set<InvoiceEntity>();
@@ -116,6 +119,21 @@ public class MermerDbContext : DbContext
             e.Property(x => x.Divider).HasColumnName("divider").HasColumnType("numeric(18,8)");
             e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
             e.HasOne(x => x.Currency).WithMany(c => c.Rates).HasForeignKey(x => x.CurrencyId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── Users ──
+        modelBuilder.Entity<UserEntity>(e =>
+        {
+            e.ToTable("users");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.Username).HasColumnName("username").HasMaxLength(100).IsRequired();
+            e.Property(x => x.Password).HasColumnName("password").HasMaxLength(500);
+            e.Property(x => x.IsAdmin).HasColumnName("is_admin");
+            e.Property(x => x.IsDisabled).HasColumnName("is_disabled");
+            e.Property(x => x.Description).HasColumnName("description");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            e.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
         });
 
         // ── Partners ──
@@ -223,6 +241,56 @@ public class MermerDbContext : DbContext
             e.Ignore(x => x.Balance); // Computed in C#
             e.HasOne(x => x.Warehouse).WithMany().HasForeignKey(x => x.WarehouseId);
             e.HasOne(x => x.Stock).WithMany().HasForeignKey(x => x.StockId);
+        });
+
+        // ── Stock Slips (Складские ордера) ──
+        modelBuilder.Entity<StockSlipEntity>(e =>
+        {
+            e.ToTable("stock_slips");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.Code).HasColumnName("code").HasMaxLength(50);
+            e.Property(x => x.SlipType).HasColumnName("slip_type").HasMaxLength(50).IsRequired();
+            e.Property(x => x.IsCompleted).HasColumnName("is_completed");
+            e.Property(x => x.IsStockIncome).HasColumnName("is_stock_income");
+            e.Property(x => x.DisplayTotal).HasColumnName("display_total").HasColumnType("numeric(18,4)");
+            e.Property(x => x.Description).HasColumnName("description");
+            e.Property(x => x.Tags).HasColumnName("tags");
+            e.Property(x => x.Date).HasColumnName("date");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            e.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            e.Property(x => x.UserId).HasColumnName("user_id");
+            e.Property(x => x.WarehouseId).HasColumnName("warehouse_id");
+
+            // ── Добавленные связи для ордера ──
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+            e.HasOne(x => x.Warehouse).WithMany().HasForeignKey(x => x.WarehouseId);
+        });
+
+        // ── Stock Slip Lines (Строки складских ордеров) ──
+        modelBuilder.Entity<StockSlipLineEntity>(e =>
+        {
+            e.ToTable("stock_slip_lines");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.StockSlipId).HasColumnName("stock_slip_id");
+            e.Property(x => x.StockId).HasColumnName("stock_id");
+            e.Property(x => x.UnitId).HasColumnName("unit_id");
+            e.Property(x => x.Quantity).HasColumnName("quantity").HasColumnType("numeric(18,4)");
+            e.Property(x => x.ActionQuantity).HasColumnName("action_quantity").HasColumnType("numeric(18,4)");
+            e.Property(x => x.Price).HasColumnName("price").HasColumnType("numeric(18,4)");
+            e.Property(x => x.ActionTotal).HasColumnName("action_total").HasColumnType("numeric(18,4)");
+            e.Property(x => x.SortOrder).HasColumnName("sort_order");
+
+            // Связь один-ко-многим: Ордер -> Строки
+            e.HasOne(x => x.StockSlip)
+             .WithMany(s => s.Lines)
+             .HasForeignKey(x => x.StockSlipId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            // ── Добавленные связи для товаров и единиц измерения ──
+            e.HasOne(x => x.Stock).WithMany().HasForeignKey(x => x.StockId);
+            e.HasOne(x => x.Unit).WithMany().HasForeignKey(x => x.UnitId);
         });
 
         // ── Invoices ──
