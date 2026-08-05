@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Mermer.Base\Mermer.csproj" />
     <ProjectReference Include="..\Mermer.Core.Couch\Mermer.Core.Couch.csproj" />
+    <ProjectReference Include="..\Mermer.Http\Mermer.Http.csproj" />
     <ProjectReference Include="..\Mermer\Mermer.Main.csproj" />
     <ProjectReference Include="..\Mermer.Core\Mermer.Core.csproj" />
     <ProjectReference Include="..\Mermer.Mvvm\Mermer.Mvvm.csproj" />

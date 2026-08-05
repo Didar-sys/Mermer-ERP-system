@@ -13,18 +13,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Embed the schema script so SqliteSchemaManager can find it without a side file. -->
     <EmbeddedResource Include="Scripts\001_create_database.sql" />
     <None Update="Scripts\001_create_database.sql" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.*" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.*" />
-    <PackageReference Include="Dapper" Version="2.1.*" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.*" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.*" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.*" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
   </ItemGroup>
 
 </Project>

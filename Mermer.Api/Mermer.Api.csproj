@@ -19,6 +19,7 @@
     <ProjectReference Include="..\Mermer.Core\Mermer.Core.csproj" />
     <ProjectReference Include="..\Mermer.Data.Patcher\Mermer.Data.Patcher.csproj" />
     <ProjectReference Include="..\Mermer.Data.Postgres\Mermer.Data.Postgres.csproj" />
+    <ProjectReference Include="..\Mermer.Data.Sqlite\Mermer.Data.Sqlite.csproj" />
     <ProjectReference Include="..\Mermer.Data.Synchronizer.Core.Couch\Mermer.Data.Synchronizer.Core.Couch.csproj" />
     <ProjectReference Include="..\Mermer.Data.Synchronizer.Core\Mermer.Data.Synchronizer.Core.csproj" />
   </ItemGroup>

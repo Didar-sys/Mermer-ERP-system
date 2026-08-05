@@ -74,9 +74,10 @@ app.MapGet("/", () => Results.Redirect("/swagger"))
 
 // --- РЕГИСТРАЦИЯ ЭНДПОИНТОВ ---
 app.MapHealthEndpoints();
+app.MapAuthEndpoints(); // <-- ДОБАВЛЕНО: Регистрация эндпоинтов авторизации (/api/auth/login)
 app.MapStocksEndpoints();
 app.MapInvoicesEndpoints();
 app.MapBalancesEndpoints();
-app.MapSyncEndpoints(); // <-- Добавлена регистрация эндпоинта /api/sync/push
+app.MapSyncEndpoints();
 
 app.Run();

@@ -70,7 +70,7 @@ public class Setup : MvxWpfSetup
             PublicKey = Configuration.GetSection("PublicKey").AsString() ?? "dummy_key"
         }));
 
-        // --- ДОБАВЛЯЕМ ГЛОБАЛЬНЫЙ HTTP КЛИЕНТ ---
+        // --- ГЛОБАЛЬНЫЙ HTTP КЛИЕНТ ДЛЯ REST API ---
         builder.Register(c =>
         {
             var client = new System.Net.Http.HttpClient();
@@ -78,6 +78,11 @@ public class Setup : MvxWpfSetup
             client.BaseAddress = new Uri(apiUrl);
             return client;
         }).AsSelf().SingleInstance();
+
+        // --- РЕГИСТРАЦИЯ REST CLIENT ---
+        builder.RegisterType<Mermer.Http.RestClient>()
+               .AsSelf()
+               .SingleInstance();
 
         // --- СУПЕР-УНИВЕРСАЛЬНЫЙ СКАНЕР ВСЕХ МОДУЛЕЙ MERMER ---
         var mermerAssemblies = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "Mermer*.dll")
@@ -113,35 +118,42 @@ public class Setup : MvxWpfSetup
         // !!! ХАК ДЛЯ "ПРИЗРАКОВ" ИЗ СТАРОЙ БАЗЫ ДАННЫХ !!!
         builder.RegisterSource(new OldLocalizationSource());
 
-        // --- ДИНАМИЧЕСКАЯ ПРИВЯЗКА БАЗЫ ДАННЫХ ---
-        // Теперь Autofac берет реальные данные, которые пользователь ввел в UI
-        builder.RegisterModule(new BinyatCouchModule(
-             config.DatabaseAddress ?? "http://localhost:8091",
-             config.DatabaseName ?? "mermer",
-             config.DatabaseUser ?? "admin",
-             config.DatabasePassword ?? ""
-        ));
+        //Couchbase
+        //// --- ДИНАМИЧЕСКАЯ ПРИВЯЗКА БАЗЫ ДАННЫХ ---
+        //builder.RegisterModule(new BinyatCouchModule(
+        //     config.DatabaseAddress ?? "http://localhost:8091",
+        //     config.DatabaseName ?? "mermer",
+        //     config.DatabaseUser ?? "admin",
+        //     config.DatabasePassword ?? ""
+        //));
 
-        // --- АБСОЛЮТНЫЙ ФИКС ДЛЯ СЕССИИ (LOGIN SERVICE) ---
-        var loginServiceType = mermerAssemblies
-            .SelectMany(a => {
-                try { return a.GetTypes(); }
-                catch { return new Type[0]; }
-            })
-            .LastOrDefault(t => t.IsClass && !t.IsAbstract &&
-                                typeof(ILoginService).IsAssignableFrom(t) &&
-                                !t.Name.Contains("Mock"));
 
-        if (loginServiceType != null)
-        {
-            builder.RegisterType(loginServiceType)
-                   .As<ILoginService>()
-                   .SingleInstance();
-        }
+        //Couchbase
+        //// --- СЕССИЯ (LOGIN SERVICE) ---
+        //var loginServiceType = mermerAssemblies
+        //    .SelectMany(a => {
+        //        try { return a.GetTypes(); }
+        //        catch { return new Type[0]; }
+        //    })
+        //    .LastOrDefault(t => t.IsClass && !t.IsAbstract &&
+        //                        typeof(ILoginService).IsAssignableFrom(t) &&
+        //                        !t.Name.Contains("Mock"));
+
+        //if (loginServiceType != null)
+        //{
+        //    builder.RegisterType(loginServiceType)
+        //           .As<ILoginService>()
+        //           .SingleInstance();
+        //}
+
+        // --- СЕССИЯ ЧЕРЕЗ REST API ---
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiLoginService>()
+               .As<ILoginService>()
+               .SingleInstance();
 
         var container = builder.Build();
 
-        // --- МЕТОД "КУВАЛДА": УБИВАЕМ СЛУЧАЙНЫЙ КОНТЕЙНЕР ---
+        // --- УБИВАЕМ СЛУЧАЙНЫЙ КОНТЕЙНЕР MVVMCROSS ---
         var existingIoC = MvvmCross.Platform.Core.MvxSingleton<IMvxIoCProvider>.Instance;
         if (existingIoC != null)
         {
