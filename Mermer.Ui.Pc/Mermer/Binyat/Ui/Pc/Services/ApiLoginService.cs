@@ -4,18 +4,11 @@ using System.Threading.Tasks;
 using Mermer.Authorization.Models;
 using Mermer.Core.Authorization.Services;
 using Mermer.Http;
+using Mermer.Ui.Pc.DTOs;
+
 
 namespace Mermer.Ui.Pc.Services
 {
-    // DTO ответа API (соответствует Mermer.Api.DTOs.UserSessionDto)
-    public class ApiLoginResponse
-    {
-        public string Id { get; set; }
-        public string Username { get; set; }
-        public string Name { get; set; }
-        public string Role { get; set; }
-        public string Token { get; set; }
-    }
 
     public class ApiLoginService : LoginService
     {

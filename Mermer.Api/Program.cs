@@ -54,7 +54,7 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(o =>
         System.Text.Json.JsonNamingPolicy.CamelCase;
 });
 
-// --- РЕГИСТРАЦИЯ СЕРВИСОВ СИНХРОНИЗАЦИИ ---
+//  РЕГИСТРАЦИЯ СЕРВИСОВ СИНХРОНИЗАЦИИ 
 builder.Services.AddScoped<IStockBalanceCalculator, StockBalanceCalculator>();
 builder.Services.AddScoped<ISyncService, SyncService>();
 
@@ -72,9 +72,10 @@ app.UseSwaggerUI(o =>
 app.MapGet("/", () => Results.Redirect("/swagger"))
    .ExcludeFromDescription();
 
-// --- РЕГИСТРАЦИЯ ЭНДПОИНТОВ ---
+// РЕГИСТРАЦИЯ ЭНДПОИНТОВ
 app.MapHealthEndpoints();
-app.MapAuthEndpoints(); // <-- ДОБАВЛЕНО: Регистрация эндпоинтов авторизации (/api/auth/login)
+app.MapAuthEndpoints(); // ДОБАВЛЕНО: Регистрация эндпоинтов авторизации (/api/auth/login)
+app.MapEnterpriseEndpoints();
 app.MapStocksEndpoints();
 app.MapInvoicesEndpoints();
 app.MapBalancesEndpoints();
