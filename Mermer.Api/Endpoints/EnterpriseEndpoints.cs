@@ -68,5 +68,21 @@ public static class EnterpriseEndpoints
         })
         .WithName("GetOffices")
         .WithSummary("Получить список всех офисов");
+
+        /// --- ВАЛЮТЫ (CURRENCIES) ---
+        group.MapGet("/currencies", async (MermerDbContext db) =>
+        {
+            var currencies = await db.Currencies
+                .AsNoTracking()
+                .Select(c => new CurrencyDto(
+                    c.Id.ToString(),
+                    c.Name
+                ))
+                .ToListAsync();
+
+            return Results.Ok(currencies);
+        })
+        .WithName("GetCurrencies")
+        .WithSummary("Получить список всех валют");
     }
 }

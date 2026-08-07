@@ -12,3 +12,18 @@ public record WarehouseDetailsDto(
     string? OfficeId,
     string? Description
 );
+
+public record CurrencyDto(
+    string Id,
+    string Name
+);
+
+public record StockDetailsDto(
+    string Id,
+    string Name
+);
+
+public record PartnerDetailsDto(
+    string Id,
+    string Name
+);

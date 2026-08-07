@@ -41,6 +41,12 @@ public class MermerDbContext : DbContext
     public DbSet<InvoiceStockUnitConvertionEntity> InvoiceStockUnitConvertions => Set<InvoiceStockUnitConvertionEntity>();
     public DbSet<InvoiceOverheadEntity> InvoiceOverheads => Set<InvoiceOverheadEntity>();
 
+    // ── Finance ──
+    public DbSet<FundsSlipEntity> FundsSlips => Set<FundsSlipEntity>();
+    public DbSet<FundsSlipLineEntity> FundsSlipLines => Set<FundsSlipLineEntity>();
+    public DbSet<FundsTransferEntity> FundsTransfers => Set<FundsTransferEntity>();
+    public DbSet<FundsTransferLineEntity> FundsTransferLines => Set<FundsTransferLineEntity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -157,6 +163,8 @@ public class MermerDbContext : DbContext
             e.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
             e.HasOne(x => x.Currency).WithMany().HasForeignKey(x => x.CurrencyId);
         });
+
+
 
         // ── Stocks ──
         modelBuilder.Entity<StockEntity>(e =>
@@ -417,6 +425,93 @@ public class MermerDbContext : DbContext
             e.Property(x => x.Description).HasColumnName("description");
             e.Property(x => x.SortOrder).HasColumnName("sort_order");
             e.HasOne(x => x.Invoice).WithMany(i => i.Overheads).HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Currency).WithMany().HasForeignKey(x => x.CurrencyId);
+        });
+
+        // ── Funds Slips ──
+        modelBuilder.Entity<FundsSlipEntity>(e =>
+        {
+            e.ToTable("funds_slips");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.Code).HasColumnName("code").HasMaxLength(50);
+            e.Property(x => x.Date).HasColumnName("date");
+            e.Property(x => x.FundsSlipType).HasColumnName("funds_slip_type").HasMaxLength(20).IsRequired();
+            e.Property(x => x.UserId).HasColumnName("user_id");
+            e.Property(x => x.UserName).HasColumnName("user_name").HasMaxLength(200);
+            e.Property(x => x.OfficeId).HasColumnName("office_id");
+            e.Property(x => x.DepositoryId).HasColumnName("depository_id");
+            e.Property(x => x.PartnerId).HasColumnName("partner_id");
+            e.Property(x => x.DisplayCurrencyId).HasColumnName("display_currency_id");
+            e.Property(x => x.IsCompleted).HasColumnName("is_completed");
+            e.Property(x => x.IsDisabled).HasColumnName("is_disabled");
+            e.Property(x => x.Group).HasColumnName("group_name").HasMaxLength(200);
+            e.Property(x => x.Tags).HasColumnName("tags");
+            e.Property(x => x.Description).HasColumnName("description");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            e.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+            e.HasOne(x => x.Office).WithMany().HasForeignKey(x => x.OfficeId);
+            e.HasOne(x => x.Depository).WithMany().HasForeignKey(x => x.DepositoryId);
+            e.HasOne(x => x.Partner).WithMany().HasForeignKey(x => x.PartnerId);
+            e.HasOne(x => x.DisplayCurrency).WithMany().HasForeignKey(x => x.DisplayCurrencyId);
+        });
+
+        // ── Funds Slip Lines ──
+        modelBuilder.Entity<FundsSlipLineEntity>(e =>
+        {
+            e.ToTable("funds_slip_lines");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.FundsSlipId).HasColumnName("funds_slip_id");
+            e.Property(x => x.Amount).HasColumnName("amount").HasColumnType("numeric(18,4)");
+            e.Property(x => x.CurrencyId).HasColumnName("currency_id");
+            e.Property(x => x.SortOrder).HasColumnName("sort_order");
+
+            e.HasOne(x => x.FundsSlip).WithMany(s => s.Lines).HasForeignKey(x => x.FundsSlipId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Currency).WithMany().HasForeignKey(x => x.CurrencyId);
+        });
+
+        // ── Funds Transfers ──
+        modelBuilder.Entity<FundsTransferEntity>(e =>
+        {
+            e.ToTable("funds_transfers");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.Code).HasColumnName("code").HasMaxLength(50);
+            e.Property(x => x.Date).HasColumnName("date");
+            e.Property(x => x.UserId).HasColumnName("user_id");
+            e.Property(x => x.UserName).HasColumnName("user_name").HasMaxLength(200);
+            e.Property(x => x.FromDepositoryId).HasColumnName("from_depository_id");
+            e.Property(x => x.ToDepositoryId).HasColumnName("to_depository_id");
+            e.Property(x => x.DisplayCurrencyId).HasColumnName("display_currency_id");
+            e.Property(x => x.IsCompleted).HasColumnName("is_completed");
+            e.Property(x => x.IsDisabled).HasColumnName("is_disabled");
+            e.Property(x => x.Group).HasColumnName("group_name").HasMaxLength(200);
+            e.Property(x => x.Tags).HasColumnName("tags");
+            e.Property(x => x.Description).HasColumnName("description");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            e.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+            e.HasOne(x => x.FromDepository).WithMany().HasForeignKey(x => x.FromDepositoryId);
+            e.HasOne(x => x.ToDepository).WithMany().HasForeignKey(x => x.ToDepositoryId);
+            e.HasOne(x => x.DisplayCurrency).WithMany().HasForeignKey(x => x.DisplayCurrencyId);
+        });
+
+        // ── Funds Transfer Lines ──
+        modelBuilder.Entity<FundsTransferLineEntity>(e =>
+        {
+            e.ToTable("funds_transfer_lines");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.FundsTransferId).HasColumnName("funds_transfer_id");
+            e.Property(x => x.Amount).HasColumnName("amount").HasColumnType("numeric(18,4)");
+            e.Property(x => x.CurrencyId).HasColumnName("currency_id");
+            e.Property(x => x.SortOrder).HasColumnName("sort_order");
+
+            e.HasOne(x => x.FundsTransfer).WithMany(t => t.Lines).HasForeignKey(x => x.FundsTransferId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Currency).WithMany().HasForeignKey(x => x.CurrencyId);
         });
     }

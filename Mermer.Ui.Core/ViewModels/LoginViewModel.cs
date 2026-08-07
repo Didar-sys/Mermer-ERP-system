@@ -2,8 +2,9 @@
 using Mermer.Activations.Services;
 using Mermer.Authorization.Services;
 using Mermer.Common.Settings;
-using Mermer.Mvvm.Tools;
+using Mermer.Enterprise.Models;
 using Mermer.Mvvm.Services;
+using Mermer.Mvvm.Tools;
 using Mermer.Mvvm.ViewModels;
 using Mermer.Services;
 using Mermer.Ui.Core.ViewModels.Settings;
@@ -89,6 +90,7 @@ public class LoginViewModel : BaseViewModel
 
             // Открываем главное окно программы
             await loginViewModel.NavigationService.Navigate<MainViewModel>();
+
         }
         catch (ApplicationException ex)
         {

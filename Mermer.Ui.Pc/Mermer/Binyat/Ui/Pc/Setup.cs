@@ -28,7 +28,7 @@ using System.Reflection;
 using System.Windows.Threading;
 using Autofac.Core.Registration;
 using System.Linq;
-
+using Mermer.Finance.Models;
 // Правильные пространства имен для старых модулей
 using Mermer.Core.Couch;
 using Mermer.Authorization.Services;
@@ -84,6 +84,49 @@ public class Setup : MvxWpfSetup
                .AsSelf()
                .SingleInstance();
 
+        // --- СЕССИЯ ЧЕРЕЗ REST API ---
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiLoginService>()
+               .As<ILoginService>()
+               .SingleInstance();
+
+        // --- РЕПОЗИТОРИЙ СКЛАДОВ ЧЕРЕЗ REST API ---
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiWarehousesRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Enterprise.Models.Warehouse>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Enterprise.Models.Warehouse>>()
+               .SingleInstance();
+
+        // --- ОФИСЫ ---
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiOfficesRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Enterprise.Models.Office>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Enterprise.Models.Office>>()
+               .SingleInstance();
+
+        // --- ВАЛЮТЫ ---
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiCurrenciesRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.FundsManagement.Models.Currency>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.FundsManagement.Models.Currency>>()
+               .SingleInstance();
+
+        // --- ТОВАРЫ (НОМЕНКЛАТУРА) ---
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStocksRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.StockManagement.Models.Stock>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.StockManagement.Models.Stock>>()
+               .SingleInstance();
+
+        // --- КОНТРАГЕНТЫ (ПАРТНЕРЫ) ---
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiPartnersRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.CRM.Models.Partner>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.CRM.Models.Partner>>()
+               .SingleInstance();
+
+        // --- ФИНАНСОВЫЕ ОРДЕРА (FUNDS SLIPS) ---
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiFundsActionRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Finance.Models.FundsSlip>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Finance.Models.FundsSlip>>()
+               .SingleInstance();
+
+
+
         // --- СУПЕР-УНИВЕРСАЛЬНЫЙ СКАНЕР ВСЕХ МОДУЛЕЙ MERMER ---
         var mermerAssemblies = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "Mermer*.dll")
             .Select(Assembly.LoadFrom)
@@ -117,39 +160,6 @@ public class Setup : MvxWpfSetup
 
         // !!! ХАК ДЛЯ "ПРИЗРАКОВ" ИЗ СТАРОЙ БАЗЫ ДАННЫХ !!!
         builder.RegisterSource(new OldLocalizationSource());
-
-        //Couchbase
-        //// --- ДИНАМИЧЕСКАЯ ПРИВЯЗКА БАЗЫ ДАННЫХ ---
-        //builder.RegisterModule(new BinyatCouchModule(
-        //     config.DatabaseAddress ?? "http://localhost:8091",
-        //     config.DatabaseName ?? "mermer",
-        //     config.DatabaseUser ?? "admin",
-        //     config.DatabasePassword ?? ""
-        //));
-
-
-        //Couchbase
-        //// --- СЕССИЯ (LOGIN SERVICE) ---
-        //var loginServiceType = mermerAssemblies
-        //    .SelectMany(a => {
-        //        try { return a.GetTypes(); }
-        //        catch { return new Type[0]; }
-        //    })
-        //    .LastOrDefault(t => t.IsClass && !t.IsAbstract &&
-        //                        typeof(ILoginService).IsAssignableFrom(t) &&
-        //                        !t.Name.Contains("Mock"));
-
-        //if (loginServiceType != null)
-        //{
-        //    builder.RegisterType(loginServiceType)
-        //           .As<ILoginService>()
-        //           .SingleInstance();
-        //}
-
-        // --- СЕССИЯ ЧЕРЕЗ REST API ---
-        builder.RegisterType<Mermer.Ui.Pc.Services.ApiLoginService>()
-               .As<ILoginService>()
-               .SingleInstance();
 
         var container = builder.Build();
 
