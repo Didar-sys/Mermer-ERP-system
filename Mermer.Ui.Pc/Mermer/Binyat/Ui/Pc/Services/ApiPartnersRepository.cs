@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Mermer.CRM.Models; // Пространство имен контрагентов
+using Mermer.CRM.Models;
 using Mermer.Data.Storage;
 using Mermer.Http;
-using Mermer.Ui.Pc.DTOs;
 
 namespace Mermer.Ui.Pc.Services
 {
-    public class ApiPartnersRepository : IRepository<Partner>, IReadOnlyRepository<Partner>
+    public class ApiPartnersRepository : IRepository<Partner>, IReadOnlyRepository<Partner>, IRepositoryWithFacets<Partner>
     {
         private readonly RestClient _restClient;
 
@@ -19,18 +18,13 @@ namespace Mermer.Ui.Pc.Services
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
 
+        // --- ЧТЕНИЕ ---
         public async Task<IEnumerable<Partner>> GetAllAsync()
         {
             try
             {
-                var dtos = await _restClient.GetAsync<List<PartnerDetailsDto>>("/api/catalog/partners");
-                if (dtos == null) return Enumerable.Empty<Partner>();
-
-                return dtos.Select(dto => new Partner
-                {
-                    Id = dto.Id,
-                    Name = dto.Name
-                });
+                var partners = await _restClient.GetAsync<List<Partner>>("/api/catalog/partners");
+                return partners ?? Enumerable.Empty<Partner>();
             }
             catch
             {
@@ -41,8 +35,7 @@ namespace Mermer.Ui.Pc.Services
         public async Task<Partner> GetAsync(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
-            var all = await GetAllAsync();
-            return all.FirstOrDefault(p => p.Id == id);
+            return await _restClient.GetAsync<Partner>($"/api/catalog/partners/{id}");
         }
 
         public async Task<IEnumerable<Partner>> GetAsync(string[] ids)
@@ -70,9 +63,52 @@ namespace Mermer.Ui.Pc.Services
             return result.Count();
         }
 
-        public Task SaveAsync(Partner entity) => Task.CompletedTask;
-        public Task CreateAsync(Partner entity) => Task.CompletedTask;
-        public Task UpdateAsync(Partner entity) => Task.CompletedTask;
-        public Task DeleteAsync(string id) => Task.CompletedTask;
+        // =========================================================
+        // --- РЕАЛЬНАЯ ЗАПИСЬ (CUD) ---
+        // =========================================================
+        public async Task CreateAsync(Partner entity)
+        {
+            if (entity == null) return;
+            await _restClient.PostAsync("/api/catalog/partners", entity);
+        }
+
+        public async Task UpdateAsync(Partner entity)
+        {
+            if (entity == null || string.IsNullOrEmpty(entity.Id)) return;
+            await _restClient.PutAsync($"/api/catalog/partners/{entity.Id}", entity);
+        }
+
+        public async Task DeleteAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            await _restClient.DeleteAsync($"/api/catalog/partners/{id}");
+        }
+
+        public async Task SaveAsync(Partner entity)
+        {
+            if (entity == null) return;
+
+            if (string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString())
+            {
+                await CreateAsync(entity);
+            }
+            else
+            {
+                await UpdateAsync(entity);
+            }
+        }
+
+        public async Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
+        {
+            var result = new Dictionary<string, Dictionary<string, int>>();
+            if (fields != null)
+            {
+                foreach (var field in fields)
+                {
+                    result[field] = new Dictionary<string, int>();
+                }
+            }
+            return await Task.FromResult(result);
+        }
     }
 }

@@ -104,6 +104,7 @@ public class InvoiceInfo
     public DateTime Date { get; set; }
     public InvoiceType InvoiceType { get; set; }
     public bool IsCompleted { get; set; }
+    public bool IsDisabled { get; set; } // Для красного цвета в UI
 
     public string? PartnerId { get; set; }
     public string? PartnerName { get; set; }
@@ -111,7 +112,11 @@ public class InvoiceInfo
     public string? WarehouseName { get; set; }
     public string? OfficeId { get; set; }
     public string? OfficeName { get; set; }
+    public string? DepositoryId { get; set; }
+    public string? UserId { get; set; }
     public string? UserName { get; set; }
+    public string? Group { get; set; }
+    public List<string>? Tags { get; set; }
 
     public decimal Subtotal { get; set; }
     public decimal DiscountsTotal { get; set; }

@@ -76,11 +76,11 @@ app.MapGet("/", () => Results.Redirect("/swagger"))
 app.MapHealthEndpoints();
 app.MapAuthEndpoints(); // ДОБАВЛЕНО: Регистрация эндпоинтов авторизации (/api/auth/login)
 app.MapEnterpriseEndpoints();
-app.MapCatalogEndpoints();
 app.MapFinanceEndpoints();
 app.MapStockSlipsEndpoints();
 app.MapStocksEndpoints();
 app.MapInvoicesEndpoints();
+app.MapPartnersEndpoints();
 app.MapBalancesEndpoints();
 app.MapSyncEndpoints();
 

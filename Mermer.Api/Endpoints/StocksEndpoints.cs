@@ -1,19 +1,52 @@
-﻿using Mermer.Data.Postgres.Abstractions;
-using Mermer.Data.Postgres.Models;
+﻿using Mermer.Data.Postgres;
+using Mermer.Data.Postgres.Abstractions;
+using Microsoft.EntityFrameworkCore;
+
+// Псевдонимы для точного разделения моделей
+using UIStock = Mermer.StockManagement.Models.Stock;
+using UIStockInfo = Mermer.StockManagement.Models.StockInfo;
+using PgStock = Mermer.Data.Postgres.Models.Stock;
 
 namespace Mermer.Api.Endpoints;
 
-/// <summary>
-/// Stock-related endpoints: search (fuzzy + full-text), single fetch,
-/// list-with-info projection. Search is the hot path that must stay
-/// under ~100 ms even on hundreds of thousands of items.
-/// </summary>
 public static class StocksEndpoints
 {
     public static IEndpointRouteBuilder MapStocksEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/stocks").WithTags("Stocks");
 
+        // --- 1. СПИСОК ТОВАРОВ ДЛЯ КЛИЕНТА (ОТДАЕМ В ФОРМАТЕ UIStockInfo) ---
+        group.MapGet("/", async (
+            string? additionalPriceCurrencyId,
+            string? additionalPriceGroup,
+            MermerDbContext db,
+            CancellationToken ct) =>
+        {
+            var list = await db.Stocks
+                .AsNoTracking()
+                .Select(s => new UIStockInfo
+                {
+                    Id = s.Id.ToString(),
+                    Code = s.Code ?? string.Empty,
+                    Name = s.Name ?? string.Empty,
+                    ShortName = s.ShortName ?? string.Empty,
+                    IsDisabled = s.IsDisabled,
+                    Unit = s.Units.Select(u => u.Name).FirstOrDefault() ?? string.Empty,
+                    Price = s.Prices.Select(p => p.Price).FirstOrDefault(),
+                    CurrencyId = s.Prices.Select(p => p.CurrencyId.HasValue ? p.CurrencyId.Value.ToString() : null).FirstOrDefault(),
+                    Type = s.Type,
+                    Group = s.Group,
+                    Barcodes = s.Barcodes ?? new string[0],
+                    Tags = s.Tags ?? new string[0]
+                })
+                .ToListAsync(ct);
+
+            return Results.Ok(list);
+        })
+        .WithName("StocksList")
+        .WithSummary("Lightweight stock list (info projection).");
+
+        // --- 2. ПОИСК ТОВАРОВ ---
         group.MapGet("/search", async (
             string q,
             string? warehouseId,
@@ -36,24 +69,18 @@ public static class StocksEndpoints
 
             return Results.Ok(result);
         })
-        .WithName("StocksSearch")
-        .WithSummary("Fuzzy search by code/barcode/name (pg_trgm + tsvector).");
+        .WithName("StocksSearch");
 
-        group.MapGet("/", async (
-            string? additionalPriceCurrencyId,
-            string? additionalPriceGroup,
-            IStocksRepository repo,
-            CancellationToken ct) =>
+        // --- 3. АВТОНУМЕРАТОР ТОВАРОВ ---
+        group.MapGet("/next-code", async (MermerDbContext db) =>
         {
-            var info = (additionalPriceCurrencyId is not null || additionalPriceGroup is not null)
-                ? await repo.GetInfoAsync(additionalPriceCurrencyId, additionalPriceGroup, ct)
-                : await repo.GetInfoAsync(null, ct);
-
-            return Results.Ok(info);
+            var count = await db.Stocks.CountAsync();
+            var nextCode = $"ST-{(count + 1):D6}";
+            return Results.Ok(new { code = nextCode });
         })
-        .WithName("StocksList")
-        .WithSummary("Lightweight stock list (info projection).");
+        .WithName("StocksGetNextCode");
 
+        // --- 4. ТОВАР ПО ID ---
         group.MapGet("/{id}", async (
             string id,
             IStocksRepository repo,
@@ -62,9 +89,9 @@ public static class StocksEndpoints
             var stock = await repo.GetAsync(id, ct);
             return stock is null ? Results.NotFound() : Results.Ok(stock);
         })
-        .WithName("StocksGetById")
-        .WithSummary("Full stock with units, prices and additional prices.");
+        .WithName("StocksGetById");
 
+        // --- 5. ФАСЕТЫ ---
         group.MapGet("/facets", async (
             string fields,
             IStocksRepository repo,
@@ -79,31 +106,35 @@ public static class StocksEndpoints
             var facets = await repo.GetFacetsAsync(fieldList, ct);
             return Results.Ok(facets);
         })
-        .WithName("StocksFacets")
-        .WithSummary("Filter UI facets — value→count per field.");
+        .WithName("StocksFacets");
 
+        // --- 6. СОЗДАНИЕ (POST) ---
         group.MapPost("/", async (
-            Stock model,
+            UIStock model,
             IStocksRepository repo,
             CancellationToken ct) =>
         {
-            var created = await repo.CreateAsync(model, ct);
+            var pgModel = MapToPgStock(model);
+            var created = await repo.CreateAsync(pgModel, ct);
             return Results.Created($"/api/stocks/{created.Id}", created);
         })
         .WithName("StocksCreate");
 
+        // --- 7. ОБНОВЛЕНИЕ (PUT) ---
         group.MapPut("/{id}", async (
             string id,
-            Stock model,
+            UIStock model,
             IStocksRepository repo,
             CancellationToken ct) =>
         {
             model.Id = id;
-            var updated = await repo.UpdateAsync(model, ct);
+            var pgModel = MapToPgStock(model);
+            var updated = await repo.UpdateAsync(pgModel, ct);
             return Results.Ok(updated);
         })
         .WithName("StocksUpdate");
 
+        // --- 8. УДАЛЕНИЕ (DELETE) ---
         group.MapDelete("/{id}", async (
             string id,
             IStocksRepository repo,
@@ -115,5 +146,27 @@ public static class StocksEndpoints
         .WithName("StocksDelete");
 
         return app;
+    }
+
+    // Вспомогательный маппер между UIStock и PgStock
+    private static PgStock MapToPgStock(UIStock src)
+    {
+        return new PgStock
+        {
+            Id = src.Id,
+            Code = src.Code,
+            Name = src.Name,
+            ShortName = src.ShortName,
+            Type = src.Type,
+            Group = src.Group,
+            IsDisabled = src.IsDisabled,
+
+            // Исправлено: ToArray() заменено на ToList() для соответствия типам PostgreSQL
+            Barcodes = src.Barcodes?.ToList(),
+            Tags = src.Tags?.ToList()
+
+            // Поля Price, Unit и CurrencyId удалены, 
+            // так как в БД они должны сохраняться через связанные коллекции (Prices / Units).
+        };
     }
 }

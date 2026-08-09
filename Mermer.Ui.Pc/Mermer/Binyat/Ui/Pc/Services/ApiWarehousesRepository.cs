@@ -19,7 +19,7 @@ namespace Mermer.Ui.Pc.Services
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
 
-        // --- ЧТЕНИЕ (IReadOnlyRepository) ---
+        // --- ЧТЕНИЕ ---
 
         public async Task<IEnumerable<Warehouse>> GetAllAsync()
         {
@@ -91,25 +91,44 @@ namespace Mermer.Ui.Pc.Services
             return query.ToList();
         }
 
-        public async Task<long> CountAsync(params Expression<Func<Warehouse, bool>>[] predicates)
+        public async Task<int> CountAsync(params Expression<Func<Warehouse, bool>>[] predicates)
         {
             var result = await GetAsync(predicates);
             return result.Count();
         }
 
-        // --- ЗАПИСЬ И ИЗМЕНЕНИЕ (IRepository) ---
+        // --- ЗАПИСЬ И ИЗМЕНЕНИЕ (CUD) ---
 
-        public Task SaveAsync(Warehouse entity) => Task.CompletedTask;
-
-        public Task CreateAsync(Warehouse entity) => Task.CompletedTask;
-
-        public Task UpdateAsync(Warehouse entity) => Task.CompletedTask;
-
-        public Task DeleteAsync(string id) => Task.CompletedTask;
-
-        Task<int> IReadOnlyRepository<Warehouse>.CountAsync(params Expression<Func<Warehouse, bool>>[] predicates)
+        public async Task CreateAsync(Warehouse entity)
         {
-            throw new NotImplementedException();
+            if (entity == null) return;
+            await _restClient.PostAsync("/api/enterprise/warehouses", entity);
+        }
+
+        public async Task UpdateAsync(Warehouse entity)
+        {
+            if (entity == null || string.IsNullOrEmpty(entity.Id)) return;
+            await _restClient.PutAsync($"/api/enterprise/warehouses/{entity.Id}", entity);
+        }
+
+        public async Task DeleteAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            await _restClient.DeleteAsync($"/api/enterprise/warehouses/{id}");
+        }
+
+        public async Task SaveAsync(Warehouse entity)
+        {
+            if (entity == null) return;
+
+            if (string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString())
+            {
+                await CreateAsync(entity);
+            }
+            else
+            {
+                await UpdateAsync(entity);
+            }
         }
     }
 }

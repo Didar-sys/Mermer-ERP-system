@@ -78,4 +78,9 @@ public class RestClient
     stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
     return stringContent;
   }
+
+    public async Task DeleteAsync(string endpoint)
+    {
+        await RestClient.ExportResult(await this.HttpClient.DeleteAsync(endpoint));
+    }
 }

@@ -82,9 +82,38 @@ namespace Mermer.Ui.Pc.Services
             return result.Count();
         }
 
-        public Task SaveAsync(Office entity) => Task.CompletedTask;
-        public Task CreateAsync(Office entity) => Task.CompletedTask;
-        public Task UpdateAsync(Office entity) => Task.CompletedTask;
-        public Task DeleteAsync(string id) => Task.CompletedTask;
+        // --- ЗАПИСЬ И ИЗМЕНЕНИЕ (CUD) ---
+
+        public async Task CreateAsync(Office entity)
+        {
+            if (entity == null) return;
+            await _restClient.PostAsync("/api/enterprise/offices", entity);
+        }
+
+        public async Task UpdateAsync(Office entity)
+        {
+            if (entity == null || string.IsNullOrEmpty(entity.Id)) return;
+            await _restClient.PutAsync($"/api/enterprise/offices/{entity.Id}", entity);
+        }
+
+        public async Task DeleteAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            await _restClient.DeleteAsync($"/api/enterprise/offices/{id}");
+        }
+
+        public async Task SaveAsync(Office entity)
+        {
+            if (entity == null) return;
+
+            if (string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString())
+            {
+                await CreateAsync(entity);
+            }
+            else
+            {
+                await UpdateAsync(entity);
+            }
+        }
     }
 }

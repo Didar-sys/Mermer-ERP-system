@@ -19,250 +19,272 @@ public class NomenclatureImportService
         _dbContext = dbContext;
     }
 
-    /// <summary>
-    /// Полный импорт справочника Номенклатуры (Stock), Единиц измерения (StockUnit) и Цен (StockPrice)
-    /// </summary>
     public async Task MigrateStocksAsync(string jsonFilePath)
     {
-        Console.WriteLine("Начинаем импорт справочника Номенклатуры (Stock)...");
+        Console.WriteLine("Начинаем умную агрегацию патчей Номенклатуры (Stock)...");
 
-        // Выгружаем существующие CurrencyId, чтобы не нарушать Foreign Key у цен
         var validCurrencyIds = (await _dbContext.Currencies.Select(c => c.Id).ToListAsync()).ToHashSet();
 
         using var stream = File.OpenRead(jsonFilePath);
         using var reader = new StreamReader(stream);
 
-        var stocksBatch = new List<StockEntity>();
-        var unitsBatch = new List<StockUnitEntity>();
-        var pricesBatch = new List<StockPriceEntity>();
-
-        var processedStockIds = new HashSet<Guid>();
-        var processedUnitIds = new HashSet<Guid>();
-        var processedPriceIds = new HashSet<Guid>();
+        var stockMap = new Dictionary<Guid, StockEntity>();
+        var unitMap = new Dictionary<Guid, StockUnitEntity>();
+        var priceMap = new Dictionary<Guid, StockPriceEntity>();
 
         string? line;
-        int totalStocks = 0;
-        int totalUnits = 0;
-        int totalPrices = 0;
+        int linesRead = 0;
 
         while ((line = await reader.ReadLineAsync()) != null)
         {
             if (string.IsNullOrWhiteSpace(line)) continue;
+            linesRead++;
 
             using var doc = JsonDocument.Parse(line);
             var root = doc.RootElement;
 
-            if (IsTargetDocType(root, "Stock"))
+            // Определяем, где лежит основа документа (в корне или внутри "patch")
+            JsonElement docBody = root;
+            if (TryGetPropertyCaseInsensitive(root, "patch", out var patchObj) && patchObj.ValueKind == JsonValueKind.Object)
             {
-                var targetContainer = GetTargetContainer(root);
-                if (!TryGetGuidProperty(root, targetContainer, "id", out var stockId)) continue;
+                docBody = patchObj;
+            }
 
-                if (!processedStockIds.Add(stockId)) continue; // Пропуск дубликатов товара
+            if (!TryGetPropertyCaseInsensitive(docBody, "docType", out var docTypeProp) ||
+                !string.Equals(docTypeProp.GetString(), "Stock", StringComparison.OrdinalIgnoreCase))
+            {
+                continue; // Пропускаем всё, что не является товаром
+            }
 
-                // 1. Извлекаем главный объект Stock
-                var stock = new StockEntity
+            if (!TryGetPropertyCaseInsensitive(docBody, "id", out var idProp) || !Guid.TryParse(idProp.GetString(), out var stockId))
+                continue;
+
+            // Инициализируем товар, если видим его впервые
+            if (!stockMap.TryGetValue(stockId, out var stock))
+            {
+                stock = new StockEntity
                 {
                     Id = stockId,
-                    Code = GetStringProperty(targetContainer, "code"),
-                    Name = GetStringProperty(targetContainer, "name") ?? "Без названия",
-                    ShortName = GetStringProperty(targetContainer, "shortName"),
-                    Type = GetStringProperty(targetContainer, "type"),
-                    Group = GetStringProperty(targetContainer, "group"),
-                    Description = GetStringProperty(targetContainer, "description"),
-                    IsDisabled = GetBoolProperty(targetContainer, "isDisabled"),
-                    LimitMin = GetDecimalProperty(targetContainer, "limitMin"),
-                    LimitMax = GetDecimalProperty(targetContainer, "limitMax"),
-                    Tags = GetStringArrayProperty(targetContainer, "tags"),
-                    Barcodes = GetStringArrayProperty(targetContainer, "barcodes"),
+                    Name = "Без названия",
                     CreatedAt = DateTimeOffset.UtcNow,
                     UpdatedAt = DateTimeOffset.UtcNow
                 };
+                stockMap[stockId] = stock;
+            }
 
-                stocksBatch.Add(stock);
+            // Извлекаем скалярные свойства (из propertyPatches или из корня)
+            if (TryGetDynamicString(docBody, "code", out var code)) stock.Code = code;
+            if (TryGetDynamicString(docBody, "name", out var name)) stock.Name = name;
+            if (TryGetDynamicString(docBody, "shortName", out var shortName)) stock.ShortName = shortName;
+            if (TryGetDynamicString(docBody, "type", out var type)) stock.Type = type;
+            if (TryGetDynamicString(docBody, "group", out var group)) stock.Group = group;
+            if (TryGetDynamicString(docBody, "description", out var desc)) stock.Description = desc;
 
-                // 2. Извлекаем вложенные Единицы Измерения (units)
-                ExtractUnits(targetContainer, stockId, unitsBatch, processedUnitIds);
+            if (TryGetDynamicBool(docBody, "isDisabled", out var isDisabled)) stock.IsDisabled = isDisabled;
+            if (TryGetDynamicDecimal(docBody, "limitMin", out var limitMin)) stock.LimitMin = limitMin;
+            if (TryGetDynamicDecimal(docBody, "limitMax", out var limitMax)) stock.LimitMax = limitMax;
 
-                // 3. Извлекаем вложенные Цены (prices)
-                ExtractPrices(targetContainer, stockId, validCurrencyIds, pricesBatch, processedPriceIds);
+            if (TryGetDynamicArray(docBody, "tags", out var tags)) stock.Tags = tags;
+            if (TryGetDynamicArray(docBody, "barcodes", out var barcodes)) stock.Barcodes = barcodes;
 
-                // Сохранение пачками по 500 штук
-                if (stocksBatch.Count >= 500)
-                {
-                    await SaveNomenclatureBatchAsync(stocksBatch, unitsBatch, pricesBatch);
-                    totalStocks += stocksBatch.Count;
-                    totalUnits += unitsBatch.Count;
-                    totalPrices += pricesBatch.Count;
+            // Извлекаем списки (units и prices)
+            ExtractUnits(docBody, stockId, unitMap);
+            ExtractPrices(docBody, stockId, validCurrencyIds, priceMap);
 
-                    stocksBatch.Clear();
-                    unitsBatch.Clear();
-                    pricesBatch.Clear();
-
-                    Console.WriteLine($"Сохранено товаров: {totalStocks}...");
-                }
+            if (linesRead % 10000 == 0)
+            {
+                Console.WriteLine($"Прочитано {linesRead} строк... Собрано товаров: {stockMap.Count}");
             }
         }
 
-        if (stocksBatch.Any())
+        Console.WriteLine($"Агрегация завершена! Товаров: {stockMap.Count}, Единиц: {unitMap.Count}, Цен: {priceMap.Count}");
+        await SaveAllInBatchesAsync(stockMap.Values.ToList(), unitMap.Values.ToList(), priceMap.Values.ToList());
+        Console.WriteLine("Импорт успешно завершен!");
+    }
+
+    private async Task SaveAllInBatchesAsync(List<StockEntity> stocks, List<StockUnitEntity> units, List<StockPriceEntity> prices)
+    {
+        const int batchSize = 2000;
+
+        for (int i = 0; i < stocks.Count; i += batchSize)
         {
-            await SaveNomenclatureBatchAsync(stocksBatch, unitsBatch, pricesBatch);
-            totalStocks += stocksBatch.Count;
-            totalUnits += unitsBatch.Count;
-            totalPrices += pricesBatch.Count;
+            await _dbContext.Stocks.AddRangeAsync(stocks.Skip(i).Take(batchSize));
+            await _dbContext.SaveChangesAsync();
+            _dbContext.ChangeTracker.Clear();
         }
 
-        Console.WriteLine($"Готово! Импортировано Складов/Товаров: {totalStocks}, Единиц: {totalUnits}, Цен: {totalPrices}");
-    }
-
-    private async Task SaveNomenclatureBatchAsync(
-        List<StockEntity> stocks,
-        List<StockUnitEntity> units,
-        List<StockPriceEntity> prices)
-    {
-        if (stocks.Any()) await _dbContext.Stocks.AddRangeAsync(stocks);
-        if (units.Any()) await _dbContext.StockUnits.AddRangeAsync(units);
-        if (prices.Any()) await _dbContext.StockPrices.AddRangeAsync(prices);
-
-        await _dbContext.SaveChangesAsync();
-        _dbContext.ChangeTracker.Clear();
-    }
-
-    #region Вспомогательные методы парсинга
-
-    private static void ExtractUnits(JsonElement container, Guid stockId, List<StockUnitEntity> unitsBatch, HashSet<Guid> processedUnitIds)
-    {
-        if (container.TryGetProperty("units", out var unitsArray) && unitsArray.ValueKind == JsonValueKind.Array)
+        for (int i = 0; i < units.Count; i += batchSize)
         {
-            foreach (var unitElem in unitsArray.EnumerateArray())
+            await _dbContext.StockUnits.AddRangeAsync(units.Skip(i).Take(batchSize));
+            await _dbContext.SaveChangesAsync();
+            _dbContext.ChangeTracker.Clear();
+        }
+
+        for (int i = 0; i < prices.Count; i += batchSize)
+        {
+            await _dbContext.StockPrices.AddRangeAsync(prices.Skip(i).Take(batchSize));
+            await _dbContext.SaveChangesAsync();
+            _dbContext.ChangeTracker.Clear();
+        }
+    }
+
+    #region Умный парсинг патчей
+
+    private static bool TryGetPropertyCaseInsensitive(JsonElement element, string propertyName, out JsonElement value)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            value = default;
+            return false;
+        }
+
+        if (element.TryGetProperty(propertyName, out value)) return true;
+
+        foreach (var prop in element.EnumerateObject())
+        {
+            if (string.Equals(prop.Name, propertyName, StringComparison.OrdinalIgnoreCase))
             {
-                if (!unitElem.TryGetProperty("id", out var idProp) || !Guid.TryParse(idProp.GetString(), out var unitId))
+                value = prop.Value;
+                return true;
+            }
+        }
+
+        value = default;
+        return false;
+    }
+
+    private static bool TryGetPropAnywhere(JsonElement docBody, string propName, out JsonElement value)
+    {
+        // 1. Ищем прямо в объекте
+        if (TryGetPropertyCaseInsensitive(docBody, propName, out value)) return true;
+
+        // 2. Ищем внутри propertyPatches
+        if (TryGetPropertyCaseInsensitive(docBody, "propertyPatches", out var pp) && pp.ValueKind == JsonValueKind.Object)
+        {
+            if (TryGetPropertyCaseInsensitive(pp, propName, out value)) return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetDynamicString(JsonElement docBody, string propName, out string? result)
+    {
+        result = null;
+        if (TryGetPropAnywhere(docBody, propName, out var val) && val.ValueKind == JsonValueKind.String)
+        {
+            result = val.GetString();
+            return true;
+        }
+        return false;
+    }
+
+    private static bool TryGetDynamicBool(JsonElement docBody, string propName, out bool result)
+    {
+        result = false;
+        if (TryGetPropAnywhere(docBody, propName, out var val))
+        {
+            if (val.ValueKind == JsonValueKind.True) { result = true; return true; }
+            if (val.ValueKind == JsonValueKind.False) { result = false; return true; }
+        }
+        return false;
+    }
+
+    private static bool TryGetDynamicDecimal(JsonElement docBody, string propName, out decimal result)
+    {
+        result = 0m;
+        if (TryGetPropAnywhere(docBody, propName, out var val) && val.ValueKind == JsonValueKind.Number)
+        {
+            result = val.GetDecimal();
+            return true;
+        }
+        return false;
+    }
+
+    private static bool TryGetDynamicArray(JsonElement docBody, string propName, out string[]? result)
+    {
+        result = null;
+        if (TryGetPropAnywhere(docBody, propName, out var val) && val.ValueKind == JsonValueKind.Array)
+        {
+            result = val.EnumerateArray()
+                      .Where(x => x.ValueKind == JsonValueKind.String)
+                      .Select(x => x.GetString()!)
+                      .ToArray();
+            return true;
+        }
+        return false;
+    }
+
+    private static void ExtractUnits(JsonElement docBody, Guid stockId, Dictionary<Guid, StockUnitEntity> unitMap)
+    {
+        // Ищем units напрямую или внутри subListPatches
+        if (!TryGetPropertyCaseInsensitive(docBody, "units", out var unitsArray))
+        {
+            if (TryGetPropertyCaseInsensitive(docBody, "subListPatches", out var slp) && slp.ValueKind == JsonValueKind.Object)
+            {
+                TryGetPropertyCaseInsensitive(slp, "units", out unitsArray);
+            }
+        }
+
+        if (unitsArray.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var elem in unitsArray.EnumerateArray())
+            {
+                if (!TryGetPropAnywhere(elem, "id", out var idProp) || !Guid.TryParse(idProp.GetString(), out var unitId))
                     continue;
 
-                if (!processedUnitIds.Add(unitId)) continue;
-
-                unitsBatch.Add(new StockUnitEntity
+                if (!unitMap.TryGetValue(unitId, out var unit))
                 {
-                    Id = unitId,
-                    StockId = stockId,
-                    Name = GetStringProperty(unitElem, "name") ?? "шт",
-                    Multiplier = GetDecimalProperty(unitElem, "multiplier") ?? 1m,
-                    Divider = GetDecimalProperty(unitElem, "divider") ?? 1m,
-                    IsDefault = GetBoolProperty(unitElem, "isDefault")
-                });
+                    unit = new StockUnitEntity { Id = unitId, StockId = stockId };
+                    unitMap[unitId] = unit;
+                }
+
+                if (TryGetDynamicString(elem, "name", out var name)) unit.Name = name;
+                if (TryGetDynamicDecimal(elem, "multiplier", out var mult)) unit.Multiplier = mult;
+                if (TryGetDynamicDecimal(elem, "divider", out var div)) unit.Divider = div;
+                if (TryGetDynamicBool(elem, "isDefault", out var isDef)) unit.IsDefault = isDef;
             }
         }
     }
 
-    private static void ExtractPrices(JsonElement container, Guid stockId, HashSet<Guid> validCurrencyIds, List<StockPriceEntity> pricesBatch, HashSet<Guid> processedPriceIds)
+    private static void ExtractPrices(JsonElement docBody, Guid stockId, HashSet<Guid> validCurrencyIds, Dictionary<Guid, StockPriceEntity> priceMap)
     {
-        if (container.TryGetProperty("prices", out var pricesArray) && pricesArray.ValueKind == JsonValueKind.Array)
+        // Ищем prices напрямую или внутри subListPatches
+        if (!TryGetPropertyCaseInsensitive(docBody, "prices", out var pricesArray))
         {
-            foreach (var priceElem in pricesArray.EnumerateArray())
+            if (TryGetPropertyCaseInsensitive(docBody, "subListPatches", out var slp) && slp.ValueKind == JsonValueKind.Object)
             {
-                if (!priceElem.TryGetProperty("id", out var idProp) || !Guid.TryParse(idProp.GetString(), out var priceId))
+                TryGetPropertyCaseInsensitive(slp, "prices", out pricesArray);
+            }
+        }
+
+        if (pricesArray.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var elem in pricesArray.EnumerateArray())
+            {
+                if (!TryGetPropAnywhere(elem, "id", out var idProp) || !Guid.TryParse(idProp.GetString(), out var priceId))
                     continue;
 
-                if (!processedPriceIds.Add(priceId)) continue;
-
-                Guid? currencyId = null;
-                if (TryGetGuidProperty(priceElem, priceElem, "currencyId", out var cId) && validCurrencyIds.Contains(cId))
+                if (!priceMap.TryGetValue(priceId, out var price))
                 {
-                    currencyId = cId;
+                    price = new StockPriceEntity { Id = priceId, StockId = stockId, CreatedAt = DateTimeOffset.UtcNow };
+                    priceMap[priceId] = price;
                 }
 
-                DateTime validFrom = DateTime.UtcNow;
-                if (priceElem.TryGetProperty("validFrom", out var vfProp) && vfProp.ValueKind == JsonValueKind.String)
+                if (TryGetPropAnywhere(elem, "currencyId", out var cIdProp) && Guid.TryParse(cIdProp.GetString(), out var cId))
                 {
-                    DateTime.TryParse(vfProp.GetString(), out validFrom);
+                    if (validCurrencyIds.Contains(cId)) price.CurrencyId = cId;
                 }
 
-                pricesBatch.Add(new StockPriceEntity
+                if (TryGetDynamicDecimal(elem, "price", out var pVal)) price.Price = pVal;
+                if (TryGetDynamicString(elem, "priceGroup", out var pGroup)) price.PriceGroup = pGroup;
+
+                if (TryGetPropAnywhere(elem, "validFrom", out var vfProp) && vfProp.ValueKind == JsonValueKind.String)
                 {
-                    Id = priceId,
-                    StockId = stockId,
-                    CurrencyId = currencyId,
-                    Price = GetDecimalProperty(priceElem, "price") ?? 0m,
-                    PriceGroup = GetStringProperty(priceElem, "priceGroup"),
-                    ValidFrom = DateTime.SpecifyKind(validFrom, DateTimeKind.Utc),
-                    CreatedAt = DateTimeOffset.UtcNow
-                });
+                    if (DateTime.TryParse(vfProp.GetString(), out var vfDate))
+                        price.ValidFrom = DateTime.SpecifyKind(vfDate, DateTimeKind.Utc);
+                }
             }
         }
-    }
-
-    private static bool IsTargetDocType(JsonElement root, string targetDocType)
-    {
-        if (root.ValueKind != JsonValueKind.Object) return false;
-        if (root.TryGetProperty("docType", out var dt) && dt.ValueKind == JsonValueKind.String)
-            return dt.GetString() == targetDocType;
-        if (root.TryGetProperty("patch", out var patch) && patch.ValueKind == JsonValueKind.Object &&
-            patch.TryGetProperty("docType", out var pdt) && pdt.ValueKind == JsonValueKind.String)
-            return pdt.GetString() == targetDocType;
-
-        return false;
-    }
-
-    private static JsonElement GetTargetContainer(JsonElement root)
-    {
-        if (root.TryGetProperty("patch", out var patch) && patch.ValueKind == JsonValueKind.Object)
-        {
-            if (patch.TryGetProperty("propertyPatches", out var props) && props.ValueKind == JsonValueKind.Object)
-                return props;
-            return patch;
-        }
-        return root;
-    }
-
-    private static bool TryGetGuidProperty(JsonElement root, JsonElement container, string propertyName, out Guid result)
-    {
-        result = Guid.Empty;
-        if (container.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.String)
-            return Guid.TryParse(prop.GetString(), out result);
-
-        if (root.TryGetProperty("patch", out var patch) && patch.ValueKind == JsonValueKind.Object &&
-            patch.TryGetProperty(propertyName, out var patchProp) && patchProp.ValueKind == JsonValueKind.String)
-            return Guid.TryParse(patchProp.GetString(), out result);
-
-        if (root.TryGetProperty(propertyName, out var rootProp) && rootProp.ValueKind == JsonValueKind.String)
-            return Guid.TryParse(rootProp.GetString(), out result);
-
-        return false;
-    }
-
-    private static string? GetStringProperty(JsonElement container, string propertyName)
-    {
-        if (container.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.String)
-            return prop.GetString();
-        return null;
-    }
-
-    private static string[]? GetStringArrayProperty(JsonElement container, string propertyName)
-    {
-        if (container.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Array)
-        {
-            return prop.EnumerateArray()
-                       .Where(x => x.ValueKind == JsonValueKind.String)
-                       .Select(x => x.GetString()!)
-                       .ToArray();
-        }
-        return null;
-    }
-
-    private static decimal? GetDecimalProperty(JsonElement container, string propertyName)
-    {
-        if (container.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.Number)
-            return prop.GetDecimal();
-        return null;
-    }
-
-    private static bool GetBoolProperty(JsonElement container, string propertyName)
-    {
-        if (container.TryGetProperty(propertyName, out var prop))
-        {
-            if (prop.ValueKind == JsonValueKind.True) return true;
-            if (prop.ValueKind == JsonValueKind.False) return false;
-        }
-        return false;
     }
 
     #endregion
