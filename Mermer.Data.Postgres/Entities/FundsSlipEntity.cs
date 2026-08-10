@@ -8,7 +8,10 @@ public class FundsSlipEntity
     public Guid Id { get; set; }
     public string Code { get; set; }
     public DateTime Date { get; set; }
+
+    // ВЕРНУЛИ STRING, так как БД ждет текст "Income" или "Expense"
     public string FundsSlipType { get; set; }
+
     public Guid? UserId { get; set; }
     public string UserName { get; set; }
     public Guid? OfficeId { get; set; }

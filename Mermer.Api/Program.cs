@@ -80,6 +80,7 @@ app.MapFinanceEndpoints();
 app.MapStockSlipsEndpoints();
 app.MapStocksEndpoints();
 app.MapInvoicesEndpoints();
+app.MapDepositoriesEndpoints();
 app.MapPartnersEndpoints();
 app.MapBalancesEndpoints();
 app.MapSyncEndpoints();

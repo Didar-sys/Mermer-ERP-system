@@ -96,7 +96,6 @@ public class Setup : MvxWpfSetup
         var proxy = new Castle.DynamicProxy.ProxyGenerator();
         var interceptor = new DummyInterceptor();
 
-        // Ищем все классы, которые реализуют базовый интерфейс моделей IModel
         var allModels = mermerAssemblies
             .SelectMany(a => {
                 try { return a.GetTypes(); }
@@ -106,14 +105,12 @@ public class Setup : MvxWpfSetup
 
         foreach (var modelType in allModels)
         {
-            // 1. Убиваем все репозитории Couchbase для текущей модели
             var dummyRepoType = typeof(Mermer.Ui.Pc.Services.DummyRepository<>).MakeGenericType(modelType);
             var iRepoType = typeof(Mermer.Data.Storage.IRepository<>).MakeGenericType(modelType);
             var iReadOnlyRepoType = typeof(Mermer.Data.Storage.IReadOnlyRepository<>).MakeGenericType(modelType);
 
             builder.RegisterType(dummyRepoType).As(iRepoType).As(iReadOnlyRepoType).SingleInstance();
 
-            // 2. Динамически перехватываем интерфейсы проверки прав (Authorizers) для текущей модели
             var listAuthType = typeof(Mermer.Data.Authorizers.IListAuthorizer<>).MakeGenericType(modelType);
             builder.Register(c => proxy.CreateInterfaceProxyWithoutTarget(listAuthType, interceptor))
                    .As(listAuthType).SingleInstance();
@@ -123,7 +120,6 @@ public class Setup : MvxWpfSetup
                    .As(readOnlyListAuthType).SingleInstance();
         }
 
-        // 3. Динамически перехватываем глобальный неуниверсальный IAuthorizer
         builder.Register(c => proxy.CreateInterfaceProxyWithoutTarget(typeof(Mermer.Data.Authorizers.IAuthorizer), interceptor))
                .As(typeof(Mermer.Data.Authorizers.IAuthorizer)).SingleInstance();
 
@@ -143,7 +139,11 @@ public class Setup : MvxWpfSetup
         builder.RegisterType<Mermer.Http.RestClient>().AsSelf().SingleInstance();
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiLoginService>().As<ILoginService>().SingleInstance();
 
-        // --- ГЕНЕРАТОРЫ КОДОВ (ГЕНЕРИРУЮТ НЕПОСРЕДСТВЕННО ДЛЯ ИНТЕРФЕЙСОВ) ---
+        // --- ЛОКАЛЬНЫЙ ГЕНЕРАТОР КОДОВ (ОТКЛЮЧАЕТ COUCHBASE ДЛЯ ВСЕХ ФОРМ) ---
+        builder.RegisterType<Mermer.Ui.Pc.Services.LocalTransactionCodeGenerationService>()
+               .As<Mermer.Transactions.Services.ITransactionCodeGenerationService>()
+               .SingleInstance();
+
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiPartnerCodeGenerator>()
                .As<Mermer.CRM.Services.IPartnerCodeGenerationService>()
                .SingleInstance();
@@ -178,16 +178,23 @@ public class Setup : MvxWpfSetup
                .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.CRM.Models.Partner>>()
                .SingleInstance();
 
-        // --- ФИНАНСЫ, ДОКУМЕНТЫ И АКТЫ СВЕРКИ (PartnerSlip, PartnerTransfer) ---
-        builder.RegisterType<Mermer.Ui.Pc.Services.ApiFundsActionRepository>()
-                .As<Mermer.Data.Storage.IRepository<Mermer.Finance.Models.FundsSlip>>()
-                .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Finance.Models.FundsSlip>>().SingleInstance();
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiDepositoriesRepository>()
+                .As<Mermer.Data.Storage.IRepository<Mermer.Enterprise.Models.Depository>>()
+                .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Enterprise.Models.Depository>>()
+                .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Enterprise.Models.Depository>>() // <-- ДОБАВЛЕНО!
+                .SingleInstance();
 
-        // РЕГИСТРИРУЕМ ApiInvoicesRepository НА ВСЕ ВАРТИАНТЫ ИНТЕРФЕЙСОВ:
+        /// --- ФИНАНСЫ И ДОКУМЕНТЫ ---
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiFundsActionRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Finance.Models.FundsSlip>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Finance.Models.FundsSlip>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Finance.Models.FundsSlip>>() // <-- Для работы боковых фильтров по датам!
+               .SingleInstance();
+
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiInvoicesRepository>()
                .As<Mermer.Data.Storage.IRepository<Mermer.Commerce.Models.Invoice>>()
                .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Commerce.Models.Invoice>>()
-               .As<Mermer.Commerce.Services.IInvoicesRepository>() // <-- ДОБАВЛЕНО!
+               .As<Mermer.Commerce.Services.IInvoicesRepository>()
                .SingleInstance();
 
         // =====================================================================
@@ -201,10 +208,8 @@ public class Setup : MvxWpfSetup
         builder.RegisterModule<AutoMapperModule>();
         builder.RegisterSource(new DummyInterfaceSource());
 
-        // ВАЖНО: Сборка контейнера строга В САМОМ КОНЦЕ!
         var container = builder.Build();
 
-        // --- УБИВАЕМ СЛУЧАЙНЫЙ КОНТЕЙНЕР MVVMCROSS ---
         var existingIoC = MvvmCross.Platform.Core.MvxSingleton<IMvxIoCProvider>.Instance;
         if (existingIoC != null)
         {
@@ -216,7 +221,6 @@ public class Setup : MvxWpfSetup
         return (IMvxIoCProvider)new AutofacMvxIocProvider(container);
     }
 
-    // Глубокая проверка всего дерева наследования
     private static bool IsMvxSingletonDeep(Type type)
     {
         Type current = type;
@@ -240,13 +244,11 @@ public class Setup : MvxWpfSetup
 
     public override void Initialize()
     {
-        base.Initialize(); // Базовая инициализация MvvmCross
+        base.Initialize();
 
-        // 1. Задаем язык по умолчанию
         string cultureName = "ru-RU";
         string shortLocale = "ru";
 
-        // 2. Пытаемся достать сохраненный язык из настроек
         try
         {
             var configurator = MvvmCross.Platform.Mvx.Resolve<Mermer.Services.IConfigurator>();
@@ -258,12 +260,8 @@ public class Setup : MvxWpfSetup
                 shortLocale = cultureName.Length >= 2 ? cultureName.Substring(0, 2).ToLowerInvariant() : "en";
             }
         }
-        catch
-        {
-            // Если файла конфигурации еще нет, остается дефолтный язык
-        }
+        catch { }
 
-        // 3. БЕЗОПАСНАЯ установка системной культуры (для дат и чисел)
         System.Globalization.CultureInfo culture;
         try
         {
@@ -279,7 +277,6 @@ public class Setup : MvxWpfSetup
         System.Threading.Thread.CurrentThread.CurrentCulture = culture;
         System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
 
-        // 4. Инициализируем кастомный LocalizationManager
         string locPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Localization");
         if (System.IO.Directory.Exists(locPath))
         {
@@ -290,19 +287,11 @@ public class Setup : MvxWpfSetup
 
     protected override void InitializeSingletonCache()
     {
-        try
-        {
-            base.InitializeSingletonCache();
-        }
-        catch (MvvmCross.Platform.Exceptions.MvxException)
-        {
-        }
+        try { base.InitializeSingletonCache(); } catch (MvvmCross.Platform.Exceptions.MvxException) { }
     }
 
     protected override IMvxWpfViewsContainer CreateWpfViewsContainer() => new ViewsContainer();
-
     protected override IMvxApplication CreateApp() => new Mermer.Ui.Core.App();
-
     protected override IMvxTrace CreateDebugTrace() => new DebugTrace();
 }
 
@@ -319,12 +308,13 @@ public class DummyInterfaceSource : IRegistrationSource
             var ns = typedService.ServiceType.Namespace ?? "";
             var name = typedService.ServiceType.Name;
 
-            // Перехватываем именно те сервисы, из-за которых падала форма Invoices
+            // Перехватываем все Couchbase-зависимости, из-за которых падали формы
             if (name == "ILocalizationService" ||
                 name == "IInvoicesRepository" ||
-                name == "ITransactionCodeGenerationService" || // <-- Автонумератор
-                name == "IStocksRepository" ||                 // <-- Фасеты групп цен
-                name == "IPartnerBalancesRepository" ||        // <-- Балансы контрагентов
+                name == "ITransactionCodeGenerationService" ||
+                name == "IStocksRepository" ||
+                name == "IPartnerBalancesRepository" ||
+                name.Contains("FundsOpening") || // <-- ПЕРЕХВАТЫВАЕМ ОШИБКУ #FundsOpening
                 ns.Contains("Authorizers") ||
                 ns.Contains("Couch"))
             {
@@ -345,24 +335,18 @@ public class DummyInterceptor : Castle.DynamicProxy.IInterceptor
         var methodName = invocation.Method.Name;
         var returnType = invocation.Method.ReturnType;
 
-        // ====================================================================
-        // 1. УМНЫЕ ОТВЕТЫ ДЛЯ ФОРМЫ СОЗДАНИЯ НАКЛАДНОЙ (ОТКЛЮЧАЕМ COUCHBASE)
-        // ====================================================================
-        if (methodName == "GenerateCodeAsync")
+        if (methodName == "GenerateCodeAsync" || methodName == "GetNextCode")
         {
-            // Выдаем фейковый номер накладной
-            invocation.ReturnValue = Task.FromResult("NEW-0001");
+            invocation.ReturnValue = Task.FromResult($"DOC-{DateTime.Now:yyMMddHHmmss}");
             return;
         }
         if (methodName == "GetBalanceToDateAsync")
         {
-            // Выдаем нулевой баланс (Credit и Debit высчитаются автоматически)
             invocation.ReturnValue = Task.FromResult(new Mermer.CRM.Models.PartnerBalanceResult { Balance = 0 });
             return;
         }
         if (methodName == "GetFacets" || methodName == "GetFacetsAsync")
         {
-            // Выдаем пустой словарь для выпадающих списков групп цен
             var dict = new Dictionary<string, IEnumerable<KeyValuePair<string, int>>>();
             if (invocation.Arguments.Length > 0)
             {
@@ -375,9 +359,6 @@ public class DummyInterceptor : Castle.DynamicProxy.IInterceptor
             return;
         }
 
-        // ====================================================================
-        // 2. БАЗОВАЯ ЛОГИКА ДЛЯ ВСЕХ ОСТАЛЬНЫХ НЕИЗВЕСТНЫХ МЕТОДОВ
-        // ====================================================================
         if (returnType == typeof(Task))
         {
             invocation.ReturnValue = Task.CompletedTask;
@@ -389,7 +370,7 @@ public class DummyInterceptor : Castle.DynamicProxy.IInterceptor
 
             if (taskResultType == typeof(bool))
             {
-                defaultResult = true; // Разрешаем все проверки прав
+                defaultResult = true;
             }
             else if (taskResultType == typeof(string))
             {
@@ -397,7 +378,6 @@ public class DummyInterceptor : Castle.DynamicProxy.IInterceptor
             }
             else if (taskResultType.IsGenericType && taskResultType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
             {
-                // КРИТИЧЕСКИ ВАЖНО: Создаем пустой массив, чтобы WPF не упал с NullReferenceException
                 var itemType = taskResultType.GetGenericArguments()[0];
                 defaultResult = typeof(System.Linq.Enumerable).GetMethod("Empty").MakeGenericMethod(itemType).Invoke(null, null);
             }
