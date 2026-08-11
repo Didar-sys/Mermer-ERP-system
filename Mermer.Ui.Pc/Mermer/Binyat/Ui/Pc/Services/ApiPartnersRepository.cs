@@ -12,37 +12,65 @@ namespace Mermer.Ui.Pc.Services
     public class ApiPartnersRepository : IRepository<Partner>, IReadOnlyRepository<Partner>, IRepositoryWithFacets<Partner>
     {
         private readonly RestClient _restClient;
+        private const string DocType = "Partner";
 
         public ApiPartnersRepository(RestClient restClient)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
 
-        // --- ЧТЕНИЕ ---
         public async Task<IEnumerable<Partner>> GetAllAsync()
         {
-            try
+            var localPartners = LocalSqliteCache.GetAllDocuments<Partner>(DocType);
+
+            _ = Task.Run(async () =>
             {
-                var partners = await _restClient.GetAsync<List<Partner>>("/api/catalog/partners");
-                return partners ?? Enumerable.Empty<Partner>();
-            }
-            catch
-            {
-                return Enumerable.Empty<Partner>();
-            }
+                try
+                {
+                    // 1. ДОСЫЛАЕМ СТАРЫЕ НЕСИНХРОНИЗИРОВАННЫЕ ЗАПИСИ (is_synced = 0)
+                    var unsynced = LocalSqliteCache.GetUnsyncedDocuments<Partner>(DocType);
+                    foreach (var (id, partner) in unsynced)
+                    {
+                        try
+                        {
+                            await _restClient.PostAsync("/api/partners", partner);
+                            // После успешной отправки меняем 0 на 1 в SQLite!
+                            LocalSqliteCache.SaveDocument(DocType, id, partner, isSynced: true);
+                        }
+                        catch { /* Если API временно недоступен — попробует в следующий раз */ }
+                    }
+
+                    // 2. ЗАТЯГИВАЕМ СВЕЖИЕ ЗАПИСИ С СЕРВЕРА
+                    var remotePartners = await _restClient.GetAsync<List<Partner>>("/api/partners");
+                    if (remotePartners != null)
+                    {
+                        foreach (var partner in remotePartners)
+                        {
+                            LocalSqliteCache.SaveDocument(DocType, partner.Id, partner, isSynced: true);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Partner Sync Error]: {ex.Message}");
+                }
+            });
+
+            return localPartners;
         }
 
         public async Task<Partner> GetAsync(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
-            return await _restClient.GetAsync<Partner>($"/api/catalog/partners/{id}");
+            var all = await GetAllAsync();
+            return all.FirstOrDefault(p => string.Equals(p.Id, id, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task<IEnumerable<Partner>> GetAsync(string[] ids)
         {
             if (ids == null || !ids.Any()) return Enumerable.Empty<Partner>();
             var all = await GetAllAsync();
-            var idSet = new HashSet<string>(ids);
+            var idSet = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
             return all.Where(p => idSet.Contains(p.Id));
         }
 
@@ -63,39 +91,39 @@ namespace Mermer.Ui.Pc.Services
             return result.Count();
         }
 
-        // =========================================================
-        // --- РЕАЛЬНАЯ ЗАПИСЬ (CUD) ---
-        // =========================================================
-        public async Task CreateAsync(Partner entity)
-        {
-            if (entity == null) return;
-            await _restClient.PostAsync("/api/catalog/partners", entity);
-        }
-
-        public async Task UpdateAsync(Partner entity)
-        {
-            if (entity == null || string.IsNullOrEmpty(entity.Id)) return;
-            await _restClient.PutAsync($"/api/catalog/partners/{entity.Id}", entity);
-        }
-
-        public async Task DeleteAsync(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return;
-            await _restClient.DeleteAsync($"/api/catalog/partners/{id}");
-        }
-
         public async Task SaveAsync(Partner entity)
         {
             if (entity == null) return;
 
             if (string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString())
             {
-                await CreateAsync(entity);
+                entity.Id = Guid.NewGuid().ToString();
             }
-            else
+
+            LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: false);
+
+            try
             {
-                await UpdateAsync(entity);
+                await _restClient.PostAsync("/api/partners", entity);
+                LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: true);
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Partner Save API Error]: {ex.Message}");
+            }
+        }
+
+        public async Task CreateAsync(Partner entity) => await SaveAsync(entity);
+        public async Task UpdateAsync(Partner entity) => await SaveAsync(entity);
+
+        public async Task DeleteAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            try
+            {
+                await _restClient.DeleteAsync($"/api/partners/{id}");
+            }
+            catch { }
         }
 
         public async Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
@@ -103,10 +131,7 @@ namespace Mermer.Ui.Pc.Services
             var result = new Dictionary<string, Dictionary<string, int>>();
             if (fields != null)
             {
-                foreach (var field in fields)
-                {
-                    result[field] = new Dictionary<string, int>();
-                }
+                foreach (var field in fields) result[field] = new Dictionary<string, int>();
             }
             return await Task.FromResult(result);
         }

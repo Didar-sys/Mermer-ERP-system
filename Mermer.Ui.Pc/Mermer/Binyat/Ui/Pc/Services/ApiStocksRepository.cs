@@ -14,116 +14,94 @@ namespace Mermer.Ui.Pc.Services
     public class ApiStocksRepository : IStocksRepository
     {
         private readonly RestClient _restClient;
+        private const string DocType = "Stock";
 
         public ApiStocksRepository(RestClient restClient)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
 
-        // =========================================================
-        // --- МЕТОДЫ СПЕЦИФИЧНЫЕ ДЛЯ IStocksRepository ---
-        // =========================================================
-
         public async Task<IEnumerable<StockInfo>> GetInfoAsync(string additionalPriceCurrencyId, string additionalPriceGroup)
         {
             try
             {
                 var queryParams = new List<string>();
-                if (!string.IsNullOrWhiteSpace(additionalPriceCurrencyId))
-                    queryParams.Add($"additionalPriceCurrencyId={Uri.EscapeDataString(additionalPriceCurrencyId)}");
-                if (!string.IsNullOrWhiteSpace(additionalPriceGroup))
-                    queryParams.Add($"additionalPriceGroup={Uri.EscapeDataString(additionalPriceGroup)}");
+                if (!string.IsNullOrWhiteSpace(additionalPriceCurrencyId)) queryParams.Add($"additionalPriceCurrencyId={Uri.EscapeDataString(additionalPriceCurrencyId)}");
+                if (!string.IsNullOrWhiteSpace(additionalPriceGroup)) queryParams.Add($"additionalPriceGroup={Uri.EscapeDataString(additionalPriceGroup)}");
 
-                var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
-                var url = $"/api/stocks{queryString}";
-
-                var result = await _restClient.GetAsync<List<StockInfo>>(url);
-                return result ?? Enumerable.Empty<StockInfo>();
+                var url = $"/api/stocks{(queryParams.Any() ? "?" + string.Join("&", queryParams) : "")}";
+                return await _restClient.GetAsync<List<StockInfo>>(url) ?? Enumerable.Empty<StockInfo>();
             }
-            catch
-            {
-                return Enumerable.Empty<StockInfo>();
-            }
+            catch { return Enumerable.Empty<StockInfo>(); }
         }
 
         public async Task<IEnumerable<StockInfo>> GetInfoAsync(params string[] stockIds)
         {
-            if (stockIds == null || !stockIds.Any())
-                return Enumerable.Empty<StockInfo>();
-
+            if (stockIds == null || !stockIds.Any()) return Enumerable.Empty<StockInfo>();
             try
             {
                 var all = await GetInfoAsync(null, null);
                 var idSet = new HashSet<string>(stockIds);
                 return all.Where(x => idSet.Contains(x.Id));
             }
-            catch
-            {
-                return Enumerable.Empty<StockInfo>();
-            }
+            catch { return Enumerable.Empty<StockInfo>(); }
         }
 
-        public async Task<IEnumerable<Stock>> GetListAsync(params string[] stockIds)
-        {
-            return await GetAsync(stockIds);
-        }
+        public async Task<IEnumerable<Stock>> GetListAsync(params string[] stockIds) => await GetAsync(stockIds);
 
         public async Task MergeAsync(string mainStockId, string[] mergeStockIds, bool disableMergedItems)
         {
-            if (string.IsNullOrEmpty(mainStockId) || mergeStockIds == null || !mergeStockIds.Any())
-                return;
-
-            await _restClient.PostAsync("/api/stocks/merge", new
-            {
-                mainStockId,
-                mergeStockIds,
-                disableMergedItems
-            });
+            if (string.IsNullOrEmpty(mainStockId) || mergeStockIds == null || !mergeStockIds.Any()) return;
+            await _restClient.PostAsync("/api/stocks/merge", new { mainStockId, mergeStockIds, disableMergedItems });
         }
-
-        // =========================================================
-        // --- ЧТЕНИЕ (IReadOnlyRepository / IRepository) ---
-        // =========================================================
 
         public async Task<IEnumerable<Stock>> GetAllAsync()
         {
-            try
-            {
-                var dtos = await _restClient.GetAsync<List<StockDetailsDto>>("/api/stocks");
-                if (dtos == null) return Enumerable.Empty<Stock>();
+            var localStocks = LocalSqliteCache.GetAllDocuments<Stock>(DocType);
 
-                return dtos.Select(dto => new Stock
-                {
-                    Id = dto.Id,
-                    Name = dto.Name
-                });
-            }
-            catch
+            _ = Task.Run(async () =>
             {
-                return Enumerable.Empty<Stock>();
-            }
+                try
+                {
+                    var unsynced = LocalSqliteCache.GetUnsyncedDocuments<Stock>(DocType);
+                    foreach (var (id, stock) in unsynced)
+                    {
+                        try
+                        {
+                            await _restClient.PostAsync("/api/stocks", stock);
+                            LocalSqliteCache.SaveDocument(DocType, id, stock, isSynced: true);
+                        }
+                        catch { }
+                    }
+
+                    var dtos = await _restClient.GetAsync<List<StockDetailsDto>>("/api/stocks");
+                    if (dtos != null)
+                    {
+                        foreach (var dto in dtos)
+                        {
+                            var s = new Stock { Id = dto.Id, Name = dto.Name };
+                            LocalSqliteCache.SaveDocument(DocType, s.Id, s, isSynced: true);
+                        }
+                    }
+                }
+                catch { }
+            });
+
+            return localStocks;
         }
 
         public async Task<Stock> GetAsync(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
-
-            try
-            {
-                return await _restClient.GetAsync<Stock>($"/api/stocks/{id}");
-            }
-            catch
-            {
-                var all = await GetAllAsync();
-                return all.FirstOrDefault(s => s.Id == id);
-            }
+            var all = await GetAllAsync();
+            return all.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task<IEnumerable<Stock>> GetAsync(string[] ids)
         {
             if (ids == null || !ids.Any()) return Enumerable.Empty<Stock>();
             var all = await GetAllAsync();
-            var idSet = new HashSet<string>(ids);
+            var idSet = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
             return all.Where(s => idSet.Contains(s.Id));
         }
 
@@ -144,55 +122,33 @@ namespace Mermer.Ui.Pc.Services
             return result.Count();
         }
 
-        // =========================================================
-        // --- РЕАЛЬНАЯ ЗАПИСЬ (CUD) ---
-        // =========================================================
-
-        public async Task CreateAsync(Stock entity)
-        {
-            if (entity == null) return;
-            await _restClient.PostAsync("/api/stocks", entity);
-        }
-
-        public async Task UpdateAsync(Stock entity)
-        {
-            if (entity == null || string.IsNullOrEmpty(entity.Id)) return;
-            await _restClient.PutAsync($"/api/stocks/{entity.Id}", entity);
-        }
-
-        public async Task DeleteAsync(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return;
-            await _restClient.DeleteAsync($"/api/stocks/{id}");
-        }
-
         public async Task SaveAsync(Stock entity)
         {
             if (entity == null) return;
+            bool isNew = string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString();
+            if (isNew) entity.Id = Guid.NewGuid().ToString();
 
-            if (string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString())
+            LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: false);
+
+            try
             {
-                await CreateAsync(entity);
+                if (isNew) await _restClient.PostAsync("/api/stocks", entity);
+                else await _restClient.PutAsync($"/api/stocks/{entity.Id}", entity);
+                LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: true);
             }
-            else
-            {
-                await UpdateAsync(entity);
-            }
+            catch { }
         }
 
-        // =========================================================
-        // --- ФАСЕТЫ (IRepositoryWithFacets) ---
-        // =========================================================
+        public async Task CreateAsync(Stock entity) => await SaveAsync(entity);
+        public async Task UpdateAsync(Stock entity) => await SaveAsync(entity);
+        public async Task DeleteAsync(string id) { try { await _restClient.DeleteAsync($"/api/stocks/{id}"); } catch { } }
 
         public async Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
         {
             var result = new Dictionary<string, Dictionary<string, int>>();
             if (fields != null)
             {
-                foreach (var field in fields)
-                {
-                    result[field] = new Dictionary<string, int>();
-                }
+                foreach (var field in fields) result[field] = new Dictionary<string, int>();
             }
             return await Task.FromResult(result);
         }

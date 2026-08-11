@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Mermer.Data.Storage;
 using Mermer.Finance.Models;
@@ -26,50 +28,30 @@ namespace Mermer.Ui.Pc.Services
 
         public async Task<IEnumerable<FundsSlip>> GetAllAsync()
         {
-            try
+            // 1. Быстро читаем локальные данные из SQLite
+            var localSlips = GetFromLocalDb();
+
+            // 2. Фоном запрашиваем свежие данные из PostgreSQL через API и обновляем SQLite
+            _ = Task.Run(async () =>
             {
-                var result = await _restClient.GetAsync<List<FundsSlip>>("/api/finance/slips");
-                if (result != null)
+                try
                 {
-                    foreach (var slip in result)
+                    var remoteSlips = await _restClient.GetAsync<List<FundsSlip>>("/api/finance/slips");
+                    if (remoteSlips != null)
                     {
-                        // 1. Инициализируем курсы 1:1, чтобы Mermer правильно пересчитал Total
-                        if (slip.CurrencyConvertions == null)
+                        foreach (var slip in remoteSlips)
                         {
-                            slip.CurrencyConvertions = new Mermer.Data.WatchedObservableCollection<CurrencyConvertion>();
-                        }
-
-                        if (slip.Lines != null && slip.Lines.Any())
-                        {
-                            foreach (var line in slip.Lines)
-                            {
-                                if (!string.IsNullOrEmpty(line.CurrencyId) &&
-                                    !slip.CurrencyConvertions.Any(c => c.CurrencyId == line.CurrencyId))
-                                {
-                                    slip.CurrencyConvertions.Add(new CurrencyConvertion
-                                    {
-                                        Id = Guid.NewGuid().ToString(),
-                                        CurrencyId = line.CurrencyId,
-                                        Multiplier = 1,
-                                        Divider = 1
-                                    });
-                                }
-                            }
-                        }
-
-                        // 2. Указываем отображаемую валюту для ордера (если не задана)
-                        if (string.IsNullOrEmpty(slip.DisplayCurrencyId) && slip.Lines != null && slip.Lines.Any())
-                        {
-                            slip.DisplayCurrencyId = slip.Lines.FirstOrDefault()?.CurrencyId;
+                            SaveToLocalDb(slip, isSynced: true);
                         }
                     }
                 }
-                return result ?? Enumerable.Empty<FundsSlip>();
-            }
-            catch
-            {
-                return Enumerable.Empty<FundsSlip>();
-            }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Background Sync Error]: {ex.Message}");
+                }
+            });
+
+            return localSlips;
         }
 
         public async Task<FundsSlip> GetAsync(string id)
@@ -107,15 +89,26 @@ namespace Mermer.Ui.Pc.Services
         public async Task SaveAsync(FundsSlip entity)
         {
             if (entity == null) return;
+
+            if (string.IsNullOrEmpty(entity.Id))
+            {
+                entity.Id = Guid.NewGuid().ToString();
+            }
+
+            // 1. Моментально сохраняем в локальный SQLite (со статусом is_synced = 0)
+            SaveToLocalDb(entity, isSynced: false);
+
+            // 2. Отправляем в PostgreSQL через API
             try
             {
-                if (string.IsNullOrEmpty(entity.Id)) entity.Id = Guid.NewGuid().ToString();
                 await _restClient.PostAsync("/api/finance/slips", entity);
+
+                // Если API ответил успехом — помечаем в SQLite как синхронизировано
+                SaveToLocalDb(entity, isSynced: true);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Save FundsSlip Error]: {ex.Message}");
-                throw;
+                System.Diagnostics.Debug.WriteLine($"[Save FundsSlip API Warning]: {ex.Message}. Saved to local SQLite.");
             }
         }
 
@@ -151,5 +144,140 @@ namespace Mermer.Ui.Pc.Services
 
             return result;
         }
+
+        #region SQLite Helpers
+        private void SaveToLocalDb(FundsSlip slip, bool isSynced)
+        {
+            try
+            {
+                using (var connection = new SQLiteConnection(LocalSqliteCache.ConnectionString))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = @"
+                            INSERT INTO local_funds_slips (
+                                id, code, date, funds_slip_type, depository_id, user_name, description, lines_json, is_completed, is_disabled, is_synced, updated_at
+                            ) VALUES (
+                                @id, @code, @date, @type, @depositoryId, @userName, @description, @linesJson, @isCompleted, @isDisabled, @isSynced, @updatedAt
+                            )
+                            ON CONFLICT(id) DO UPDATE SET
+                                code = @code,
+                                date = @date,
+                                funds_slip_type = @type,
+                                depository_id = @depositoryId,
+                                user_name = @userName,
+                                description = @description,
+                                lines_json = @linesJson,
+                                is_completed = @isCompleted,
+                                is_disabled = @isDisabled,
+                                is_synced = @isSynced,
+                                updated_at = @updatedAt;
+                        ";
+
+                        command.Parameters.AddWithValue("@id", slip.Id ?? Guid.NewGuid().ToString());
+                        command.Parameters.AddWithValue("@code", slip.Code ?? "");
+                        command.Parameters.AddWithValue("@date", slip.Date.ToString("o"));
+                        command.Parameters.AddWithValue("@type", slip.SlipType.ToString());
+                        command.Parameters.AddWithValue("@depositoryId", slip.DepositoryId ?? "");
+                        command.Parameters.AddWithValue("@userName", slip.UserName ?? "admin");
+                        command.Parameters.AddWithValue("@description", slip.Description ?? "");
+                        command.Parameters.AddWithValue("@linesJson", JsonSerializer.Serialize(slip.Lines ?? new Mermer.Data.WatchedObservableCollection<FundsSlipLine>()));
+                        command.Parameters.AddWithValue("@isCompleted", slip.IsCompleted ? 1 : 0);
+                        command.Parameters.AddWithValue("@isDisabled", slip.IsDisabled ? 1 : 0);
+                        command.Parameters.AddWithValue("@isSynced", isSynced ? 1 : 0);
+                        command.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow.ToString("o"));
+
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SQLite Save Error]: {ex.Message}");
+            }
+        }
+
+        private List<FundsSlip> GetFromLocalDb()
+        {
+            var result = new List<FundsSlip>();
+            try
+            {
+                using (var connection = new SQLiteConnection(LocalSqliteCache.ConnectionString))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "SELECT id, code, date, funds_slip_type, depository_id, user_name, description, lines_json, is_completed, is_disabled FROM local_funds_slips WHERE is_disabled = 0;";
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var slip = new FundsSlip
+                                {
+                                    Id = reader.GetString(0),
+                                    Code = reader.IsDBNull(1) ? "" : reader.GetString(1),
+                                    Date = reader.IsDBNull(2) ? DateTime.Now : DateTime.Parse(reader.GetString(2)),
+                                    DepositoryId = reader.IsDBNull(4) ? null : reader.GetString(4),
+                                    UserName = reader.IsDBNull(5) ? "admin" : reader.GetString(5),
+                                    Description = reader.IsDBNull(6) ? "" : reader.GetString(6),
+                                    IsCompleted = !reader.IsDBNull(8) && reader.GetInt32(8) == 1,
+                                    IsDisabled = !reader.IsDBNull(9) && reader.GetInt32(9) == 1
+                                };
+
+                                string linesJson = reader.IsDBNull(7) ? null : reader.GetString(7);
+                                if (!string.IsNullOrEmpty(linesJson))
+                                {
+                                    try
+                                    {
+                                        var lines = JsonSerializer.Deserialize<List<FundsSlipLine>>(linesJson);
+                                        if (lines != null)
+                                        {
+                                            slip.Lines = new Mermer.Data.WatchedObservableCollection<FundsSlipLine>(lines);
+                                        }
+                                    }
+                                    catch { }
+                                }
+
+                                // Восстанавливаем конвертацию валют для расчета Total
+                                if (slip.CurrencyConvertions == null)
+                                {
+                                    slip.CurrencyConvertions = new Mermer.Data.WatchedObservableCollection<CurrencyConvertion>();
+                                }
+
+                                if (slip.Lines != null && slip.Lines.Any())
+                                {
+                                    foreach (var line in slip.Lines)
+                                    {
+                                        if (!string.IsNullOrEmpty(line.CurrencyId) &&
+                                            !slip.CurrencyConvertions.Any(c => c.CurrencyId == line.CurrencyId))
+                                        {
+                                            slip.CurrencyConvertions.Add(new CurrencyConvertion
+                                            {
+                                                Id = Guid.NewGuid().ToString(),
+                                                CurrencyId = line.CurrencyId,
+                                                Multiplier = 1,
+                                                Divider = 1
+                                            });
+                                        }
+                                    }
+                                    slip.DisplayCurrencyId = slip.Lines.FirstOrDefault()?.CurrencyId;
+                                }
+
+                                result.Add(slip);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SQLite Read Error]: {ex.Message}");
+            }
+
+            return result;
+        }
+        #endregion
     }
 }

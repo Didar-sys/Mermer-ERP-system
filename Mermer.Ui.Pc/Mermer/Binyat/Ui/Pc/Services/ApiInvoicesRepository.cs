@@ -13,13 +13,14 @@ namespace Mermer.Ui.Pc.Services
     public class ApiInvoicesRepository : IRepository<Invoice>, IReadOnlyRepository<Invoice>, IInvoicesRepository
     {
         private readonly RestClient _restClient;
+        private const string DocType = "Invoice";
 
         public ApiInvoicesRepository(RestClient restClient)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
 
-        // --- IInvoicesRepository СРЕЗЫ ДАННЫХ (РЕАЛИЗАЦИЯ ИНТЕРФЕЙСА) ---
+        // --- IInvoicesRepository СРЕЗЫ ДАННЫХ ---
 
         public Task<IEnumerable<InvoiceInfo>> GetInfoAsync(DateTime from, DateTime till)
         {
@@ -103,75 +104,117 @@ namespace Mermer.Ui.Pc.Services
             }
         }
 
-        // --- БАЗОВЫЕ МЕТОДЫ ЧТЕНИЯ ---
+        // --- БАЗОВЫЕ МЕТОДЫ ЧТЕНИЯ (ГИБРИДНЫЕ: SQLITE + API) ---
 
         public async Task<IEnumerable<Invoice>> GetAllAsync()
         {
-            return await GetAsync(Array.Empty<Expression<Func<Invoice, bool>>>());
+            var local = LocalSqliteCache.GetAllDocuments<Invoice>(DocType);
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    // 1. Досылаем несинхронизированные накладные
+                    var unsynced = LocalSqliteCache.GetUnsyncedDocuments<Invoice>(DocType);
+                    foreach (var (id, inv) in unsynced)
+                    {
+                        try
+                        {
+                            await _restClient.PostAsync("/api/invoices", inv);
+                            LocalSqliteCache.SaveDocument(DocType, id, inv, isSynced: true);
+                        }
+                        catch { }
+                    }
+
+                    // 2. Скачиваем свежие с сервера
+                    var remote = await _restClient.GetAsync<List<Invoice>>("/api/invoices");
+                    if (remote != null)
+                    {
+                        foreach (var inv in remote)
+                        {
+                            LocalSqliteCache.SaveDocument(DocType, inv.Id, inv, isSynced: true);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Invoice Sync Error]: {ex.Message}");
+                }
+            });
+
+            return local;
         }
 
         public async Task<Invoice> GetAsync(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
-            try
-            {
-                return await _restClient.GetAsync<Invoice>($"/api/invoices/{id}");
-            }
-            catch
-            {
-                return null;
-            }
+            var all = await GetAllAsync();
+            return all.FirstOrDefault(i => string.Equals(i.Id, id, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task<IEnumerable<Invoice>> GetAsync(string[] ids)
         {
             if (ids == null || !ids.Any()) return Enumerable.Empty<Invoice>();
-            var list = new List<Invoice>();
-            foreach (var id in ids)
-            {
-                var item = await GetAsync(id);
-                if (item != null) list.Add(item);
-            }
-            return list;
+            var all = await GetAllAsync();
+            var idSet = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
+            return all.Where(i => idSet.Contains(i.Id));
         }
 
         public async Task<IEnumerable<Invoice>> GetAsync(params Expression<Func<Invoice, bool>>[] predicates)
         {
-            return Enumerable.Empty<Invoice>();
+            var all = await GetAllAsync();
+            var query = all.AsQueryable();
+            if (predicates != null)
+            {
+                foreach (var p in predicates) if (p != null) query = query.Where(p);
+            }
+            return query.ToList();
         }
 
         public async Task<int> CountAsync(params Expression<Func<Invoice, bool>>[] predicates)
         {
-            return 0;
+            var result = await GetAsync(predicates);
+            return result.Count();
         }
 
-        // --- CUD ОПЕРАЦИИ ---
-
-        public async Task CreateAsync(Invoice entity)
-        {
-            if (entity == null) return;
-            await _restClient.PostAsync("/api/invoices", entity);
-        }
-
-        public async Task UpdateAsync(Invoice entity)
-        {
-            if (entity == null || string.IsNullOrEmpty(entity.Id)) return;
-            await _restClient.PutAsync($"/api/invoices/{entity.Id}", entity);
-        }
-
-        public async Task DeleteAsync(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return;
-            await _restClient.DeleteAsync($"/api/invoices/{id}");
-        }
+        // --- CUD ОПЕРАЦИИ (СОХРАНЕНИЕ В SQLITE + POST/PUT) ---
 
         public async Task SaveAsync(Invoice entity)
         {
             if (entity == null) return;
-            if (string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString())
-                await CreateAsync(entity);
-            else
-                await UpdateAsync(entity);
+
+            bool isNew = string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString();
+            if (isNew) entity.Id = Guid.NewGuid().ToString();
+
+            // Сохраняем локально
+            LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: false);
+
+            try
+            {
+                if (isNew)
+                    await _restClient.PostAsync("/api/invoices", entity);
+                else
+                    await _restClient.PutAsync($"/api/invoices/{entity.Id}", entity);
+
+                LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: true);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Invoice Save Error]: {ex.Message}");
+            }
+        }
+
+        public async Task CreateAsync(Invoice entity) => await SaveAsync(entity);
+        public async Task UpdateAsync(Invoice entity) => await SaveAsync(entity);
+
+        public async Task DeleteAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            try
+            {
+                await _restClient.DeleteAsync($"/api/invoices/{id}");
+            }
+            catch { }
         }
 
         private class CountResponse

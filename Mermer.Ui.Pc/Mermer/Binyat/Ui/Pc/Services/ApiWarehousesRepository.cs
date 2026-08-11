@@ -13,64 +13,60 @@ namespace Mermer.Ui.Pc.Services
     public class ApiWarehousesRepository : IRepository<Warehouse>, IReadOnlyRepository<Warehouse>
     {
         private readonly RestClient _restClient;
+        private const string DocType = "Warehouse";
 
         public ApiWarehousesRepository(RestClient restClient)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
 
-        // --- ЧТЕНИЕ ---
-
         public async Task<IEnumerable<Warehouse>> GetAllAsync()
         {
-            try
-            {
-                var dtos = await _restClient.GetAsync<List<WarehouseDetailsDto>>("/api/enterprise/warehouses");
-                if (dtos == null) return Enumerable.Empty<Warehouse>();
+            var local = LocalSqliteCache.GetAllDocuments<Warehouse>(DocType);
 
-                return dtos.Select(dto => new Warehouse
-                {
-                    Id = dto.Id,
-                    Name = dto.Name,
-                    OfficeId = dto.OfficeId,
-                    Description = dto.Description
-                });
-            }
-            catch
+            _ = Task.Run(async () =>
             {
-                return Enumerable.Empty<Warehouse>();
-            }
+                try
+                {
+                    var unsynced = LocalSqliteCache.GetUnsyncedDocuments<Warehouse>(DocType);
+                    foreach (var (id, w) in unsynced)
+                    {
+                        try
+                        {
+                            await _restClient.PostAsync("/api/enterprise/warehouses", w);
+                            LocalSqliteCache.SaveDocument(DocType, id, w, isSynced: true);
+                        }
+                        catch { }
+                    }
+
+                    var dtos = await _restClient.GetAsync<List<WarehouseDetailsDto>>("/api/enterprise/warehouses");
+                    if (dtos != null)
+                    {
+                        foreach (var dto in dtos)
+                        {
+                            var w = new Warehouse { Id = dto.Id, Name = dto.Name, OfficeId = dto.OfficeId, Description = dto.Description };
+                            LocalSqliteCache.SaveDocument(DocType, w.Id, w, isSynced: true);
+                        }
+                    }
+                }
+                catch { }
+            });
+
+            return local;
         }
 
         public async Task<Warehouse> GetAsync(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
-
-            try
-            {
-                var dto = await _restClient.GetAsync<WarehouseDetailsDto>($"/api/enterprise/warehouses/{id}");
-                if (dto == null) return null;
-
-                return new Warehouse
-                {
-                    Id = dto.Id,
-                    Name = dto.Name,
-                    OfficeId = dto.OfficeId,
-                    Description = dto.Description
-                };
-            }
-            catch
-            {
-                return null;
-            }
+            var all = await GetAllAsync();
+            return all.FirstOrDefault(w => string.Equals(w.Id, id, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task<IEnumerable<Warehouse>> GetAsync(string[] ids)
         {
             if (ids == null || !ids.Any()) return Enumerable.Empty<Warehouse>();
-
             var all = await GetAllAsync();
-            var idSet = new HashSet<string>(ids);
+            var idSet = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
             return all.Where(w => idSet.Contains(w.Id));
         }
 
@@ -78,16 +74,10 @@ namespace Mermer.Ui.Pc.Services
         {
             var all = await GetAllAsync();
             var query = all.AsQueryable();
-
             if (predicates != null)
             {
-                foreach (var predicate in predicates)
-                {
-                    if (predicate != null)
-                        query = query.Where(predicate);
-                }
+                foreach (var p in predicates) if (p != null) query = query.Where(p);
             }
-
             return query.ToList();
         }
 
@@ -97,38 +87,25 @@ namespace Mermer.Ui.Pc.Services
             return result.Count();
         }
 
-        // --- ЗАПИСЬ И ИЗМЕНЕНИЕ (CUD) ---
-
-        public async Task CreateAsync(Warehouse entity)
-        {
-            if (entity == null) return;
-            await _restClient.PostAsync("/api/enterprise/warehouses", entity);
-        }
-
-        public async Task UpdateAsync(Warehouse entity)
-        {
-            if (entity == null || string.IsNullOrEmpty(entity.Id)) return;
-            await _restClient.PutAsync($"/api/enterprise/warehouses/{entity.Id}", entity);
-        }
-
-        public async Task DeleteAsync(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return;
-            await _restClient.DeleteAsync($"/api/enterprise/warehouses/{id}");
-        }
-
         public async Task SaveAsync(Warehouse entity)
         {
             if (entity == null) return;
+            bool isNew = string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString();
+            if (isNew) entity.Id = Guid.NewGuid().ToString();
 
-            if (string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString())
+            LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: false);
+
+            try
             {
-                await CreateAsync(entity);
+                if (isNew) await _restClient.PostAsync("/api/enterprise/warehouses", entity);
+                else await _restClient.PutAsync($"/api/enterprise/warehouses/{entity.Id}", entity);
+                LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: true);
             }
-            else
-            {
-                await UpdateAsync(entity);
-            }
+            catch { }
         }
+
+        public async Task CreateAsync(Warehouse entity) => await SaveAsync(entity);
+        public async Task UpdateAsync(Warehouse entity) => await SaveAsync(entity);
+        public async Task DeleteAsync(string id) { try { await _restClient.DeleteAsync($"/api/enterprise/warehouses/{id}"); } catch { } }
     }
 }

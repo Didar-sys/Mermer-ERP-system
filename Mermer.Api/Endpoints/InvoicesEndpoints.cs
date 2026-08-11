@@ -1,14 +1,18 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
-using Mermer.Commerce.Models;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Mermer.Data.Postgres;
 using Mermer.Data.Postgres.Abstractions;
-using Microsoft.EntityFrameworkCore;
 
-// Псевдонимы типов для исключения неоднозначности
-using UIInvoice = Mermer.Commerce.Models.Invoice;
+// Псевдоним только для серверной модели PostgreSQL
 using PgInvoice = Mermer.Data.Postgres.Models.Invoice;
-using PgInvoiceType = Mermer.Data.Postgres.Models.InvoiceType;
 
 namespace Mermer.Api.Endpoints;
 
@@ -58,28 +62,20 @@ public static class InvoicesEndpoints
 
             return Results.Ok(uiResponse);
         })
-         .WithName("InvoicesGetInfo");
+        .WithName("InvoicesGetInfo");
 
         // --- 2. КОЛИЧЕСТВО НАКЛАДНЫХ ---
-        group.MapGet("/count", async (
-            DateTime? from,
-            DateTime? till,
-            IInvoicesRepository repo,
-            CancellationToken ct) =>
+        group.MapGet("/count", async (DateTime? from, DateTime? till, IInvoicesRepository repo, CancellationToken ct) =>
         {
             var startDate = from ?? DateTime.MinValue;
             var endDate = till ?? DateTime.MaxValue;
-
             var count = await repo.CountInfoAsync(startDate, endDate, ct);
             return Results.Ok(new { count });
         })
         .WithName("InvoicesCountInfo");
 
         // --- 3. НАКЛАДНАЯ ПО ID ---
-        group.MapGet("/{id}", async (
-            string id,
-            IInvoicesRepository repo,
-            CancellationToken ct) =>
+        group.MapGet("/{id}", async (string id, IInvoicesRepository repo, CancellationToken ct) =>
         {
             var inv = await repo.GetAsync(id, ct);
             return inv is null ? Results.NotFound() : Results.Ok(inv);
@@ -95,37 +91,37 @@ public static class InvoicesEndpoints
         })
         .WithName("InvoicesGetNextCode");
 
-        // --- 5. СОЗДАНИЕ (POST) ---
-        group.MapPost("/", async (
-            UIInvoice model,
-            IInvoicesRepository repo,
-            CancellationToken ct) =>
+        // --- 5. СОЗДАНИЕ И ОБНОВЛЕНИЕ (POST / PUT) ЧЕРЕЗ JSON ---
+        Func<HttpRequest, IInvoicesRepository, CancellationToken, Task<IResult>> saveInvoiceHandler = async (request, repo, ct) =>
         {
-            var pgModel = MapToPgInvoice(model);
-            var created = await repo.CreateAsync(pgModel, ct);
-            return Results.Created($"/api/invoices/{created.Id}", created);
-        })
-        .WithName("InvoicesCreate");
+            using var reader = new StreamReader(request.Body);
+            var body = await reader.ReadToEndAsync();
+            if (string.IsNullOrEmpty(body)) return Results.BadRequest("Empty body");
 
-        // --- 6. ОБНОВЛЕНИЕ (PUT) ---
-        group.MapPut("/{id}", async (
-            string id,
-            UIInvoice model,
-            IInvoicesRepository repo,
-            CancellationToken ct) =>
-        {
-            model.Id = id;
-            var pgModel = MapToPgInvoice(model);
-            var updated = await repo.UpdateAsync(pgModel, ct);
-            return Results.Ok(updated);
-        })
-        .WithName("InvoicesUpdate");
+            // Напрямую парсим JSON из WPF-клиента в серверную модель! Это решает проблему со свойствами.
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var pgInvoice = JsonSerializer.Deserialize<PgInvoice>(body, options);
 
-        // --- 7. УДАЛЕНИЕ (DELETE) ---
-        group.MapDelete("/{id}", async (
-            string id,
-            IInvoicesRepository repo,
-            CancellationToken ct) =>
+            if (pgInvoice == null) return Results.BadRequest("Invalid JSON");
+
+            if (string.IsNullOrEmpty(pgInvoice.Id) || pgInvoice.Id == Guid.Empty.ToString())
+            {
+                pgInvoice.Id = Guid.NewGuid().ToString();
+                await repo.CreateAsync(pgInvoice, ct);
+                return Results.Created($"/api/invoices/{pgInvoice.Id}", pgInvoice);
+            }
+            else
+            {
+                await repo.UpdateAsync(pgInvoice, ct);
+                return Results.Ok(pgInvoice);
+            }
+        };
+
+        group.MapPost("/", saveInvoiceHandler).WithName("InvoicesCreate");
+        group.MapPut("/{id}", async (string id, HttpRequest request, IInvoicesRepository repo, CancellationToken ct) => await saveInvoiceHandler(request, repo, ct)).WithName("InvoicesUpdate");
+
+        // --- 6. УДАЛЕНИЕ (DELETE) ---
+        group.MapDelete("/{id}", async (string id, IInvoicesRepository repo, CancellationToken ct) =>
         {
             await repo.DeleteAsync(id, ct);
             return Results.NoContent();
@@ -133,32 +129,5 @@ public static class InvoicesEndpoints
         .WithName("InvoicesDelete");
 
         return app;
-    }
-
-    private static PgInvoice MapToPgInvoice(UIInvoice src)
-    {
-        Enum.TryParse<PgInvoiceType>(src.InvoiceType.ToString(), out var parsedType);
-
-        return new PgInvoice
-        {
-            Id = src.Id,
-            Code = src.Code,
-            Date = src.Date,
-            DueDate = src.DueDate,
-            InvoiceType = parsedType,
-            UserId = src.UserId,
-            UserName = src.UserName,
-            OfficeId = src.OfficeId,
-            WarehouseId = src.WarehouseId,
-            DepositoryId = src.DepositoryId,
-            PartnerId = src.PartnerId,
-            DisplayCurrencyId = src.DisplayCurrencyId,
-            StockPriceGroup = src.StockPriceGroup,
-            IsCompleted = src.IsCompleted,
-            IsDisabled = src.IsDisabled,
-            Description = src.Description,
-            Group = src.Group,
-            Tags = src.Tags?.ToList()
-        };
     }
 }

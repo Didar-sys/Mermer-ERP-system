@@ -13,52 +13,71 @@ namespace Mermer.Ui.Pc.Services
     public class ApiOfficesRepository : IRepository<Office>, IReadOnlyRepository<Office>
     {
         private readonly RestClient _restClient;
+        private const string DocType = "Office"; // Идентификатор для SQLite
 
         public ApiOfficesRepository(RestClient restClient)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
 
+        // --- ЧТЕНИЕ (СНАЧАЛА КЭШ, ЗАТЕМ СИНХРОНИЗАЦИЯ) ---
         public async Task<IEnumerable<Office>> GetAllAsync()
         {
-            try
-            {
-                var dtos = await _restClient.GetAsync<List<OfficeDto>>("/api/enterprise/offices");
-                if (dtos == null) return Enumerable.Empty<Office>();
+            var localOffices = LocalSqliteCache.GetAllDocuments<Office>(DocType);
 
-                return dtos.Select(dto => new Office
-                {
-                    Id = dto.Id,
-                    Name = dto.Name,
-                    Description = dto.Description
-                });
-            }
-            catch
+            _ = Task.Run(async () =>
             {
-                return Enumerable.Empty<Office>();
-            }
+                try
+                {
+                    // Досылаем оффлайн-офисы
+                    var unsynced = LocalSqliteCache.GetUnsyncedDocuments<Office>(DocType);
+                    foreach (var (id, office) in unsynced)
+                    {
+                        try
+                        {
+                            await _restClient.PostAsync("/api/enterprise/offices", office);
+                            LocalSqliteCache.SaveDocument(DocType, id, office, isSynced: true);
+                        }
+                        catch { }
+                    }
+
+                    // Скачиваем свежие офисы
+                    var dtos = await _restClient.GetAsync<List<OfficeDto>>("/api/enterprise/offices");
+                    if (dtos != null)
+                    {
+                        foreach (var dto in dtos)
+                        {
+                            var office = new Office
+                            {
+                                Id = dto.Id,
+                                Name = dto.Name,
+                                Description = dto.Description
+                            };
+                            LocalSqliteCache.SaveDocument(DocType, office.Id, office, isSynced: true);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Offices Sync Error]: {ex.Message}");
+                }
+            });
+
+            return localOffices;
         }
 
         public async Task<Office> GetAsync(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
-
-            try
-            {
-                var dtos = await GetAllAsync();
-                return dtos.FirstOrDefault(o => o.Id == id);
-            }
-            catch
-            {
-                return null;
-            }
+            var all = await GetAllAsync();
+            return all.FirstOrDefault(o => string.Equals(o.Id, id, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task<IEnumerable<Office>> GetAsync(string[] ids)
         {
             if (ids == null || !ids.Any()) return Enumerable.Empty<Office>();
             var all = await GetAllAsync();
-            var idSet = new HashSet<string>(ids);
+            var idSet = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
             return all.Where(o => idSet.Contains(o.Id));
         }
 
@@ -84,36 +103,34 @@ namespace Mermer.Ui.Pc.Services
 
         // --- ЗАПИСЬ И ИЗМЕНЕНИЕ (CUD) ---
 
-        public async Task CreateAsync(Office entity)
-        {
-            if (entity == null) return;
-            await _restClient.PostAsync("/api/enterprise/offices", entity);
-        }
-
-        public async Task UpdateAsync(Office entity)
-        {
-            if (entity == null || string.IsNullOrEmpty(entity.Id)) return;
-            await _restClient.PutAsync($"/api/enterprise/offices/{entity.Id}", entity);
-        }
-
-        public async Task DeleteAsync(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return;
-            await _restClient.DeleteAsync($"/api/enterprise/offices/{id}");
-        }
-
         public async Task SaveAsync(Office entity)
         {
             if (entity == null) return;
 
-            if (string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString())
+            bool isNew = string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString();
+            if (isNew) entity.Id = Guid.NewGuid().ToString();
+
+            LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: false);
+
+            try
             {
-                await CreateAsync(entity);
+                if (isNew)
+                    await _restClient.PostAsync("/api/enterprise/offices", entity);
+                else
+                    await _restClient.PutAsync($"/api/enterprise/offices/{entity.Id}", entity);
+
+                LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: true);
             }
-            else
-            {
-                await UpdateAsync(entity);
-            }
+            catch { }
+        }
+
+        public async Task CreateAsync(Office entity) => await SaveAsync(entity);
+        public async Task UpdateAsync(Office entity) => await SaveAsync(entity);
+
+        public async Task DeleteAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            try { await _restClient.DeleteAsync($"/api/enterprise/offices/{id}"); } catch { }
         }
     }
 }

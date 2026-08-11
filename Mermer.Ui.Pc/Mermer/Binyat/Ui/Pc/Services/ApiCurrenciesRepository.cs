@@ -13,6 +13,7 @@ namespace Mermer.Ui.Pc.Services
     public class ApiCurrenciesRepository : IRepository<Currency>, IReadOnlyRepository<Currency>
     {
         private readonly RestClient _restClient;
+        private const string DocType = "Currency";
 
         public ApiCurrenciesRepository(RestClient restClient)
         {
@@ -21,35 +22,51 @@ namespace Mermer.Ui.Pc.Services
 
         public async Task<IEnumerable<Currency>> GetAllAsync()
         {
-            try
-            {
-                var dtos = await _restClient.GetAsync<List<CurrencyDto>>("/api/enterprise/currencies");
-                if (dtos == null) return Enumerable.Empty<Currency>();
+            var localCurrencies = LocalSqliteCache.GetAllDocuments<Currency>(DocType);
 
-                return dtos.Select(dto => new Currency
-                {
-                    Id = dto.Id,
-                    Name = dto.Name
-                });
-            }
-            catch
+            _ = Task.Run(async () =>
             {
-                return Enumerable.Empty<Currency>();
-            }
+                try
+                {
+                    var unsynced = LocalSqliteCache.GetUnsyncedDocuments<Currency>(DocType);
+                    foreach (var (id, currency) in unsynced)
+                    {
+                        try
+                        {
+                            await _restClient.PostAsync("/api/enterprise/currencies", currency);
+                            LocalSqliteCache.SaveDocument(DocType, id, currency, isSynced: true);
+                        }
+                        catch { }
+                    }
+
+                    var dtos = await _restClient.GetAsync<List<CurrencyDto>>("/api/enterprise/currencies");
+                    if (dtos != null)
+                    {
+                        foreach (var dto in dtos)
+                        {
+                            var currency = new Currency { Id = dto.Id, Name = dto.Name };
+                            LocalSqliteCache.SaveDocument(DocType, currency.Id, currency, isSynced: true);
+                        }
+                    }
+                }
+                catch { }
+            });
+
+            return localCurrencies;
         }
 
         public async Task<Currency> GetAsync(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
             var all = await GetAllAsync();
-            return all.FirstOrDefault(c => c.Id == id);
+            return all.FirstOrDefault(c => string.Equals(c.Id, id, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task<IEnumerable<Currency>> GetAsync(string[] ids)
         {
             if (ids == null || !ids.Any()) return Enumerable.Empty<Currency>();
             var all = await GetAllAsync();
-            var idSet = new HashSet<string>(ids);
+            var idSet = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
             return all.Where(c => idSet.Contains(c.Id));
         }
 
@@ -59,10 +76,7 @@ namespace Mermer.Ui.Pc.Services
             var query = all.AsQueryable();
             if (predicates != null)
             {
-                foreach (var predicate in predicates)
-                {
-                    if (predicate != null) query = query.Where(predicate);
-                }
+                foreach (var p in predicates) if (p != null) query = query.Where(p);
             }
             return query.ToList();
         }
@@ -73,9 +87,26 @@ namespace Mermer.Ui.Pc.Services
             return result.Count();
         }
 
-        public Task SaveAsync(Currency entity) => Task.CompletedTask;
-        public Task CreateAsync(Currency entity) => Task.CompletedTask;
-        public Task UpdateAsync(Currency entity) => Task.CompletedTask;
-        public Task DeleteAsync(string id) => Task.CompletedTask;
+        public async Task SaveAsync(Currency entity)
+        {
+            if (entity == null) return;
+
+            bool isNew = string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString();
+            if (isNew) entity.Id = Guid.NewGuid().ToString();
+
+            LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: false);
+
+            try
+            {
+                if (isNew) await _restClient.PostAsync("/api/enterprise/currencies", entity);
+                else await _restClient.PutAsync($"/api/enterprise/currencies/{entity.Id}", entity);
+                LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: true);
+            }
+            catch { }
+        }
+
+        public async Task CreateAsync(Currency entity) => await SaveAsync(entity);
+        public async Task UpdateAsync(Currency entity) => await SaveAsync(entity);
+        public async Task DeleteAsync(string id) { try { await _restClient.DeleteAsync($"/api/enterprise/currencies/{id}"); } catch { } }
     }
 }

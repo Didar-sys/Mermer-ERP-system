@@ -207,6 +207,12 @@ public class Setup : MvxWpfSetup
         builder.RegisterAssemblyTypes(assembly).Where(x => x.Name.EndsWith("Mapper")).AsSelf().InstancePerDependency();
         builder.RegisterModule<AutoMapperModule>();
         builder.RegisterSource(new DummyInterfaceSource());
+        Mermer.Ui.Pc.Services.LocalSqliteCache.InitializeDatabase();
+
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiPartnerBalancesRepository>()
+       .AsImplementedInterfaces()
+       .SingleInstance();
 
         var container = builder.Build();
 
@@ -313,7 +319,6 @@ public class DummyInterfaceSource : IRegistrationSource
                 name == "IInvoicesRepository" ||
                 name == "ITransactionCodeGenerationService" ||
                 name == "IStocksRepository" ||
-                name == "IPartnerBalancesRepository" ||
                 name.Contains("FundsOpening") || // <-- ПЕРЕХВАТЫВАЕМ ОШИБКУ #FundsOpening
                 ns.Contains("Authorizers") ||
                 ns.Contains("Couch"))

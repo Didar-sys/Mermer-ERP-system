@@ -1,136 +1,83 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
-using Mermer.CRM.Models;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Mermer.Data.Postgres;
 using Mermer.Data.Postgres.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Mermer.Api.Endpoints;
 
 public static class PartnersEndpoints
 {
-    public static IEndpointRouteBuilder MapPartnersEndpoints(this IEndpointRouteBuilder app)
+    public static void MapPartnersEndpoints(this IEndpointRouteBuilder routes)
     {
-        var group = app.MapGroup("/api/catalog/partners").WithTags("Partners");
+        var group = routes.MapGroup("/api/partners").WithTags("Partners");
 
-        // --- 1. ЧТЕНИЕ СПИСКА ПАРТНЕРОВ (СО ВСЕМИ ПОЛЯМИ) ---
-        group.MapGet("", async (MermerDbContext db) =>
+        group.MapGet("/", async (MermerDbContext db) =>
         {
-            var partners = await db.Partners
-                .AsNoTracking()
-                .Select(p => new Partner
-                {
-                    Id = p.Id.ToString(),
-                    Code = p.Code ?? string.Empty,
-                    Name = p.Name ?? string.Empty,
-                    Phone = p.Phone ?? string.Empty,
-                    Address = p.Address ?? string.Empty,
-                    CreditLimit = p.CreditLimit,
-                    IsDisabled = p.IsDisabled
-                })
-                .ToListAsync();
-
+            var partners = await db.Partners.AsNoTracking().Where(p => !p.IsDisabled).ToListAsync();
             return Results.Ok(partners);
-        })
-        .WithName("GetPartnersList");
-
-        // --- 2. ЧТЕНИЕ ПО ID ---
-        group.MapGet("/{id}", async (string id, MermerDbContext db) =>
-        {
-            if (!Guid.TryParse(id, out var guidId)) return Results.BadRequest("Invalid Guid");
-
-            var entity = await db.Partners.AsNoTracking().FirstOrDefaultAsync(p => p.Id == guidId);
-            if (entity == null) return Results.NotFound();
-
-            var model = new Partner
-            {
-                Id = entity.Id.ToString(),
-                Name = entity.Name,
-                Code = entity.Code,
-                Phone = entity.Phone,
-                Address = entity.Address,
-                CreditLimit = entity.CreditLimit,
-                IsDisabled = entity.IsDisabled
-            };
-
-            return Results.Ok(model);
         });
 
-        // --- 3. СОЗДАНИЕ (POST) ---
-        group.MapPost("", async (Partner model, MermerDbContext db) =>
+        // Общая логика обработки сохранения партнера
+        Func<HttpRequest, MermerDbContext, Task<IResult>> savePartnerHandler = async (request, db) =>
         {
-            Guid partnerGuid = Guid.TryParse(model.Id, out var parsed) ? parsed : Guid.NewGuid();
+            using var reader = new StreamReader(request.Body);
+            var body = await reader.ReadToEndAsync();
 
-            var entity = new PartnerEntity
+            if (string.IsNullOrEmpty(body)) return Results.BadRequest("Empty body");
+
+            using var doc = JsonDocument.Parse(body);
+            var root = doc.RootElement;
+
+            string idStr = root.TryGetProperty("id", out var idProp) || root.TryGetProperty("Id", out idProp) ? idProp.GetString() : null;
+            Guid partnerId = Guid.TryParse(idStr, out var parsedGuid) ? parsedGuid : Guid.NewGuid();
+
+            string code = root.TryGetProperty("code", out var codeProp) || root.TryGetProperty("Code", out codeProp) ? codeProp.GetString() : $"P-{DateTime.UtcNow:yyMMddHHmmss}";
+            string name = root.TryGetProperty("name", out var nameProp) || root.TryGetProperty("Name", out nameProp) ? nameProp.GetString() : "Новый партнер";
+            string phone = root.TryGetProperty("phone", out var phoneProp) || root.TryGetProperty("Phone", out phoneProp) ? phoneProp.GetString() : "";
+
+            var existing = await db.Partners.FirstOrDefaultAsync(p => p.Id == partnerId);
+            if (existing == null)
             {
-                Id = partnerGuid,
-                Name = model.Name ?? string.Empty,
-                Code = model.Code,
-                Phone = model.Phone,
-                Address = model.Address,
-                CreditLimit = model.CreditLimit,
-                IsDisabled = model.IsDisabled,
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow
-            };
-
-            db.Partners.Add(entity);
-            await db.SaveChangesAsync();
-
-            model.Id = entity.Id.ToString();
-            return Results.Created($"/api/catalog/partners/{model.Id}", model);
-        });
-
-        // --- 4. ОБНОВЛЕНИЕ (PUT) ---
-        group.MapPut("/{id}", async (string id, Partner model, MermerDbContext db) =>
-        {
-            if (!Guid.TryParse(id, out var guidId)) return Results.BadRequest("Invalid Guid");
-
-            var entity = await db.Partners.FindAsync(guidId);
-            if (entity == null) return Results.NotFound();
-
-            entity.Name = model.Name ?? entity.Name;
-            entity.Code = model.Code;
-            entity.Phone = model.Phone;
-            entity.Address = model.Address;
-            entity.CreditLimit = model.CreditLimit;
-            entity.IsDisabled = model.IsDisabled;
-            entity.UpdatedAt = DateTimeOffset.UtcNow;
-
-            await db.SaveChangesAsync();
-            return Results.Ok(model);
-        });
-
-        // --- 5. УДАЛЕНИЕ (DELETE) ---
-        group.MapDelete("/{id}", async (string id, MermerDbContext db) =>
-        {
-            if (!Guid.TryParse(id, out var guidId)) return Results.BadRequest("Invalid Guid");
-
-            var entity = await db.Partners.FindAsync(guidId);
-            if (entity != null)
+                var entity = new PartnerEntity
+                {
+                    Id = partnerId,
+                    Code = code,
+                    Name = name,
+                    Phone = phone,
+                    IsDisabled = false,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await db.Partners.AddAsync(entity);
+            }
+            else
             {
-                db.Partners.Remove(entity);
-                await db.SaveChangesAsync();
+                existing.Code = code;
+                existing.Name = name;
+                existing.Phone = phone;
+                existing.UpdatedAt = DateTime.UtcNow;
             }
 
-            return Results.NoContent();
+            await db.SaveChangesAsync();
+            return Results.Content($"{{\"id\":\"{partnerId}\",\"code\":\"{code}\"}}", "application/json");
+        };
+
+        group.MapGet("/balances", async (MermerDbContext db) =>
+        {
+            // Здесь будет агрегация данных из транзакций и счетов. 
+            // Пока возвращаем пустой массив, чтобы WPF-клиент не крашился при открытии вкладки "Взаиморасчеты".
+            return Results.Ok(new object[] { });
         });
 
-        // --- 6. БАЛАНС ПАРТНЕРА ---
-        group.MapGet("/{id}/balance", async (string id, string? officeId, DateTime? date, MermerDbContext db) =>
-        {
-            return Results.Ok(new { Balance = 0m });
-        });
-
-        // --- 7. АВТОНУМЕРАТОР ---
-        group.MapGet("/next-code", async (MermerDbContext db) =>
-        {
-            var count = await db.Partners.CountAsync();
-            var nextCode = $"P-{(count + 1):D5}";
-            return Results.Ok(new { code = nextCode });
-        })
-        .WithName("PartnersGetNextCode");
-
-        return app;
+        // Регистрируем обработчик для обоих путей
+        group.MapPost("/", savePartnerHandler);
+        routes.MapPost("/api/catalog/partners", savePartnerHandler);
     }
 }
