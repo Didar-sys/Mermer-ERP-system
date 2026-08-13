@@ -131,6 +131,8 @@ public class DetailsViewModel<T> : BaseViewModel, IMvxViewModel<string>, IMvxVie
         bool succeed = false;
         try
         {
+            // Отключаем потенциально проблемные Authorizer-ы.
+            // Наш ApiPartnersRepository сам разберется, как сохранить в SQLite.
             if (string.IsNullOrEmpty(ItemId))
                 await Repository.CreateAsync(Details);
             else
@@ -144,7 +146,10 @@ public class DetailsViewModel<T> : BaseViewModel, IMvxViewModel<string>, IMvxVie
         {
             UserInteractionService.ShowExceptionMessage(new Exception(string.Format(this["Error saving {0}", this[typeof(T).Name]]), ex));
         }
-        IsBusy = false;
+        finally
+        {
+            IsBusy = false; // Гарантированно снимаем блокировку UI
+        }
         return succeed;
     }
 

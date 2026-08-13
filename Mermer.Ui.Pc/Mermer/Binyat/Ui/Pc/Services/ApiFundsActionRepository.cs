@@ -28,14 +28,33 @@ namespace Mermer.Ui.Pc.Services
 
         public async Task<IEnumerable<FundsSlip>> GetAllAsync()
         {
-            // 1. Быстро читаем локальные данные из SQLite
+            // 1. Читаем локальные данные из SQLite
             var localSlips = GetFromLocalDb();
 
-            // 2. Фоном запрашиваем свежие данные из PostgreSQL через API и обновляем SQLite
+            // 2. В фоне досылаем неотправленное из таблицы local_funds_slips и подтягиваем свежее с API
             _ = Task.Run(async () =>
             {
                 try
                 {
+                    // --- 1. ДОСЫЛАЕМ НЕСИНХРОНИЗИРОВАННЫЕ ОРДЕРА ПРЯМО ИЗ local_funds_slips ---
+                    var unsyncedSlips = GetUnsyncedFromLocalDb();
+                    foreach (var slip in unsyncedSlips)
+                    {
+                        try
+                        {
+                            await _restClient.PostAsync("/api/finance/slips", slip);
+
+                            // Отмечаем как синхронизированный в обоих местах
+                            UpdateLocalSyncStatus(slip.Id, true);
+                            LocalSqliteCache.SaveDocument("FundsSlip", slip.Id, slip, isSynced: true);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[FundsSlip Post Error]: {ex.Message}");
+                        }
+                    }
+
+                    // --- 2. СКАЧИВАЕМ СВЕЖИЕ С СЕРВЕРА ---
                     var remoteSlips = await _restClient.GetAsync<List<FundsSlip>>("/api/finance/slips");
                     if (remoteSlips != null)
                     {
@@ -47,11 +66,72 @@ namespace Mermer.Ui.Pc.Services
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[Background Sync Error]: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[FundsSlip Sync Error]: {ex.Message}");
                 }
             });
 
             return localSlips;
+        }
+
+        // Помощник для вытягивания несинхронизированных ордеров из local_funds_slips
+        private List<FundsSlip> GetUnsyncedFromLocalDb()
+        {
+            var list = new List<FundsSlip>();
+            try
+            {
+                using var connection = new SQLiteConnection(LocalSqliteCache.ConnectionString);
+                connection.Open();
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT id, code, date, funds_slip_type, depository_id, user_name, description, lines_json, is_completed, is_disabled FROM local_funds_slips WHERE is_synced = 0;";
+
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    var slip = new FundsSlip
+                    {
+                        Id = reader.IsDBNull(0) ? null : reader.GetString(0),
+                        Code = reader.IsDBNull(1) ? null : reader.GetString(1),
+                        Date = reader.IsDBNull(2) ? DateTime.Now : DateTime.Parse(reader.GetString(2)),
+                        DepositoryId = reader.IsDBNull(4) ? null : reader.GetString(4),
+                        UserName = reader.IsDBNull(5) ? null : reader.GetString(5),
+                        Description = reader.IsDBNull(6) ? null : reader.GetString(6),
+                        IsCompleted = !reader.IsDBNull(8) && reader.GetInt32(8) == 1,
+                        IsDisabled = !reader.IsDBNull(9) && reader.GetInt32(9) == 1
+                    };
+
+                    if (!reader.IsDBNull(7))
+                    {
+                        var json = reader.GetString(7);
+                        var rawLines = Newtonsoft.Json.JsonConvert.DeserializeObject<List<FundsSlipLine>>(json);
+                        if (rawLines != null)
+                        {
+                            slip.Lines = new Mermer.Data.WatchedObservableCollection<FundsSlipLine>(rawLines);
+                        }
+                    }
+
+                    list.Add(slip);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetUnsyncedFromLocalDb Error]: {ex.Message}");
+            }
+            return list;
+        }
+
+        private void UpdateLocalSyncStatus(string id, bool isSynced)
+        {
+            try
+            {
+                using var connection = new SQLiteConnection(LocalSqliteCache.ConnectionString);
+                connection.Open();
+                using var command = connection.CreateCommand();
+                command.CommandText = "UPDATE local_funds_slips SET is_synced = @synced WHERE id = @id;";
+                command.Parameters.AddWithValue("@synced", isSynced ? 1 : 0);
+                command.Parameters.AddWithValue("@id", id);
+                command.ExecuteNonQuery();
+            }
+            catch { }
         }
 
         public async Task<FundsSlip> GetAsync(string id)
@@ -208,7 +288,7 @@ namespace Mermer.Ui.Pc.Services
                     connection.Open();
                     using (var command = connection.CreateCommand())
                     {
-                        command.CommandText = "SELECT id, code, date, funds_slip_type, depository_id, user_name, description, lines_json, is_completed, is_disabled FROM local_funds_slips WHERE is_disabled = 0;";
+                        command.CommandText = "SELECT id, code, date, funds_slip_type, depository_id, user_name, description, lines_json, is_completed, is_disabled FROM local_funds_slips;";
 
                         using (var reader = command.ExecuteReader())
                         {

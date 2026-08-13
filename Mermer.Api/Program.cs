@@ -84,5 +84,6 @@ app.MapDepositoriesEndpoints();
 app.MapPartnersEndpoints();
 app.MapBalancesEndpoints();
 app.MapSyncEndpoints();
+app.MapStockTransfersEndpoints();
 
 app.Run();

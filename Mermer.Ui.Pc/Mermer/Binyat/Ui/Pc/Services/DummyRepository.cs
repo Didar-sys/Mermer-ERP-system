@@ -21,5 +21,15 @@ namespace Mermer.Ui.Pc.Services
         public Task CreateAsync(T entity) => Task.CompletedTask;
         public Task UpdateAsync(T entity) => Task.CompletedTask;
         public Task DeleteAsync(string id) => Task.CompletedTask;
+
+        public Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
+        {
+            var result = new Dictionary<string, Dictionary<string, int>>();
+            if (fields != null)
+            {
+                foreach (var f in fields) result[f] = new Dictionary<string, int>();
+            }
+            return Task.FromResult(result);
+        }
     }
 }

@@ -179,23 +179,34 @@ public class PartnerSlipDetailsViewModel :
     }
   }
 
-  private void UpdateCurrencyRateConvertion(string currencyId)
-  {
-    if (string.IsNullOrEmpty(currencyId))
-      return;
-    Currency currency = this.Currencies.List.Single<Currency>((Func<Currency, bool>) (x => x.Id == currencyId));
-    if (!this.Details.CurrencyConvertions.All<CurrencyConvertion>((Func<CurrencyConvertion, bool>) (x => x.CurrencyId != currency.Id)))
-      return;
-    CurrencyRate rate = currency.GetRate(new DateTime?(this.Details.Date));
-    this.Details.CurrencyConvertions.Add(new CurrencyConvertion()
+    private void UpdateCurrencyRateConvertion(string currencyId)
     {
-      CurrencyId = currency.Id,
-      Multiplier = rate.Multiplier,
-      Divider = rate.Divider
-    });
-  }
+        if (string.IsNullOrEmpty(currencyId))
+            return;
 
-  public virtual PartnerSlipLine SelectedLine
+        // Используем FirstOrDefault вместо Single для дополнительной защиты
+        Currency currency = this.Currencies.List.FirstOrDefault(x => x.Id == currencyId);
+        if (currency == null)
+            return;
+
+        if (!this.Details.CurrencyConvertions.All(x => x.CurrencyId != currency.Id))
+            return;
+
+        CurrencyRate rate = currency.GetRate(new DateTime?(this.Details.Date));
+
+        // БЕЗОПАСНОЕ ИЗВЛЕЧЕНИЕ КУРСА: если rate == null, ставим 1:1
+        decimal multiplier = rate != null ? rate.Multiplier : 1m;
+        decimal divider = rate != null && rate.Divider != 0 ? rate.Divider : 1m;
+
+        this.Details.CurrencyConvertions.Add(new CurrencyConvertion()
+        {
+            CurrencyId = currency.Id,
+            Multiplier = multiplier,
+            Divider = divider
+        });
+    }
+
+    public virtual PartnerSlipLine SelectedLine
   {
     get => this._selectedLine;
     set

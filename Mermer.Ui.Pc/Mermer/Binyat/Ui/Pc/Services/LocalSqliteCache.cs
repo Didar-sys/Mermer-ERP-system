@@ -63,7 +63,11 @@ namespace Mermer.Ui.Pc.Services
 
                         command.Parameters.AddWithValue("@docType", docType);
                         command.Parameters.AddWithValue("@id", id);
-                        command.Parameters.AddWithValue("@jsonData", JsonSerializer.Serialize(entity));
+                        var jsonOptions = new JsonSerializerOptions
+                        {
+                            ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+                        };
+                        command.Parameters.AddWithValue("@jsonData", JsonSerializer.Serialize(entity, jsonOptions));
                         command.Parameters.AddWithValue("@isSynced", isSynced ? 1 : 0);
                         command.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow.ToString("o"));
 

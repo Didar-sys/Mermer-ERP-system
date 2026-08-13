@@ -3,40 +3,45 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Mermer.Data.Storage;
 using Mermer.Enterprise.Models;
+using Mermer.Data.Storage;
 using Mermer.Http;
 
 namespace Mermer.Ui.Pc.Services
 {
-    public class ApiDepositoriesRepository :
-        IRepository<Depository>,
-        IReadOnlyRepository<Depository>,
-        IRepositoryWithFacets<Depository>
+    public class ApiDepositoriesRepository : IRepository<Depository>, IReadOnlyRepository<Depository>, IRepositoryWithFacets<Depository>
     {
         private readonly RestClient _restClient;
+        private const string DocType = "Depository";
 
         public ApiDepositoriesRepository(RestClient restClient)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
 
-        public async Task<IEnumerable<Depository>> GetAsync()
-        {
-            return await GetAllAsync();
-        }
-
         public async Task<IEnumerable<Depository>> GetAllAsync()
         {
-            try
+            // 1. Моментально отдаем локальные кассы из SQLite
+            var local = LocalSqliteCache.GetAllDocuments<Depository>(DocType);
+
+            // 2. В фоне обновляем список с сервера
+            _ = Task.Run(async () =>
             {
-                var result = await _restClient.GetAsync<List<Depository>>("/api/depositories");
-                return result ?? Enumerable.Empty<Depository>();
-            }
-            catch
-            {
-                return Enumerable.Empty<Depository>();
-            }
+                try
+                {
+                    var remote = await _restClient.GetAsync<List<Depository>>("/api/depositories");
+                    if (remote != null)
+                    {
+                        foreach (var dep in remote)
+                        {
+                            LocalSqliteCache.SaveDocument(DocType, dep.Id, dep, isSynced: true);
+                        }
+                    }
+                }
+                catch { /* Сервер недоступен — работаем оффлайн */ }
+            });
+
+            return local;
         }
 
         public async Task<Depository> GetAsync(string id)
@@ -50,8 +55,8 @@ namespace Mermer.Ui.Pc.Services
         {
             if (ids == null || !ids.Any()) return Enumerable.Empty<Depository>();
             var all = await GetAllAsync();
-            var set = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
-            return all.Where(d => set.Contains(d.Id));
+            var idSet = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
+            return all.Where(d => idSet.Contains(d.Id));
         }
 
         public async Task<IEnumerable<Depository>> GetAsync(params Expression<Func<Depository, bool>>[] predicates)
@@ -67,24 +72,40 @@ namespace Mermer.Ui.Pc.Services
 
         public async Task<int> CountAsync(params Expression<Func<Depository, bool>>[] predicates)
         {
-            var res = await GetAsync(predicates);
-            return res.Count();
+            var result = await GetAsync(predicates);
+            return result.Count();
         }
 
-        public Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] facetFields)
+        public async Task SaveAsync(Depository entity)
+        {
+            if (entity == null) return;
+            bool isNew = string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString();
+            if (isNew) entity.Id = Guid.NewGuid().ToString();
+
+            LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: false);
+
+            try
+            {
+                if (isNew) await _restClient.PostAsync("/api/depositories", entity);
+                else await _restClient.PutAsync($"/api/depositories/{entity.Id}", entity);
+                LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: true);
+            }
+            catch { }
+        }
+
+        public async Task CreateAsync(Depository entity) => await SaveAsync(entity);
+        public async Task UpdateAsync(Depository entity) => await SaveAsync(entity);
+        public async Task DeleteAsync(string id) { try { await _restClient.DeleteAsync($"/api/depositories/{id}"); } catch { } }
+
+        // --- Реализация IRepositoryWithFacets<Depository> ---
+        public async Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
         {
             var result = new Dictionary<string, Dictionary<string, int>>();
-            if (facetFields != null)
+            if (fields != null)
             {
-                foreach (var field in facetFields)
-                    result[field] = new Dictionary<string, int>();
+                foreach (var field in fields) result[field] = new Dictionary<string, int>();
             }
-            return Task.FromResult(result);
+            return await Task.FromResult(result);
         }
-
-        public Task SaveAsync(Depository entity) => Task.CompletedTask;
-        public Task CreateAsync(Depository entity) => Task.CompletedTask;
-        public Task UpdateAsync(Depository entity) => Task.CompletedTask;
-        public Task DeleteAsync(string id) => Task.CompletedTask;
     }
 }

@@ -40,6 +40,11 @@ public class MermerDbContext : DbContext
     public DbSet<InvoiceCurrencyConvertionEntity> InvoiceCurrencyConvertions => Set<InvoiceCurrencyConvertionEntity>();
     public DbSet<InvoiceStockUnitConvertionEntity> InvoiceStockUnitConvertions => Set<InvoiceStockUnitConvertionEntity>();
     public DbSet<InvoiceOverheadEntity> InvoiceOverheads => Set<InvoiceOverheadEntity>();
+    public DbSet<PartnerSlipEntity> PartnerSlips { get; set; } = null!;
+    public DbSet<PartnerSlipLineEntity> PartnerSlipLines { get; set; } = null!;
+
+    public DbSet<PartnerTransferEntity> PartnerTransfers { get; set; } = null!;
+    public DbSet<PartnerTransferLineEntity> PartnerTransferLines { get; set; } = null!;
 
     // ── Finance ──
     public DbSet<FundsSlipEntity> FundsSlips => Set<FundsSlipEntity>();

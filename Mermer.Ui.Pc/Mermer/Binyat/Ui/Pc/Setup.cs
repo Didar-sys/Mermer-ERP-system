@@ -133,6 +133,7 @@ public class Setup : MvxWpfSetup
             var client = new System.Net.Http.HttpClient();
             var apiUrl = Configuration["ApiUrl"] ?? "http://localhost:5000";
             client.BaseAddress = new Uri(apiUrl);
+            client.Timeout = TimeSpan.FromSeconds(2); // ТАЙМАУТ 2 СЕКУНДЫ ДЛЯ ОФФЛАЙНА
             return client;
         }).AsSelf().SingleInstance();
 
@@ -166,11 +167,11 @@ public class Setup : MvxWpfSetup
                .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.FundsManagement.Models.Currency>>().SingleInstance();
 
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiStocksRepository>()
-           .As<Mermer.Data.Storage.IRepository<Mermer.StockManagement.Models.Stock>>()
-           .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.StockManagement.Models.Stock>>()
-           .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.StockManagement.Models.Stock>>()
-           .As<Mermer.StockManagement.Services.IStocksRepository>()
-           .SingleInstance();
+               .As<Mermer.Data.Storage.IRepository<Mermer.StockManagement.Models.Stock>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.StockManagement.Models.Stock>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.StockManagement.Models.Stock>>()
+               .As<Mermer.StockManagement.Services.IStocksRepository>()
+               .SingleInstance();
 
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiPartnersRepository>()
                .As<Mermer.Data.Storage.IRepository<Mermer.CRM.Models.Partner>>()
@@ -184,17 +185,34 @@ public class Setup : MvxWpfSetup
                 .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Enterprise.Models.Depository>>() // <-- ДОБАВЛЕНО!
                 .SingleInstance();
 
-        /// --- ФИНАНСЫ И ДОКУМЕНТЫ ---
+        // --- ФИНАНСЫ И ДОКУМЕНТЫ ---
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiFundsActionRepository>()
                .As<Mermer.Data.Storage.IRepository<Mermer.Finance.Models.FundsSlip>>()
                .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Finance.Models.FundsSlip>>()
-               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Finance.Models.FundsSlip>>() // <-- Для работы боковых фильтров по датам!
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Finance.Models.FundsSlip>>()
                .SingleInstance();
 
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiInvoicesRepository>()
                .As<Mermer.Data.Storage.IRepository<Mermer.Commerce.Models.Invoice>>()
                .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Commerce.Models.Invoice>>()
                .As<Mermer.Commerce.Services.IInvoicesRepository>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiPartnerSlipsRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.CRM.Models.PartnerSlip>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.CRM.Models.PartnerSlip>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.CRM.Models.PartnerSlip>>()
+               .SingleInstance();
+
+        // ДОБАВЛЯЕМ НОВЫЙ РЕПОЗИТОРИЙ ДЛЯ ПЕРЕВОДОВ ПАРТНЕРОВ!
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiPartnerTransfersRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.CRM.Models.PartnerTransfer>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.CRM.Models.PartnerTransfer>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.CRM.Models.PartnerTransfer>>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiPartnerActionsRepository>()
+               .As<Mermer.CRM.Services.IPartnerActionsRepository>()
                .SingleInstance();
 
         // =====================================================================
@@ -212,6 +230,11 @@ public class Setup : MvxWpfSetup
 
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiPartnerBalancesRepository>()
        .AsImplementedInterfaces()
+       .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockTransfersRepository>()
+       .As<Mermer.Data.Storage.IRepository<Mermer.Warehousing.Models.StockTransfer>>()
+       .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Warehousing.Models.StockTransfer>>()
        .SingleInstance();
 
         var container = builder.Build();
@@ -340,16 +363,36 @@ public class DummyInterceptor : Castle.DynamicProxy.IInterceptor
         var methodName = invocation.Method.Name;
         var returnType = invocation.Method.ReturnType;
 
+        // --- 1. ПЕРЕХВАТ МЕТОДОВ ПРОВЕРКИ ПРАВ И АВТОРИЗАЦИИ ---
+        if (methodName.StartsWith("Can") || methodName.StartsWith("Check") || methodName.StartsWith("Has") || methodName.StartsWith("Is"))
+        {
+            if (returnType == typeof(bool))
+            {
+                invocation.ReturnValue = true;
+                return;
+            }
+            if (returnType == typeof(Task<bool>))
+            {
+                invocation.ReturnValue = Task.FromResult(true);
+                return;
+            }
+        }
+
+        // --- 2. ГЕНЕРАЦИЯ КОДОВ ИСПРАВЛЕНА ---
         if (methodName == "GenerateCodeAsync" || methodName == "GetNextCode")
         {
             invocation.ReturnValue = Task.FromResult($"DOC-{DateTime.Now:yyMMddHHmmss}");
             return;
         }
+
+        // --- 3. БАЛАНСЫ ПАРТНЕРОВ ---
         if (methodName == "GetBalanceToDateAsync")
         {
             invocation.ReturnValue = Task.FromResult(new Mermer.CRM.Models.PartnerBalanceResult { Balance = 0 });
             return;
         }
+
+        // --- 4. ФАСЕТЫ ФИЛЬТРОВ ---
         if (methodName == "GetFacets" || methodName == "GetFacetsAsync")
         {
             var dict = new Dictionary<string, IEnumerable<KeyValuePair<string, int>>>();
@@ -364,6 +407,7 @@ public class DummyInterceptor : Castle.DynamicProxy.IInterceptor
             return;
         }
 
+        // --- 5. ОБРАБОТКА ВСЕХ ОСТАЛЬНЫХ ТИПОВ ВОЗВРАТА ---
         if (returnType == typeof(Task))
         {
             invocation.ReturnValue = Task.CompletedTask;

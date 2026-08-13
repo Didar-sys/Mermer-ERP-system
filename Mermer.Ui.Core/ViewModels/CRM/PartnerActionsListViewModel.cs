@@ -177,26 +177,26 @@ public class PartnerActionsListViewModel :
         return ApplyCustomCurrencyRate(result);
     }
 
-    protected override Expression<Func<PartnerAction, bool>> GetDateFilter(
-    DateTime from,
-    DateTime till)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Expression<Func<PartnerAction, bool>> GetDateFilter(DateTime from, DateTime till)
+    {
+        // Учим приложение правильно фильтровать даты локально
+        return x => x.TransactionDate >= from && x.TransactionDate <= till;
+    }
 
-  protected override Task<int> CountListAsync(
-    params Expression<Func<PartnerAction, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
+    protected override Task<int> CountListAsync(params Expression<Func<PartnerAction, bool>>[] predicates)
+    {
+        // Для вкладки "All Records" передаем пустые даты в репозиторий
+        return this._repository.CountAsync(null, null, this.PartnerId, this.OfficeIds);
+    }
 
-  protected override Task<IEnumerable<PartnerAction>> GetListAsync(
-    params Expression<Func<PartnerAction, bool>>[] predicates)
-  {
-    throw new NotImplementedException();
-  }
+    protected override async Task<IEnumerable<PartnerAction>> GetListAsync(params Expression<Func<PartnerAction, bool>>[] predicates)
+    {
+        // Вытягиваем полный список без фильтров по дате
+        var result = await this._repository.GetAsync(null, null, this.PartnerId, this.OfficeIds);
+        return ApplyCustomCurrencyRate(result);
+    }
 
-  public ICommand SelectOrViewDetailsCommand
+    public ICommand SelectOrViewDetailsCommand
   {
     get
     {

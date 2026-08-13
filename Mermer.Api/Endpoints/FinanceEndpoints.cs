@@ -24,7 +24,6 @@ public static class FinanceEndpoints
             var slips = await db.FundsSlips
                 .Include(s => s.Lines)
                 .AsNoTracking()
-                .Where(s => !s.IsDisabled)
                 .ToListAsync();
 
             // Добавляем опцию для игнорирования бесконечных циклов
@@ -35,6 +34,12 @@ public static class FinanceEndpoints
             };
 
             return Results.Json(slips, jsonOptions);
+        });
+
+        routes.MapGet("/api/currencies", async (MermerDbContext db) =>
+        {
+            var currencies = await db.Currencies.AsNoTracking().ToListAsync();
+            return Results.Ok(currencies);
         });
 
         group.MapPost("/slips", async (HttpRequest request, MermerDbContext db) =>

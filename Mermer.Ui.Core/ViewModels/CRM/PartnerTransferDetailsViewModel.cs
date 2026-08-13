@@ -154,23 +154,38 @@ public class PartnerTransferDetailsViewModel : TransactionDetailsViewModel<Partn
     }
   }
 
-  private void UpdateCurrencyRateConvertion(string currencyId)
-  {
-    if (string.IsNullOrEmpty(currencyId))
-      return;
-    Currency currency = this.Currencies.List.Single<Currency>((Func<Currency, bool>) (x => x.Id == currencyId));
-    if (!this.Details.CurrencyConvertions.All<CurrencyConvertion>((Func<CurrencyConvertion, bool>) (x => x.CurrencyId != currency.Id)))
-      return;
-    CurrencyRate rate = currency.GetRate(new DateTime?(this.Details.Date));
-    this.Details.CurrencyConvertions.Add(new CurrencyConvertion()
+    private void UpdateCurrencyRateConvertion(string currencyId)
     {
-      CurrencyId = currency.Id,
-      Multiplier = rate.Multiplier,
-      Divider = rate.Divider
-    });
-  }
+        if (string.IsNullOrEmpty(currencyId))
+            return;
 
-  public virtual PartnerTransferLine SelectedLine
+        // 1. Ищем валюту через FirstOrDefault (безопасно)
+        Currency currency = this.Currencies.List?.FirstOrDefault(x => x.Id == currencyId);
+        if (currency == null)
+            return;
+
+        // 2. Проверяем, что коллекция инициализирована
+        if (this.Details.CurrencyConvertions == null)
+            this.Details.CurrencyConvertions = new ObservableCollection<CurrencyConvertion>();
+
+        // 3. Если конвертация для этой валюты уже есть — выходим
+        if (!this.Details.CurrencyConvertions.All(x => x.CurrencyId != currency.Id))
+            return;
+
+        // 4. Безопасно получаем курс: если курса нет в БД, ставим 1:1
+        CurrencyRate rate = currency.GetRate(new DateTime?(this.Details.Date));
+        decimal multiplier = rate != null ? rate.Multiplier : 1m;
+        decimal divider = rate != null && rate.Divider != 0 ? rate.Divider : 1m;
+
+        this.Details.CurrencyConvertions.Add(new CurrencyConvertion()
+        {
+            CurrencyId = currency.Id,
+            Multiplier = multiplier,
+            Divider = divider
+        });
+    }
+
+    public virtual PartnerTransferLine SelectedLine
   {
     get => this._selectedLine;
     set

@@ -17,67 +17,41 @@ namespace Mermer.Ui.Pc.Services
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
 
-        public async Task<PartnerBalanceResult> GetBalanceToDateAsync(
-            string officeId,
-            string partnerId,
-            DateTime date,
-            string excludeTransactionId = null)
+        public async Task<IEnumerable<PartnerBalanceByTypeWithBalance>> GetByTypeAsync(DateTime dateFrom, DateTime dateTill, string partnerId, params string[] officeIds)
         {
             try
             {
-                var dateStr = date.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                var url = $"/api/partners/balances/date?partnerId={partnerId}&date={dateStr}";
-                if (!string.IsNullOrEmpty(officeId)) url += $"&officeId={officeId}";
-                if (!string.IsNullOrEmpty(excludeTransactionId)) url += $"&excludeTransactionId={excludeTransactionId}";
+                var queryParams = new List<string>
+                {
+                    $"from={dateFrom:yyyy-MM-ddTHH:mm:ss}",
+                    $"till={dateTill:yyyy-MM-ddTHH:mm:ss}"
+                };
+                if (!string.IsNullOrEmpty(partnerId)) queryParams.Add($"partnerId={partnerId}");
 
-                var res = await _restClient.GetAsync<PartnerBalanceResult>(url);
-                return res ?? new PartnerBalanceResult { Balance = 0 };
+                string url = "/api/partners/balances/by-type?" + string.Join("&", queryParams);
+
+                var remote = await _restClient.GetAsync<List<PartnerBalanceByTypeWithBalance>>(url);
+                if (remote != null)
+                {
+                    return remote;
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                return new PartnerBalanceResult { Balance = 0 };
+                System.Diagnostics.Debug.WriteLine($"[Partner Balances Error]: {ex.Message}");
             }
+
+            return Enumerable.Empty<PartnerBalanceByTypeWithBalance>();
         }
 
-        public async Task<IEnumerable<PartnerBalanceByTypeWithBalance>> GetByTypeAsync(
-            DateTime dateFrom,
-            DateTime dateTill,
-            string partnerId,
-            params string[] officeIds)
+        public Task<PartnerBalanceResult> GetBalanceToDateAsync(string officeId, string partnerId, DateTime date, string excludeTransactionId = null)
         {
-            try
-            {
-                var fromStr = dateFrom.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                var tillStr = dateTill.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                var url = $"/api/partners/balances/by-type?partnerId={partnerId}&from={fromStr}&till={tillStr}";
-
-                var res = await _restClient.GetAsync<List<PartnerBalanceByTypeWithBalance>>(url);
-                return res ?? Enumerable.Empty<PartnerBalanceByTypeWithBalance>();
-            }
-            catch
-            {
-                return Enumerable.Empty<PartnerBalanceByTypeWithBalance>();
-            }
+            return Task.FromResult(new PartnerBalanceResult { Balance = 0 });
         }
 
-        public async Task<PartnerBalanceAggregated> GetByTypeAggregatedAsync(
-            string[] officeIds,
-            DateTime dateFrom,
-            DateTime dateTill)
+        public Task<PartnerBalanceAggregated> GetByTypeAggregatedAsync(string[] officeIds, DateTime dateFrom, DateTime dateTill)
         {
-            try
-            {
-                var fromStr = dateFrom.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                var tillStr = dateTill.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                var url = $"/api/partners/balances/aggregated?from={fromStr}&till={tillStr}";
-
-                var res = await _restClient.GetAsync<PartnerBalanceAggregated>(url);
-                return res ?? new PartnerBalanceAggregated();
-            }
-            catch
-            {
-                return new PartnerBalanceAggregated();
-            }
+            return Task.FromResult(new PartnerBalanceAggregated());
         }
     }
 }

@@ -132,6 +132,59 @@ CREATE TABLE partners (
 CREATE INDEX idx_partners_code ON partners(code);
 CREATE INDEX idx_partners_name_trgm ON partners USING GIN (name gin_trgm_ops);
 
+-- Partner Slips (Opening Balance, Revisions, Adjustments)
+CREATE TABLE partner_slips (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code            VARCHAR(50) NOT NULL,
+    date            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    slip_type       VARCHAR(50) NOT NULL,
+    office_id       UUID REFERENCES offices(id),
+    is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_partner_slips_date ON partner_slips(date DESC);
+
+-- Partner Slip Lines
+CREATE TABLE partner_slip_lines (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    partner_slip_id UUID NOT NULL REFERENCES partner_slips(id) ON DELETE CASCADE,
+    partner_id      UUID REFERENCES partners(id),
+    debit_amount    NUMERIC(18,4) NOT NULL DEFAULT 0,
+    debit_currency_id UUID REFERENCES currencies(id),
+    credit_amount   NUMERIC(18,4) NOT NULL DEFAULT 0,
+    credit_currency_id UUID REFERENCES currencies(id)
+);
+-- Partner Transfers (Переводы между партнерами/офисами)
+CREATE TABLE partner_transfers (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code            VARCHAR(50) NOT NULL,
+    date            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_partner_transfers_date ON partner_transfers(date DESC);
+
+-- Partner Transfer Lines
+CREATE TABLE partner_transfer_lines (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    partner_transfer_id UUID NOT NULL REFERENCES partner_transfers(id) ON DELETE CASCADE,
+    office_id           UUID REFERENCES offices(id),
+    partner_id          UUID REFERENCES partners(id),
+    debit_amount        NUMERIC(18,4) NOT NULL DEFAULT 0,
+    debit_currency_id   UUID REFERENCES currencies(id),
+    credit_amount       NUMERIC(18,4) NOT NULL DEFAULT 0,
+    credit_currency_id  UUID REFERENCES currencies(id)
+);
+
+CREATE INDEX idx_partner_transfer_lines_transfer_id ON partner_transfer_lines(partner_transfer_id);
+CREATE INDEX idx_partner_transfer_lines_partner_id ON partner_transfer_lines(partner_id);
+CREATE INDEX idx_partner_slip_lines_slip_id ON partner_slip_lines(partner_slip_id);
+CREATE INDEX idx_partner_slip_lines_partner_id ON partner_slip_lines(partner_id);
+
 -- ============================================================================
 -- STOCK MANAGEMENT — Products
 -- ============================================================================
