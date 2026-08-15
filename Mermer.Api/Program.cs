@@ -46,6 +46,8 @@ builder.Services.AddSwaggerGen(options =>
             "Replaces the legacy Couchbase access for the WPF client.",
         Contact = new OpenApiContact { Name = "Mermer Binyat" }
     });
+
+    options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(o =>

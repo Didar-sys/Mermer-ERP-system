@@ -55,10 +55,27 @@ public class InMemoryStockSearchService : IStockSearchService, IDisposable
             return;
 
         _isInitializing = true;
-        Stocks = (await _stocksRepository.GetAsync()).ToList();
-        Currencies = (await _currenciesRepository.GetAsync()).ToDictionary(x => x.Id, x => x);
-        _isInitialized = true;
-        _isInitializing = false;
+        try
+        {
+            var stocksData = await _stocksRepository.GetAsync();
+            Stocks = stocksData != null ? stocksData.ToList() : new List<Stock>();
+
+            var currenciesData = await _currenciesRepository.GetAsync();
+            Currencies = currenciesData != null
+                ? currenciesData.ToDictionary(x => x.Id, x => x)
+                : new Dictionary<string, Currency>();
+
+            _isInitialized = true;
+        }
+        catch
+        {
+            Stocks = Stocks ?? new List<Stock>();
+            Currencies = Currencies ?? new Dictionary<string, Currency>();
+        }
+        finally
+        {
+            _isInitializing = false;
+        }
     }
 
     public async Task<IEnumerable<StockSearchResult>> Search(
@@ -68,6 +85,15 @@ public class InMemoryStockSearchService : IStockSearchService, IDisposable
         string currencyId = null,
         CancellationToken cancellationToken = default)
     {
+        // 1. Автоматическая загрузка, если память пуста
+        if (Stocks == null || !Stocks.Any() || !_isInitialized)
+        {
+            await Initialize(false);
+        }
+
+        if (string.IsNullOrWhiteSpace(text) || Stocks == null || !Stocks.Any())
+            return Enumerable.Empty<StockSearchResult>();
+
         text = text.ToLower();
 
         var array = Enum.GetValues(typeof(TransliterationType))
@@ -145,12 +171,12 @@ public class InMemoryStockSearchService : IStockSearchService, IDisposable
 
         CheckIfCanceled(cancellationToken);
 
-        CurrencyRate displayCurrencyConverter;
-        if (!string.IsNullOrEmpty(currencyId) && Currencies.ContainsKey(currencyId))
+        CurrencyRate displayCurrencyConverter = null;
+        if (!string.IsNullOrEmpty(currencyId) && Currencies != null && Currencies.ContainsKey(currencyId))
         {
-            displayCurrencyConverter = Currencies[currencyId].GetRate();
+            displayCurrencyConverter = Currencies[currencyId]?.GetRate();
         }
-        else
+        if (displayCurrencyConverter == null || displayCurrencyConverter.Multiplier == 0 || displayCurrencyConverter.Divider == 0)
         {
             displayCurrencyConverter = new CurrencyRate { Multiplier = 1M, Divider = 1M };
         }
@@ -158,18 +184,38 @@ public class InMemoryStockSearchService : IStockSearchService, IDisposable
         var stockSearchResults = rawResults.Select(x =>
         {
             Stock stock = x.Stock;
-            var price = stock.GetPrice(null, priceGroup);
-            decimal d1 = price.Price;
-            string key1 = price.CurrencyId;
+            var price = stock?.GetPrice(null, priceGroup);
 
-            if (currencyId != null && currencyId != key1 && Currencies.ContainsKey(key1))
+            // Безопасное получение цены (как из группы, так и напрямую)
+            decimal d1 = 0m;
+            string key1 = currencyId ?? "";
+
+            if (price != null && price.Price > 0)
             {
-                CurrencyRate rate = Currencies[key1].GetRate();
-                d1 = d1 * rate.Multiplier / rate.Divider * displayCurrencyConverter.Divider / displayCurrencyConverter.Multiplier;
-                key1 = currencyId;
+                d1 = price.Price;
+                key1 = price.CurrencyId ?? currencyId ?? "";
+            }
+            else if (stock != null && stock.Price > 0)
+            {
+                d1 = stock.Price;
+                key1 = !string.IsNullOrEmpty(stock.CurrencyId) ? stock.CurrencyId : (currencyId ?? "");
             }
 
-            decimal num4 = Math.Round(d1, Currencies.ContainsKey(key1) ? Currencies[key1].Decimals : 2);
+            if (!string.IsNullOrEmpty(currencyId) && !string.IsNullOrEmpty(key1) && !string.Equals(currencyId, key1, StringComparison.OrdinalIgnoreCase) && Currencies != null && Currencies.ContainsKey(key1))
+            {
+                CurrencyRate rate = Currencies[key1]?.GetRate();
+                if (rate != null && rate.Multiplier != 0 && rate.Divider != 0)
+                {
+                    d1 = d1 * rate.Multiplier / rate.Divider * displayCurrencyConverter.Divider / displayCurrencyConverter.Multiplier;
+                    key1 = currencyId;
+                }
+            }
+
+            int decimals = (Currencies != null && !string.IsNullOrEmpty(key1) && Currencies.ContainsKey(key1))
+                ? Currencies[key1].Decimals
+                : 2;
+
+            decimal num4 = Math.Round(d1, decimals);
 
             var result = new StockSearchResult
             {
@@ -179,32 +225,40 @@ public class InMemoryStockSearchService : IStockSearchService, IDisposable
                 CodeHtml = FormatText(x.Stock.Code, allTerms),
                 NameHtml = FormatText(x.Stock.Name, allTerms),
                 Price = num4,
-                Currency = Currencies.ContainsKey(key1) ? Currencies[key1].Name : key1,
+                Currency = (Currencies != null && !string.IsNullOrEmpty(key1) && Currencies.ContainsKey(key1)) ? Currencies[key1].Name : (key1 ?? "USD"),
                 CurrencyId = key1,
-                Balance = stockBalances.Where(b => b.StockId == x.Stock.Id).Sum(b => b.Balance),
+                Balance = stockBalances != null && stockBalances.Any() ? stockBalances.Where(b => b.StockId == x.Stock.Id).Sum(b => b.Balance) : 0m,
                 Unit = x.Stock.Unit,
                 UnitId = x.Stock.UnitId,
                 IsDisabled = x.Stock.IsDisabled
             };
 
-            var lastPurchasePrice = lastPurchasePrices.SingleOrDefault(p => p.StockId == x.Stock.Id);
+            var lastPurchasePrice = lastPurchasePrices?.SingleOrDefault(p => p.StockId == x.Stock.Id);
             if (lastPurchasePrice != null)
             {
                 decimal d2 = lastPurchasePrice.Price;
-                string key2 = lastPurchasePrice.CurrencyId;
-                if (currencyId != null && currencyId != key2 && Currencies.ContainsKey(key2))
+                string key2 = lastPurchasePrice.CurrencyId ?? "";
+                if (!string.IsNullOrEmpty(currencyId) && !string.IsNullOrEmpty(key2) && !string.Equals(currencyId, key2, StringComparison.OrdinalIgnoreCase) && Currencies != null && Currencies.ContainsKey(key2))
                 {
-                    CurrencyRate rate = Currencies[key2].GetRate();
-                    d2 = d2 * rate.Multiplier / rate.Divider * displayCurrencyConverter.Divider / displayCurrencyConverter.Multiplier;
-                    key2 = currencyId;
+                    CurrencyRate rate = Currencies[key2]?.GetRate();
+                    if (rate != null && rate.Multiplier != 0 && rate.Divider != 0)
+                    {
+                        d2 = d2 * rate.Multiplier / rate.Divider * displayCurrencyConverter.Divider / displayCurrencyConverter.Multiplier;
+                        key2 = currencyId;
+                    }
                 }
-                decimal num5 = Math.Round(d2, Currencies.ContainsKey(key2) ? Currencies[key2].Decimals : 2);
+
+                int lastDecimals = (Currencies != null && !string.IsNullOrEmpty(key2) && Currencies.ContainsKey(key2))
+                    ? Currencies[key2].Decimals
+                    : 2;
+
+                decimal num5 = Math.Round(d2, lastDecimals);
                 result.LastPurchasePrice = num5;
-                result.LastPurchaseCurrency = Currencies.ContainsKey(key2) ? Currencies[key2].Name : key2;
+                result.LastPurchaseCurrency = (Currencies != null && !string.IsNullOrEmpty(key2) && Currencies.ContainsKey(key2)) ? Currencies[key2].Name : key2;
                 result.LastPurchaseCurrencyId = key2;
             }
             return result;
-        });
+        }).ToList();
 
         return stockSearchResults;
     }
@@ -218,7 +272,6 @@ public class InMemoryStockSearchService : IStockSearchService, IDisposable
 
         foreach (string str in searchWords.Where(w => !w.Equals("b", StringComparison.OrdinalIgnoreCase)))
         {
-            // ВИПРАВЛЕНО: Використовуємо IndexOf >= 0 замість Contains з двома аргументами
             if (text.IndexOf(str, StringComparison.OrdinalIgnoreCase) >= 0)
                 text = text.ToUpper().Replace(str.ToUpper(), $"<B>{str.ToUpper()}</B>");
         }

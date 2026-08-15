@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -12,9 +13,6 @@ using Mermer.Data.Postgres;
 using Mermer.Data.Postgres.Abstractions;
 using Mermer.Data.Postgres.Entities;
 
-// Псевдонимы для точного разделения моделей
-using UIStockInfo = Mermer.StockManagement.Models.StockInfo;
-
 namespace Mermer.Api.Endpoints;
 
 public static class StocksEndpoints
@@ -23,28 +21,70 @@ public static class StocksEndpoints
     {
         var group = app.MapGroup("/api/stocks").WithTags("Stocks");
 
-        group.MapGet("/", async (string? additionalPriceCurrencyId, string? additionalPriceGroup, MermerDbContext db, CancellationToken ct) =>
+        group.MapGet("/", async (MermerDbContext db, CancellationToken ct) =>
         {
             var list = await db.Stocks
+                .Include(s => s.Prices)
+                .Include(s => s.Units)
+                .AsSplitQuery()
                 .AsNoTracking()
-                .Select(s => new UIStockInfo
+                .Where(s => !s.IsDisabled)
+                .ToListAsync(ct);
+
+            var result = list.Select(s =>
+            {
+                var currentPrice = s.Prices?
+                    .OrderByDescending(p => p.ValidFrom)
+                    .FirstOrDefault();
+
+                var defaultUnit = s.Units?.FirstOrDefault(u => u.IsDefault) ?? s.Units?.FirstOrDefault();
+
+                var pricesList = s.Prices != null && s.Prices.Any()
+                    ? s.Prices.Select(p => (object)new
+                    {
+                        Id = p.Id.ToString(),
+                        Price = p.Price,
+                        CurrencyId = p.CurrencyId?.ToString(),
+                        PriceGroup = p.PriceGroup
+                    }).ToList()
+                    : new List<object>();
+
+                var unitsList = s.Units != null && s.Units.Any()
+                    ? s.Units.Select(u => (object)new
+                    {
+                        Id = u.Id.ToString(),
+                        Name = u.Name,
+                        Multiplier = u.Multiplier,
+                        Divider = u.Divider,
+                        IsDefault = u.IsDefault
+                    }).ToList()
+                    : new List<object>();
+
+                return new
                 {
                     Id = s.Id.ToString(),
                     Code = s.Code ?? string.Empty,
                     Name = s.Name ?? string.Empty,
                     ShortName = s.ShortName ?? string.Empty,
                     IsDisabled = s.IsDisabled,
-                    Unit = s.Units.Select(u => u.Name).FirstOrDefault() ?? string.Empty,
-                    Price = s.Prices.Select(p => p.Price).FirstOrDefault(),
-                    CurrencyId = s.Prices.Select(p => p.CurrencyId.HasValue ? p.CurrencyId.Value.ToString() : null).FirstOrDefault(),
-                    Type = s.Type,
-                    Group = s.Group,
-                    Barcodes = s.Barcodes ?? new string[0],
-                    Tags = s.Tags ?? new string[0]
-                })
-                .ToListAsync(ct);
+                    Type = s.Type ?? string.Empty,
+                    Group = s.Group ?? string.Empty,
+                    Barcodes = s.Barcodes ?? Array.Empty<string>(),
+                    Tags = s.Tags ?? Array.Empty<string>(),
 
-            return Results.Ok(list);
+                    Price = currentPrice?.Price ?? 0m,
+                    CurrencyId = currentPrice?.CurrencyId?.ToString(),
+                    Unit = defaultUnit?.Name ?? string.Empty,
+                    UnitId = defaultUnit?.Id.ToString(),
+
+                    Prices = pricesList,
+                    Units = unitsList
+                };
+            });
+
+            // ИСПРАВЛЕНИЕ: Используем Ok(), чтобы ASP.NET Core автоматически 
+            // перевел свойства в формат "id", "code", "name" для WPF-клиента!
+            return Results.Ok(result);
         })
         .WithName("StocksList");
 

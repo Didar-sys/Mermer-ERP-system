@@ -99,13 +99,14 @@
                   </dxg:LookUpEditSettings>
                 </dxg:ColumnBase.EditSettings>
               </dxg:GridColumn>
-              <dxg:GridColumn FieldName="DisplayTotal" ReadOnly="true" Style="{StaticResource AmountDisplayFormat}"
-                              TotalSummaryContentStyle="{StaticResource TotalSummaryStyle}" Header="{Localize Total}"/>
-              <dxg:GridControl.View>
-                <dxg:TableView AutoWidth="true" ShowGroupPanel="false" NewItemRowPosition="Bottom"
-                               hlp:GridExtender.ForceTotalSummaryUpdate="true" AllowEditing="{Binding HasSaveAccess}"/>
-              </dxg:GridControl.View>
-            </dxg:GridControl>
+                            <dxg:GridColumn FieldName="DisplayTotal" ReadOnly="true" Style="{StaticResource AmountDisplayFormat}"
+                TotalSummaryContentStyle="{StaticResource TotalSummaryStyle}" Header="{Localize Total}"/>
+                            <dxg:GridControl.View>
+                                <dxg:TableView AutoWidth="true" ShowGroupPanel="false" NewItemRowPosition="Bottom"
+                   EnableImmediatePosting="True"
+                   hlp:GridExtender.ForceTotalSummaryUpdate="true" AllowEditing="{Binding HasSaveAccess}"/>
+                            </dxg:GridControl.View>
+                        </dxg:GridControl>
             <dxlc:LayoutGroup Background="#FF00859C" MaxHeight="100">
               <Border BorderBrush="#FFD6D6D6" BorderThickness="1" Padding="5">
                 <Grid>
@@ -263,8 +264,7 @@
                 </dxg:LookUpEdit>
               </dxlc:LayoutItem>
               <dxlc:LayoutItem Label="{Localize Type}">
-                <dxe:ComboBoxEdit DisplayMember="Text" ValueMember="Value"
-                                  EditValue="{Binding Details.BillType, UpdateSourceTrigger=PropertyChanged}"
+                <dxe:ComboBoxEdit EditValue="{Binding Details.BillType, UpdateSourceTrigger=PropertyChanged}"
                                   IsReadOnly="{Binding CanChangeType, Converter={dxmvvm:BooleanNegationConverter}}"
                                   AllowDefaultButton="{Binding CanChangeType}" ItemsSource="{Binding Types}"/>
               </dxlc:LayoutItem>

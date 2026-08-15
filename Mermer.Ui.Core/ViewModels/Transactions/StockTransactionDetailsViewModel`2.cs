@@ -296,29 +296,62 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     return this.CreateNewLine(await this.GetFromStocksCacheAsync(stockId), quantity, unitId, price, currencyId);
   }
 
-  protected virtual TLine CreateNewLine(
-    Stock stock,
-    Decimal? quantity = null,
-    string unitId = null,
-    Decimal? price = null,
-    string currencyId = null)
-  {
-    if (price.HasValue && price.Value == 0M)
-      price = new Decimal?();
-    TLine instance = Activator.CreateInstance<TLine>();
-    instance.Id = Guid.NewGuid().ToString();
-    instance.StockId = stock.Id;
-    instance.Quantity = quantity.GetValueOrDefault();
-    instance.UnitId = unitId ?? stock.UnitId;
-    if (!price.HasValue || currencyId == null)
+    protected virtual TLine CreateNewLine(
+        Stock stock,
+        Decimal? quantity = null,
+        string unitId = null,
+        Decimal? price = null,
+        string currencyId = null)
     {
-      CurrencyConvertion currencyConvertion = this.Details.CurrencyConverter(stock.CurrencyId);
-      price = new Decimal?(this.Details.GetDisplayAmount(stock.Price * currencyConvertion.Multiplier / currencyConvertion.Divider));
-      currencyId = this.Details.DisplayCurrencyId;
-    }
-    instance.Price = Math.Round(price.Value, this.Currencies.List.Single<Currency>((Func<Currency, bool>) (x => x.Id == currencyId)).Decimals);
-    instance.CurrencyId = currencyId;
-    return instance;
+        if (price.HasValue && price.Value == 0M)
+            price = new Decimal?();
+
+        TLine instance = Activator.CreateInstance<TLine>();
+        instance.Id = Guid.NewGuid().ToString();
+        instance.StockId = stock?.Id;
+        instance.Quantity = quantity.GetValueOrDefault();
+        instance.UnitId = unitId ?? stock?.UnitId;
+
+        if (!price.HasValue || string.IsNullOrEmpty(currencyId))
+        {
+            // Исправлено: имя переменной теперь корректное (rawStockPrice)
+            decimal rawStockPrice = stock != null ? stock.Price : 0m;
+
+            string targetCurrencyId = !string.IsNullOrEmpty(this.Details?.DisplayCurrencyId)
+                ? this.Details.DisplayCurrencyId
+                : (stock?.CurrencyId ?? "");
+
+            decimal multiplier = 1m;
+            decimal divider = 1m;
+
+            if (this.Details?.CurrencyConvertions != null && !string.IsNullOrEmpty(stock?.CurrencyId))
+            {
+                var conv = this.Details.CurrencyConvertions.FirstOrDefault(x => x.CurrencyId == stock.CurrencyId);
+                if (conv != null)
+                {
+                    multiplier = conv.Multiplier != 0 ? conv.Multiplier : 1m;
+                    divider = conv.Divider != 0 ? conv.Divider : 1m;
+                }
+            }
+
+            price = this.Details != null
+                ? this.Details.GetDisplayAmount(rawStockPrice * multiplier / divider)
+                : rawStockPrice;
+
+            currencyId = targetCurrencyId;
+        }
+
+        int decimals = 2;
+        if (this.Currencies?.List != null && !string.IsNullOrEmpty(currencyId))
+        {
+            var matchedCurrency = this.Currencies.List.FirstOrDefault(x => x.Id == currencyId);
+            if (matchedCurrency != null)
+                decimals = matchedCurrency.Decimals;
+        }
+
+        instance.Price = Math.Round(price.GetValueOrDefault(), decimals);
+        instance.CurrencyId = currencyId;
+        return instance;
     }
 
     // 1. Создаем публичный метод проверки (чтобы вызвать его из окна при нажатии на X)

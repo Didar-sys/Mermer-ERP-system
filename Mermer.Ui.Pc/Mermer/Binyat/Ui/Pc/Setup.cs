@@ -204,6 +204,12 @@ public class Setup : MvxWpfSetup
                .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.CRM.Models.PartnerSlip>>()
                .SingleInstance();
 
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiBillsRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Commerce.Models.Bill>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Commerce.Models.Bill>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Commerce.Models.Bill>>()
+               .SingleInstance();
+
         // ДОБАВЛЯЕМ НОВЫЙ РЕПОЗИТОРИЙ ДЛЯ ПЕРЕВОДОВ ПАРТНЕРОВ!
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiPartnerTransfersRepository>()
                .As<Mermer.Data.Storage.IRepository<Mermer.CRM.Models.PartnerTransfer>>()

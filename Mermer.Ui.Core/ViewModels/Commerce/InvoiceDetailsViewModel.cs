@@ -133,7 +133,13 @@ public class InvoiceDetailsViewModel :
 
     protected override Task PreLoad()
     {
-        return Task.WhenAll(base.PreLoad(), Offices.Initialize(), Partners.Initialize(), Depositories.Initialize());
+        return Task.WhenAll(
+            base.PreLoad(),
+            Offices.Initialize(),
+            Partners.Initialize(),
+            Depositories.Initialize(),
+            Warehouses.Initialize() 
+        );
     }
 
     protected override async Task OnLoad()
@@ -218,27 +224,53 @@ public class InvoiceDetailsViewModel :
     {
         Warehouses.Filter = x =>
         {
-            if (x.OfficeId != Details?.OfficeId) return false;
-            return !x.IsDisabled || x.Id == Details?.WarehouseId;
+            // Безопасное сравнение GUID без учета регистра
+            if (!string.Equals(x.OfficeId, Details?.OfficeId, StringComparison.OrdinalIgnoreCase)) return false;
+            return !x.IsDisabled || string.Equals(x.Id, Details?.WarehouseId, StringComparison.OrdinalIgnoreCase);
         };
 
         Depositories.Filter = x =>
         {
-            if (x.OfficeId != Details?.OfficeId) return false;
-            return !x.IsDisabled || x.Id == Details?.DepositoryId;
+            if (!string.Equals(x.OfficeId, Details?.OfficeId, StringComparison.OrdinalIgnoreCase)) return false;
+            return !x.IsDisabled || string.Equals(x.Id, Details?.DepositoryId, StringComparison.OrdinalIgnoreCase);
         };
     }
 
     private async void UpdatePartnerBalance()
     {
-        if (!string.IsNullOrEmpty(Details?.PartnerId) && !string.IsNullOrEmpty(Details?.OfficeId) && Details?.CurrencyConvertions != null)
+        if (Details != null && !string.IsNullOrEmpty(Details.PartnerId) && !string.IsNullOrEmpty(Details.OfficeId))
         {
-            var balanceToDateAsync = await _partnerBalancesRepository.GetBalanceToDateAsync(Details.OfficeId, Details.PartnerId, Details.Date, Details.Id);
-            var currencyConvertion = CurrencyConverter(Details.DisplayCurrencyId);
-            PartnerBalanceToDate = new PartnerBalanceResult
+            try
             {
-                Balance = balanceToDateAsync.Balance / currencyConvertion.Multiplier * currencyConvertion.Divider
-            };
+                var balanceToDateAsync = _partnerBalancesRepository != null
+                    ? await _partnerBalancesRepository.GetBalanceToDateAsync(Details.OfficeId, Details.PartnerId, Details.Date, Details.Id)
+                    : null;
+
+                decimal rawBalance = balanceToDateAsync?.Balance ?? 0m;
+
+                // Безопасное получение курса: если конвертации нет, берем 1:1
+                decimal multiplier = 1m;
+                decimal divider = 1m;
+
+                if (!string.IsNullOrEmpty(Details.DisplayCurrencyId) && Details.CurrencyConvertions != null)
+                {
+                    var conversion = Details.CurrencyConvertions.FirstOrDefault(x => x.CurrencyId == Details.DisplayCurrencyId);
+                    if (conversion != null)
+                    {
+                        multiplier = conversion.Multiplier != 0 ? conversion.Multiplier : 1m;
+                        divider = conversion.Divider != 0 ? conversion.Divider : 1m;
+                    }
+                }
+
+                PartnerBalanceToDate = new PartnerBalanceResult
+                {
+                    Balance = rawBalance / multiplier * divider
+                };
+            }
+            catch
+            {
+                PartnerBalanceToDate = new PartnerBalanceResult { Balance = 0m };
+            }
         }
         else
         {

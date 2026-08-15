@@ -1,23 +1,25 @@
-﻿using MvvmCross.Core.Navigation;
-using MvvmCross.Core.ViewModels;
-using Mermer.Authorization.Services;
+﻿using Mermer.Authorization.Services;
 using Mermer.Commerce.Models;
 using Mermer.CRM.Models;
 using Mermer.CRM.Services;
+using Mermer.Data;
+using Mermer.Data.Authorizers;
+using Mermer.Data.Storage;
 using Mermer.Enterprise.Models;
 using Mermer.FundsManagement.Models;
+using Mermer.Mvvm.Services;
+using Mermer.Mvvm.ViewModels;
+using Mermer.Services;
 using Mermer.Transactions.Models;
 using Mermer.Transactions.Services;
 using Mermer.Ui.Core.Helpers;
 using Mermer.Ui.Core.Services;
 using Mermer.Ui.Core.ViewModels.Transactions;
-using Mermer.Data.Authorizers;
-using Mermer.Data.Storage;
-using Mermer.Mvvm.Services;
-using Mermer.Mvvm.ViewModels;
-using Mermer.Services;
+using MvvmCross.Core.Navigation;
+using MvvmCross.Core.ViewModels;
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -93,7 +95,28 @@ public class BillDetailsViewModel :
         await base.OnLoad();
         if (!string.IsNullOrEmpty(ItemId))
             return;
+
         Details.OfficeId = AppSettings.DefaultOfficeId;
+
+        await Currencies.Initialize();
+
+        if (Details.CurrencyConvertions == null)
+        {
+            Details.CurrencyConvertions = new WatchedObservableCollection<CurrencyConvertion>();
+        }
+
+        if (!Details.CurrencyConvertions.Any() && Currencies?.List != null)
+        {
+            foreach (var curr in Currencies.List)
+            {
+                Details.CurrencyConvertions.Add(new CurrencyConvertion
+                {
+                    CurrencyId = curr.Id,
+                    Multiplier = 1m,
+                    Divider = 1m
+                });
+            }
+        }
     }
 
     protected override async Task PostLoad()
@@ -122,7 +145,6 @@ public class BillDetailsViewModel :
     {
         try
         {
-            // ПРОВЕРКА: Если PartnerId пуст, блокируем сохранение
             if (string.IsNullOrEmpty(Details.PartnerId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Partner"]]);
@@ -130,7 +152,6 @@ public class BillDetailsViewModel :
         }
         catch (Exception ex)
         {
-            
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
@@ -166,15 +187,27 @@ public class BillDetailsViewModel :
 
     private async void UpdatePartnerBalance()
     {
-        if (!string.IsNullOrEmpty(Details?.PartnerId) && !string.IsNullOrEmpty(Details?.OfficeId) && Details?.CurrencyConvertions != null)
+        if (Details != null && !string.IsNullOrEmpty(Details.PartnerId) && !string.IsNullOrEmpty(Details.OfficeId) && Details.CurrencyConvertions != null)
         {
-            var balanceToDateAsync = await _partnerBalancesRepository.GetBalanceToDateAsync(Details.OfficeId, Details.PartnerId, Details.Date, Details.Id);
-            var currencyConvertion = CurrencyConverter(Details.DisplayCurrencyId);
-
-            PartnerBalanceToDate = new PartnerBalanceResult
+            try
             {
-                Balance = balanceToDateAsync.Balance / currencyConvertion.Multiplier * currencyConvertion.Divider
-            };
+                var balanceToDateAsync = await _partnerBalancesRepository.GetBalanceToDateAsync(Details.OfficeId, Details.PartnerId, Details.Date, Details.Id);
+                var currencyConvertion = CurrencyConverter(Details.DisplayCurrencyId);
+
+                decimal rawBalance = balanceToDateAsync != null ? balanceToDateAsync.Balance : 0m;
+
+                decimal multiplier = (currencyConvertion != null && currencyConvertion.Multiplier != 0) ? currencyConvertion.Multiplier : 1m;
+                decimal divider = (currencyConvertion != null && currencyConvertion.Divider != 0) ? currencyConvertion.Divider : 1m;
+
+                PartnerBalanceToDate = new PartnerBalanceResult
+                {
+                    Balance = rawBalance / multiplier * divider
+                };
+            }
+            catch
+            {
+                PartnerBalanceToDate = new PartnerBalanceResult { Balance = 0m };
+            }
         }
         else
         {

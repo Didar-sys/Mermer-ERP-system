@@ -22,7 +22,7 @@ public static class InvoicesEndpoints
     {
         var group = app.MapGroup("/api/invoices").WithTags("Invoices");
 
-        // --- 1. СПИСОК НАКЛАДНЫХ (С МАППИНГОМ ПОЛЕЙ ДЛЯ WPF-КЛИЕНТА) ---
+        // --- 1. СПИСОК НАКЛАДНЫХ ---
         group.MapGet("/", async (
              DateTime? from,
              DateTime? till,
@@ -35,26 +35,23 @@ public static class InvoicesEndpoints
 
             var info = await repo.GetInfoAsync(startDate, endDate, displayCurrencyId, ct);
 
-            // Переводим серверные поля в точные названия клиентской модели WPF
             var uiResponse = info.Select(i => new
             {
                 Id = i.Id,
                 Code = i.Code,
-                Type = i.InvoiceType.ToString(), // UI ждет строку
+                Type = i.InvoiceType.ToString(),
                 Date = i.Date,
                 UserId = i.UserId,
                 UserName = i.UserName,
                 IsCash = true,
                 IsCompleted = i.IsCompleted,
-                IsDisabled = i.IsDisabled, // <-- ЭТО ВЕРНЕТ КРАСНЫЙ ЦВЕТ!
+                IsDisabled = i.IsDisabled,
                 Group = i.Group,
                 Tags = i.Tags,
                 OfficeId = i.OfficeId,
                 WarehouseId = i.WarehouseId,
                 DepositoryId = i.DepositoryId,
                 PartnerId = i.PartnerId,
-
-                // ФИНАНСОВЫЕ СУММЫ
                 ActionTotal = i.Subtotal,
                 ActionDiscountsTotal = i.DiscountsTotal,
                 ActionGrandTotal = i.GrandTotal
@@ -98,22 +95,32 @@ public static class InvoicesEndpoints
             var body = await reader.ReadToEndAsync();
             if (string.IsNullOrEmpty(body)) return Results.BadRequest("Empty body");
 
-            // Напрямую парсим JSON из WPF-клиента в серверную модель! Это решает проблему со свойствами.
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var pgInvoice = JsonSerializer.Deserialize<PgInvoice>(body, options);
 
             if (pgInvoice == null) return Results.BadRequest("Invalid JSON");
 
-            if (string.IsNullOrEmpty(pgInvoice.Id) || pgInvoice.Id == Guid.Empty.ToString())
+            // ИСПРАВЛЕНИЕ: Проверяем, существует ли накладная реально в базе
+            var existing = await repo.GetAsync(pgInvoice.Id, ct);
+
+            try
             {
-                pgInvoice.Id = Guid.NewGuid().ToString();
-                await repo.CreateAsync(pgInvoice, ct);
-                return Results.Created($"/api/invoices/{pgInvoice.Id}", pgInvoice);
+                if (existing == null)
+                {
+                    await repo.CreateAsync(pgInvoice, ct);
+                    return Results.Created($"/api/invoices/{pgInvoice.Id}", pgInvoice);
+                }
+                else
+                {
+                    await repo.UpdateAsync(pgInvoice, ct);
+                    return Results.Ok(pgInvoice);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                await repo.UpdateAsync(pgInvoice, ct);
-                return Results.Ok(pgInvoice);
+                // Если вдруг EF Core выкинет ошибку сохранения связей, мы ее поймаем
+                Console.WriteLine($"[Invoice Save Error]: {ex}");
+                return Results.Problem(ex.Message);
             }
         };
 
