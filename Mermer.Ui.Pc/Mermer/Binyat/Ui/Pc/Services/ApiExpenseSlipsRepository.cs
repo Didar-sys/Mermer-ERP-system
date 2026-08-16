@@ -3,33 +3,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Mermer.CRM.Models;
 using Mermer.Data.Storage;
+using Mermer.Finance.Spending.Models;
 using Mermer.Http;
 
 namespace Mermer.Ui.Pc.Services;
 
-public class ApiPartnerTransfersRepository : IRepositoryWithFacets<PartnerTransfer>, IRepository<PartnerTransfer>, IReadOnlyRepository<PartnerTransfer>
+public class ApiExpenseSlipsRepository : IRepositoryWithFacets<ExpenseSlip>, IRepository<ExpenseSlip>, IReadOnlyRepository<ExpenseSlip>
 {
     private readonly RestClient _restClient;
-    private const string DocType = "PartnerTransfer";
+    private const string DocType = "ExpenseSlip";
 
-    public ApiPartnerTransfersRepository(RestClient restClient)
+    public ApiExpenseSlipsRepository(RestClient restClient)
     {
         _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
     }
 
-    public async Task<PartnerTransfer> GetAsync(string id)
+    public async Task<ExpenseSlip> GetAsync(string id)
     {
         if (string.IsNullOrEmpty(id)) return null;
 
-        var allLocal = LocalSqliteCache.GetAllDocuments<PartnerTransfer>(DocType);
+        var allLocal = LocalSqliteCache.GetAllDocuments<ExpenseSlip>(DocType);
         var local = allLocal?.FirstOrDefault(x => string.Equals(x.Id, id, StringComparison.OrdinalIgnoreCase));
         if (local != null) return local;
 
         try
         {
-            var remote = await _restClient.GetAsync<PartnerTransfer>($"/api/partners/transfers/{id}");
+            var remote = await _restClient.GetAsync<ExpenseSlip>($"/api/spending/slips/{id}");
             if (remote != null)
             {
                 LocalSqliteCache.SaveDocument(DocType, remote.Id, remote, isSynced: true);
@@ -41,43 +41,39 @@ public class ApiPartnerTransfersRepository : IRepositoryWithFacets<PartnerTransf
         return null;
     }
 
-    public async Task<IEnumerable<PartnerTransfer>> GetAsync(string[] ids)
+    public async Task<IEnumerable<ExpenseSlip>> GetAsync(string[] ids)
     {
-        if (ids == null || !ids.Any()) return Enumerable.Empty<PartnerTransfer>();
+        if (ids == null || !ids.Any()) return Enumerable.Empty<ExpenseSlip>();
         var all = await GetAllAsync();
         var idSet = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
         return all.Where(x => idSet.Contains(x.Id)).ToList();
     }
 
-    public async Task<IEnumerable<PartnerTransfer>> GetAsync(params Expression<Func<PartnerTransfer, bool>>[] predicates)
+    public async Task<IEnumerable<ExpenseSlip>> GetAsync(params Expression<Func<ExpenseSlip, bool>>[] predicates)
     {
         var all = await GetAllAsync();
         var query = all.AsQueryable();
 
         if (predicates != null && predicates.Any())
         {
-            foreach (var p in predicates.Where(x => x != null))
-            {
-                query = query.Where(p);
-            }
+            foreach (var p in predicates.Where(x => x != null)) query = query.Where(p);
         }
 
         return query.ToList();
     }
 
-    private async Task<IEnumerable<PartnerTransfer>> GetAllAsync()
+    private async Task<IEnumerable<ExpenseSlip>> GetAllAsync()
     {
-        // 1. Досылаем неотправленные переводы
         _ = Task.Run(async () =>
         {
             try
             {
-                var unsynced = LocalSqliteCache.GetUnsyncedDocuments<PartnerTransfer>(DocType);
+                var unsynced = LocalSqliteCache.GetUnsyncedDocuments<ExpenseSlip>(DocType);
                 if (unsynced != null)
                 {
                     foreach (var item in unsynced)
                     {
-                        await _restClient.PostAsync("/api/partners/transfers", item.entity);
+                        await _restClient.PostAsync("/api/spending/slips", item.entity);
                         LocalSqliteCache.SaveDocument(DocType, item.id, item.entity, isSynced: true);
                     }
                 }
@@ -85,13 +81,11 @@ public class ApiPartnerTransfersRepository : IRepositoryWithFacets<PartnerTransf
             catch { }
         });
 
-        // 2. Локальный кэш
-        var localItems = LocalSqliteCache.GetAllDocuments<PartnerTransfer>(DocType)?.ToList() ?? new List<PartnerTransfer>();
+        var localItems = LocalSqliteCache.GetAllDocuments<ExpenseSlip>(DocType)?.ToList() ?? new List<ExpenseSlip>();
 
-        // 3. Запрос с сервера
         try
         {
-            var remote = await _restClient.GetAsync<IEnumerable<PartnerTransfer>>("/api/partners/transfers");
+            var remote = await _restClient.GetAsync<IEnumerable<ExpenseSlip>>("/api/spending/slips");
             if (remote != null && remote.Any())
             {
                 foreach (var item in remote)
@@ -106,16 +100,16 @@ public class ApiPartnerTransfersRepository : IRepositoryWithFacets<PartnerTransf
         return localItems;
     }
 
-    public async Task<int> CountAsync(params Expression<Func<PartnerTransfer, bool>>[] predicates)
+    public async Task<int> CountAsync(params Expression<Func<ExpenseSlip, bool>>[] predicates)
     {
         return (await GetAsync(predicates)).Count();
     }
 
-    public async Task CreateAsync(PartnerTransfer model) => await SaveAsync(model);
+    public async Task CreateAsync(ExpenseSlip model) => await SaveAsync(model);
 
-    public async Task UpdateAsync(PartnerTransfer model) => await SaveAsync(model);
+    public async Task UpdateAsync(ExpenseSlip model) => await SaveAsync(model);
 
-    public async Task SaveAsync(PartnerTransfer model)
+    public async Task SaveAsync(ExpenseSlip model)
     {
         if (model == null) return;
         if (string.IsNullOrEmpty(model.Id)) model.Id = Guid.NewGuid().ToString();
@@ -124,37 +118,37 @@ public class ApiPartnerTransfersRepository : IRepositoryWithFacets<PartnerTransf
 
         try
         {
-            await _restClient.PostAsync("/api/partners/transfers", model);
+            await _restClient.PostAsync("/api/spending/slips", model);
             LocalSqliteCache.SaveDocument(DocType, model.Id, model, isSynced: true);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[PARTNER TRANSFER SYNC ERROR]: {ex.Message}");
+            // ТЕПЕРЬ МЫ УВИДИМ, ПОЧЕМУ БЭКЕНД ОТКЛОНИЛ ЗАПИСЬ
+            System.Windows.MessageBox.Show(
+                $"Бэкенд отклонил синхронизацию.\nОшибка: {ex.Message}",
+                "Ошибка синхронизации",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Warning);
+
+            System.Diagnostics.Debug.WriteLine($"[EXPENSE SLIP SYNC ERROR]: {ex.Message}");
         }
     }
 
     public async Task DeleteAsync(string id)
     {
         if (string.IsNullOrEmpty(id)) return;
-        try
-        {
-            await _restClient.DeleteAsync($"/api/partners/transfers/{id}");
-        }
-        catch { }
+        try { await _restClient.DeleteAsync($"/api/spending/slips/{id}"); } catch { }
     }
 
     public async Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
     {
         var dict = new Dictionary<string, Dictionary<string, int>>();
-        if (fields != null)
-        {
-            foreach (var f in fields) dict[f] = new Dictionary<string, int>();
-        }
+        if (fields != null) foreach (var f in fields) dict[f] = new Dictionary<string, int>();
 
         try
         {
             var fieldsParam = fields != null && fields.Length > 0 ? string.Join(",", fields) : "Date";
-            var apiResult = await _restClient.GetAsync<Dictionary<string, Dictionary<string, int>>>($"/api/partners/transfers/facets?fields={fieldsParam}");
+            var apiResult = await _restClient.GetAsync<Dictionary<string, Dictionary<string, int>>>($"/api/spending/slips/facets?fields={fieldsParam}");
             if (apiResult != null)
             {
                 foreach (var kvp in apiResult) dict[kvp.Key] = kvp.Value;

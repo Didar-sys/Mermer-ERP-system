@@ -7,111 +7,161 @@ using Mermer.CRM.Models;
 using Mermer.Data.Storage;
 using Mermer.Http;
 
-namespace Mermer.Ui.Pc.Services
+namespace Mermer.Ui.Pc.Services;
+
+public class ApiPartnerSlipsRepository : IRepositoryWithFacets<PartnerSlip>, IRepository<PartnerSlip>, IReadOnlyRepository<PartnerSlip>
 {
-    public class ApiPartnerSlipsRepository : IRepository<PartnerSlip>, IReadOnlyRepository<PartnerSlip>, IRepositoryWithFacets<PartnerSlip>
+    private readonly RestClient _restClient;
+    private const string DocType = "PartnerSlip";
+
+    public ApiPartnerSlipsRepository(RestClient restClient)
     {
-        private readonly RestClient _restClient;
-        private const string DocType = "PartnerSlip";
+        _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
+    }
 
-        public ApiPartnerSlipsRepository(RestClient restClient)
+    public async Task<PartnerSlip> GetAsync(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return null;
+
+        var allLocal = LocalSqliteCache.GetAllDocuments<PartnerSlip>(DocType);
+        var local = allLocal?.FirstOrDefault(x => string.Equals(x.Id, id, StringComparison.OrdinalIgnoreCase));
+        if (local != null) return local;
+
+        try
         {
-            _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
+            var remote = await _restClient.GetAsync<PartnerSlip>($"/api/partners/slips/{id}");
+            if (remote != null)
+            {
+                LocalSqliteCache.SaveDocument(DocType, remote.Id, remote, isSynced: true);
+                return remote;
+            }
+        }
+        catch { }
+
+        return null;
+    }
+
+    public async Task<IEnumerable<PartnerSlip>> GetAsync(string[] ids)
+    {
+        if (ids == null || !ids.Any()) return Enumerable.Empty<PartnerSlip>();
+        var all = await GetAllAsync();
+        var idSet = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
+        return all.Where(x => idSet.Contains(x.Id)).ToList();
+    }
+
+    public async Task<IEnumerable<PartnerSlip>> GetAsync(params Expression<Func<PartnerSlip, bool>>[] predicates)
+    {
+        var all = await GetAllAsync();
+        var query = all.AsQueryable();
+
+        if (predicates != null && predicates.Any())
+        {
+            foreach (var p in predicates.Where(x => x != null))
+            {
+                query = query.Where(p);
+            }
         }
 
-        public async Task<IEnumerable<PartnerSlip>> GetAllAsync()
+        return query.ToList();
+    }
+
+    private async Task<IEnumerable<PartnerSlip>> GetAllAsync()
+    {
+        // 1. Досылаем неотправленные документы
+        _ = Task.Run(async () =>
         {
-            var local = LocalSqliteCache.GetAllDocuments<PartnerSlip>(DocType).ToList();
-
-            _ = Task.Run(async () =>
+            try
             {
-                try
+                var unsynced = LocalSqliteCache.GetUnsyncedDocuments<PartnerSlip>(DocType);
+                if (unsynced != null)
                 {
-                    var unsynced = LocalSqliteCache.GetUnsyncedDocuments<PartnerSlip>(DocType);
-                    foreach (var (id, slip) in unsynced)
+                    foreach (var item in unsynced)
                     {
-                        try
-                        {
-                            await _restClient.PostAsync("/api/partners/slips", slip);
-                            LocalSqliteCache.SaveDocument(DocType, id, slip, isSynced: true);
-                        }
-                        catch { }
-                    }
-
-                    var remote = await _restClient.GetAsync<List<PartnerSlip>>("/api/partners/slips");
-                    if (remote != null)
-                    {
-                        foreach (var slip in remote)
-                        {
-                            LocalSqliteCache.SaveDocument(DocType, slip.Id, slip, isSynced: true);
-                        }
+                        await _restClient.PostAsync("/api/partners/slips", item.entity);
+                        LocalSqliteCache.SaveDocument(DocType, item.id, item.entity, isSynced: true);
                     }
                 }
-                catch { }
-            });
-
-            return local;
-        }
-
-        public async Task<PartnerSlip> GetAsync(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return null;
-            var all = await GetAllAsync();
-            return all.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public async Task<IEnumerable<PartnerSlip>> GetAsync(string[] ids)
-        {
-            if (ids == null || !ids.Any()) return Enumerable.Empty<PartnerSlip>();
-            var all = await GetAllAsync();
-            var idSet = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
-            return all.Where(s => idSet.Contains(s.Id));
-        }
-
-        public async Task<IEnumerable<PartnerSlip>> GetAsync(params Expression<Func<PartnerSlip, bool>>[] predicates)
-        {
-            var all = await GetAllAsync();
-            var query = all.AsQueryable();
-            if (predicates != null)
-            {
-                foreach (var p in predicates) if (p != null) query = query.Where(p);
             }
-            return query.ToList();
-        }
+            catch { }
+        });
 
-        public async Task<int> CountAsync(params Expression<Func<PartnerSlip, bool>>[] predicates) => (await GetAsync(predicates)).Count();
+        // 2. Локальный кэш
+        var localItems = LocalSqliteCache.GetAllDocuments<PartnerSlip>(DocType)?.ToList() ?? new List<PartnerSlip>();
 
-        public async Task SaveAsync(PartnerSlip entity)
+        // 3. Запрос с сервера
+        try
         {
-            if (entity == null) return;
-            if (string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString())
-                entity.Id = Guid.NewGuid().ToString();
-
-            LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: false);
-
-            _ = Task.Run(async () =>
+            var remote = await _restClient.GetAsync<IEnumerable<PartnerSlip>>("/api/partners/slips");
+            if (remote != null && remote.Any())
             {
-                try
+                foreach (var item in remote)
                 {
-                    await _restClient.PostAsync("/api/partners/slips", entity);
-                    LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: true);
+                    LocalSqliteCache.SaveDocument(DocType, item.Id, item, isSynced: true);
                 }
-                catch { }
-            });
-        }
-
-        public async Task CreateAsync(PartnerSlip entity) => await SaveAsync(entity);
-        public async Task UpdateAsync(PartnerSlip entity) => await SaveAsync(entity);
-        public Task DeleteAsync(string id) => Task.CompletedTask;
-
-        public async Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
-        {
-            var result = new Dictionary<string, Dictionary<string, int>>();
-            if (fields != null)
-            {
-                foreach (var field in fields) result[field] = new Dictionary<string, int>();
+                return remote.ToList();
             }
-            return await Task.FromResult(result);
         }
+        catch { }
+
+        return localItems;
+    }
+
+    public async Task<int> CountAsync(params Expression<Func<PartnerSlip, bool>>[] predicates)
+    {
+        return (await GetAsync(predicates)).Count();
+    }
+
+    public async Task CreateAsync(PartnerSlip model) => await SaveAsync(model);
+
+    public async Task UpdateAsync(PartnerSlip model) => await SaveAsync(model);
+
+    public async Task SaveAsync(PartnerSlip model)
+    {
+        if (model == null) return;
+        if (string.IsNullOrEmpty(model.Id)) model.Id = Guid.NewGuid().ToString();
+
+        LocalSqliteCache.SaveDocument(DocType, model.Id, model, isSynced: false);
+
+        try
+        {
+            await _restClient.PostAsync("/api/partners/slips", model);
+            LocalSqliteCache.SaveDocument(DocType, model.Id, model, isSynced: true);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PARTNER SLIP SYNC ERROR]: {ex.Message}");
+        }
+    }
+
+    public async Task DeleteAsync(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return;
+        try
+        {
+            await _restClient.DeleteAsync($"/api/partners/slips/{id}");
+        }
+        catch { }
+    }
+
+    public async Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
+    {
+        var dict = new Dictionary<string, Dictionary<string, int>>();
+        if (fields != null)
+        {
+            foreach (var f in fields) dict[f] = new Dictionary<string, int>();
+        }
+
+        try
+        {
+            var fieldsParam = fields != null && fields.Length > 0 ? string.Join(",", fields) : "Date";
+            var apiResult = await _restClient.GetAsync<Dictionary<string, Dictionary<string, int>>>($"/api/partners/slips/facets?fields={fieldsParam}");
+            if (apiResult != null)
+            {
+                foreach (var kvp in apiResult) dict[kvp.Key] = kvp.Value;
+            }
+        }
+        catch { }
+
+        return dict;
     }
 }

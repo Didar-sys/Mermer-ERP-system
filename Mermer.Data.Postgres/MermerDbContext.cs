@@ -51,7 +51,13 @@ public class MermerDbContext : DbContext
     public DbSet<FundsSlipLineEntity> FundsSlipLines => Set<FundsSlipLineEntity>();
     public DbSet<FundsTransferEntity> FundsTransfers => Set<FundsTransferEntity>();
     public DbSet<FundsTransferLineEntity> FundsTransferLines => Set<FundsTransferLineEntity>();
+    public DbSet<ExpenseSlipEntity> ExpenseSlips { get; set; }
+    public DbSet<ExpenseSlipLineEntity> ExpenseSlipLines { get; set; }
 
+    public DbSet<Entities.ExpenseEntity> Expenses { get; set; }
+
+    public DbSet<DailyFundsRegisteryEntity> DailyFundsRegisteries { get; set; }
+    public DbSet<DailyFundsRegisteryLineEntity> DailyFundsRegisteryLines { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

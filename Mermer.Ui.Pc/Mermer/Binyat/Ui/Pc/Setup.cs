@@ -187,6 +187,11 @@ public class Setup : MvxWpfSetup
 
         // --- ФИНАНСЫ И ДОКУМЕНТЫ ---
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiFundsActionRepository>()
+               .As<Mermer.FundsManagement.Services.IFundsActionsRepository>()
+               .SingleInstance();
+
+        // Репозиторий кассовых ордеров (FundsSlip)
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiFundsSlipsRepository>()
                .As<Mermer.Data.Storage.IRepository<Mermer.Finance.Models.FundsSlip>>()
                .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Finance.Models.FundsSlip>>()
                .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Finance.Models.FundsSlip>>()
@@ -210,6 +215,41 @@ public class Setup : MvxWpfSetup
                .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Commerce.Models.Bill>>()
                .SingleInstance();
 
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiExpensesRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Finance.Spending.Models.Expense>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Finance.Spending.Models.Expense>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Finance.Spending.Models.Expense>>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiFundsTransfersRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Finance.Models.FundsTransfer>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Finance.Models.FundsTransfer>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Finance.Models.FundsTransfer>>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiExpenseSlipsRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Finance.Spending.Models.ExpenseSlip>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Finance.Spending.Models.ExpenseSlip>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Finance.Spending.Models.ExpenseSlip>>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiDailyFundsRegisteriesRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Finance.DailyRegistery.Models.DailyFundsRegistery>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Finance.DailyRegistery.Models.DailyFundsRegistery>>()
+               .As<Mermer.Finance.DailyRegistery.Services.IDailyFundsRegisteriesRepository>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Finance.DailyRegistery.Models.DailyFundsRegistery>>()
+               .SingleInstance();
+
+        // Репозиторий Балансов касс (Сводка)
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiFundsBalancesRepository>()
+               .As<Mermer.FundsManagement.Services.IFundsBalancesRepository>()
+               .SingleInstance();
+
+        // Журнал детализации расходов (Expense Actions)
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiExpenseActionsRepository>()
+               .As<Mermer.Finance.Spending.Services.IExpenseActionsRepository>()
+               .SingleInstance();
+
         // ДОБАВЛЯЕМ НОВЫЙ РЕПОЗИТОРИЙ ДЛЯ ПЕРЕВОДОВ ПАРТНЕРОВ!
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiPartnerTransfersRepository>()
                .As<Mermer.Data.Storage.IRepository<Mermer.CRM.Models.PartnerTransfer>>()
@@ -219,6 +259,12 @@ public class Setup : MvxWpfSetup
 
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiPartnerActionsRepository>()
                .As<Mermer.CRM.Services.IPartnerActionsRepository>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiFundsSlipsRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Finance.Models.FundsSlip>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Finance.Models.FundsSlip>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Finance.Models.FundsSlip>>()
                .SingleInstance();
 
         // =====================================================================
@@ -348,7 +394,6 @@ public class DummyInterfaceSource : IRegistrationSource
                 name == "IInvoicesRepository" ||
                 name == "ITransactionCodeGenerationService" ||
                 name == "IStocksRepository" ||
-                name.Contains("FundsOpening") || // <-- ПЕРЕХВАТЫВАЕМ ОШИБКУ #FundsOpening
                 ns.Contains("Authorizers") ||
                 ns.Contains("Couch"))
             {
@@ -414,6 +459,14 @@ public class DummyInterceptor : Castle.DynamicProxy.IInterceptor
         }
 
         // --- 5. ОБРАБОТКА ВСЕХ ОСТАЛЬНЫХ ТИПОВ ВОЗВРАТА ---
+        if (returnType == typeof(void))
+        {
+            return; // Просто выходим, если метод ничего не возвращает (void)
+        }
+        else if (returnType == typeof(Task))
+        {
+            invocation.ReturnValue = Task.CompletedTask;
+        }
         if (returnType == typeof(Task))
         {
             invocation.ReturnValue = Task.CompletedTask;

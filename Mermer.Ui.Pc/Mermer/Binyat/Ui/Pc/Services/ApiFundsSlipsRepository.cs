@@ -3,33 +3,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Mermer.CRM.Models;
 using Mermer.Data.Storage;
+using Mermer.Finance.Models;
 using Mermer.Http;
 
 namespace Mermer.Ui.Pc.Services;
 
-public class ApiPartnerTransfersRepository : IRepositoryWithFacets<PartnerTransfer>, IRepository<PartnerTransfer>, IReadOnlyRepository<PartnerTransfer>
+public class ApiFundsSlipsRepository : IRepositoryWithFacets<FundsSlip>, IRepository<FundsSlip>, IReadOnlyRepository<FundsSlip>
 {
     private readonly RestClient _restClient;
-    private const string DocType = "PartnerTransfer";
+    private const string DocType = "FundsSlip";
 
-    public ApiPartnerTransfersRepository(RestClient restClient)
+    public ApiFundsSlipsRepository(RestClient restClient)
     {
         _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
     }
 
-    public async Task<PartnerTransfer> GetAsync(string id)
+    public async Task<FundsSlip> GetAsync(string id)
     {
         if (string.IsNullOrEmpty(id)) return null;
 
-        var allLocal = LocalSqliteCache.GetAllDocuments<PartnerTransfer>(DocType);
+        var allLocal = LocalSqliteCache.GetAllDocuments<FundsSlip>(DocType);
         var local = allLocal?.FirstOrDefault(x => string.Equals(x.Id, id, StringComparison.OrdinalIgnoreCase));
         if (local != null) return local;
 
         try
         {
-            var remote = await _restClient.GetAsync<PartnerTransfer>($"/api/partners/transfers/{id}");
+            var remote = await _restClient.GetAsync<FundsSlip>($"/api/finance/slips/{id}");
             if (remote != null)
             {
                 LocalSqliteCache.SaveDocument(DocType, remote.Id, remote, isSynced: true);
@@ -41,15 +41,15 @@ public class ApiPartnerTransfersRepository : IRepositoryWithFacets<PartnerTransf
         return null;
     }
 
-    public async Task<IEnumerable<PartnerTransfer>> GetAsync(string[] ids)
+    public async Task<IEnumerable<FundsSlip>> GetAsync(string[] ids)
     {
-        if (ids == null || !ids.Any()) return Enumerable.Empty<PartnerTransfer>();
+        if (ids == null || !ids.Any()) return Enumerable.Empty<FundsSlip>();
         var all = await GetAllAsync();
         var idSet = new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
         return all.Where(x => idSet.Contains(x.Id)).ToList();
     }
 
-    public async Task<IEnumerable<PartnerTransfer>> GetAsync(params Expression<Func<PartnerTransfer, bool>>[] predicates)
+    public async Task<IEnumerable<FundsSlip>> GetAsync(params Expression<Func<FundsSlip, bool>>[] predicates)
     {
         var all = await GetAllAsync();
         var query = all.AsQueryable();
@@ -65,38 +65,41 @@ public class ApiPartnerTransfersRepository : IRepositoryWithFacets<PartnerTransf
         return query.ToList();
     }
 
-    private async Task<IEnumerable<PartnerTransfer>> GetAllAsync()
+    private async Task<IEnumerable<FundsSlip>> GetAllAsync()
     {
-        // 1. Досылаем неотправленные переводы
+        // 1. Досылаем на сервер всё, что не синхронизировано
         _ = Task.Run(async () =>
         {
             try
             {
-                var unsynced = LocalSqliteCache.GetUnsyncedDocuments<PartnerTransfer>(DocType);
+                var unsynced = LocalSqliteCache.GetUnsyncedDocuments<FundsSlip>(DocType);
                 if (unsynced != null)
                 {
                     foreach (var item in unsynced)
                     {
-                        await _restClient.PostAsync("/api/partners/transfers", item.entity);
+                        await _restClient.PostAsync("/api/finance/slips", item.entity);
                         LocalSqliteCache.SaveDocument(DocType, item.id, item.entity, isSynced: true);
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[FundsSlips Sync Error]: {ex.Message}");
+            }
         });
 
         // 2. Локальный кэш
-        var localItems = LocalSqliteCache.GetAllDocuments<PartnerTransfer>(DocType)?.ToList() ?? new List<PartnerTransfer>();
+        var localItems = LocalSqliteCache.GetAllDocuments<FundsSlip>(DocType)?.ToList() ?? new List<FundsSlip>();
 
         // 3. Запрос с сервера
         try
         {
-            var remote = await _restClient.GetAsync<IEnumerable<PartnerTransfer>>("/api/partners/transfers");
+            var remote = await _restClient.GetAsync<IEnumerable<FundsSlip>>("/api/finance/slips");
             if (remote != null && remote.Any())
             {
-                foreach (var item in remote)
+                foreach (var slip in remote)
                 {
-                    LocalSqliteCache.SaveDocument(DocType, item.Id, item, isSynced: true);
+                    LocalSqliteCache.SaveDocument(DocType, slip.Id, slip, isSynced: true);
                 }
                 return remote.ToList();
             }
@@ -106,39 +109,42 @@ public class ApiPartnerTransfersRepository : IRepositoryWithFacets<PartnerTransf
         return localItems;
     }
 
-    public async Task<int> CountAsync(params Expression<Func<PartnerTransfer, bool>>[] predicates)
+    public async Task<int> CountAsync(params Expression<Func<FundsSlip, bool>>[] predicates)
     {
         return (await GetAsync(predicates)).Count();
     }
 
-    public async Task CreateAsync(PartnerTransfer model) => await SaveAsync(model);
+    public async Task CreateAsync(FundsSlip model) => await SaveAsync(model);
 
-    public async Task UpdateAsync(PartnerTransfer model) => await SaveAsync(model);
+    public async Task UpdateAsync(FundsSlip model) => await SaveAsync(model);
 
-    public async Task SaveAsync(PartnerTransfer model)
+    private async Task SaveAsync(FundsSlip model)
     {
         if (model == null) return;
         if (string.IsNullOrEmpty(model.Id)) model.Id = Guid.NewGuid().ToString();
 
+        // 1. Мгновенная запись в локальный SQLite
         LocalSqliteCache.SaveDocument(DocType, model.Id, model, isSynced: false);
 
+        // 2. Синхронизация с сервером
         try
         {
-            await _restClient.PostAsync("/api/partners/transfers", model);
+            await _restClient.PostAsync("/api/finance/slips", model);
             LocalSqliteCache.SaveDocument(DocType, model.Id, model, isSynced: true);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[PARTNER TRANSFER SYNC ERROR]: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[FUNDS SLIP SYNC ERROR]: {ex.Message}");
         }
     }
 
     public async Task DeleteAsync(string id)
     {
         if (string.IsNullOrEmpty(id)) return;
+
         try
         {
-            await _restClient.DeleteAsync($"/api/partners/transfers/{id}");
+            await _restClient.DeleteAsync($"/api/finance/slips/{id}");
         }
         catch { }
     }
@@ -154,7 +160,7 @@ public class ApiPartnerTransfersRepository : IRepositoryWithFacets<PartnerTransf
         try
         {
             var fieldsParam = fields != null && fields.Length > 0 ? string.Join(",", fields) : "Date";
-            var apiResult = await _restClient.GetAsync<Dictionary<string, Dictionary<string, int>>>($"/api/partners/transfers/facets?fields={fieldsParam}");
+            var apiResult = await _restClient.GetAsync<Dictionary<string, Dictionary<string, int>>>($"/api/bills/facets?fields={fieldsParam}");
             if (apiResult != null)
             {
                 foreach (var kvp in apiResult) dict[kvp.Key] = kvp.Value;

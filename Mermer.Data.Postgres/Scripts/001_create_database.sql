@@ -1,5 +1,5 @@
 ﻿-- ============================================================================
--- Mermer ERP ERP — PostgreSQL Database Schema
+-- Mermer ERP — PostgreSQL Database Schema
 -- Migration from Couchbase (NoSQL) to PostgreSQL (Relational)
 -- Version: 1.0.0 | Stage 1
 -- ============================================================================
@@ -148,14 +148,18 @@ CREATE INDEX idx_partner_slips_date ON partner_slips(date DESC);
 
 -- Partner Slip Lines
 CREATE TABLE partner_slip_lines (
-    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    partner_slip_id UUID NOT NULL REFERENCES partner_slips(id) ON DELETE CASCADE,
-    partner_id      UUID REFERENCES partners(id),
-    debit_amount    NUMERIC(18,4) NOT NULL DEFAULT 0,
-    debit_currency_id UUID REFERENCES currencies(id),
-    credit_amount   NUMERIC(18,4) NOT NULL DEFAULT 0,
-    credit_currency_id UUID REFERENCES currencies(id)
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    partner_slip_id     UUID NOT NULL REFERENCES partner_slips(id) ON DELETE CASCADE,
+    partner_id          UUID REFERENCES partners(id),
+    debit_amount        NUMERIC(18,4) NOT NULL DEFAULT 0,
+    debit_currency_id   UUID REFERENCES currencies(id),
+    credit_amount       NUMERIC(18,4) NOT NULL DEFAULT 0,
+    credit_currency_id  UUID REFERENCES currencies(id)
 );
+
+CREATE INDEX idx_partner_slip_lines_slip_id ON partner_slip_lines(partner_slip_id);
+CREATE INDEX idx_partner_slip_lines_partner_id ON partner_slip_lines(partner_id);
+
 -- Partner Transfers (Переводы между партнерами/офисами)
 CREATE TABLE partner_transfers (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -182,8 +186,6 @@ CREATE TABLE partner_transfer_lines (
 
 CREATE INDEX idx_partner_transfer_lines_transfer_id ON partner_transfer_lines(partner_transfer_id);
 CREATE INDEX idx_partner_transfer_lines_partner_id ON partner_transfer_lines(partner_id);
-CREATE INDEX idx_partner_slip_lines_slip_id ON partner_slip_lines(partner_slip_id);
-CREATE INDEX idx_partner_slip_lines_partner_id ON partner_slip_lines(partner_id);
 
 -- ============================================================================
 -- STOCK MANAGEMENT — Products
@@ -280,27 +282,27 @@ CREATE INDEX idx_stock_additional_prices_stock_id ON stock_additional_prices(sto
 -- ============================================================================
 
 CREATE TABLE invoices (
-    id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    code                    VARCHAR(50),
-    date                    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    due_date                TIMESTAMPTZ,
-    invoice_type            VARCHAR(20) NOT NULL CHECK (invoice_type IN ('Purchase', 'PurchaseReturn', 'Sales', 'SalesReturn')),
-    user_id                 UUID REFERENCES users(id),
-    user_name               VARCHAR(200),
-    office_id               UUID REFERENCES offices(id),
-    warehouse_id            UUID REFERENCES warehouses(id),
-    depository_id           UUID REFERENCES depositories(id),
-    partner_id              UUID REFERENCES partners(id),
-    display_currency_id     UUID REFERENCES currencies(id),
-    stock_price_group       VARCHAR(100),
+    id                       UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code                     VARCHAR(50),
+    date                     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    due_date                 TIMESTAMPTZ,
+    invoice_type             VARCHAR(20) NOT NULL CHECK (invoice_type IN ('Purchase', 'PurchaseReturn', 'Sales', 'SalesReturn')),
+    user_id                  UUID REFERENCES users(id),
+    user_name                VARCHAR(200),
+    office_id                UUID REFERENCES offices(id),
+    warehouse_id             UUID REFERENCES warehouses(id),
+    depository_id            UUID REFERENCES depositories(id),
+    partner_id               UUID REFERENCES partners(id),
+    display_currency_id      UUID REFERENCES currencies(id),
+    stock_price_group        VARCHAR(100),
     debit_credit_left_amount BOOLEAN NOT NULL DEFAULT FALSE,
-    is_completed            BOOLEAN NOT NULL DEFAULT FALSE,
-    is_disabled             BOOLEAN NOT NULL DEFAULT FALSE,
-    group_name              VARCHAR(200),
-    tags                    TEXT[],
-    description             TEXT,
-    created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    is_completed             BOOLEAN NOT NULL DEFAULT FALSE,
+    is_disabled              BOOLEAN NOT NULL DEFAULT FALSE,
+    group_name               VARCHAR(200),
+    tags                     TEXT[],
+    description              TEXT,
+    created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at               TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_invoices_date ON invoices(date DESC);
@@ -324,8 +326,6 @@ CREATE TABLE invoice_lines (
 
 CREATE INDEX idx_invoice_lines_invoice_id ON invoice_lines(invoice_id);
 CREATE INDEX idx_invoice_lines_stock_id ON invoice_lines(stock_id);
--- source_id chains a return line to its origin sale line. Required by the
--- Revenue Report cost-basis CTE (sales-return reuses original cost).
 CREATE INDEX idx_invoice_lines_source_id ON invoice_lines(source_id) WHERE source_id IS NOT NULL;
 
 -- Invoice Currency Convertions (snapshot of exchange rates at invoice time)
@@ -415,25 +415,25 @@ CREATE INDEX idx_stock_balances_warehouse_id ON stock_balances(warehouse_id);
 -- FUNDS MANAGEMENT
 -- ============================================================================
 
--- Funds Slips (cash receipts / disbursements)
+-- Funds Slips (cash receipts / disbursements / openings)
 CREATE TABLE funds_slips (
-    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    code            VARCHAR(50),
-    date            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    funds_slip_type VARCHAR(20) NOT NULL CHECK (funds_slip_type IN ('Income', 'Expense')),
-    user_id         UUID REFERENCES users(id),
-    user_name       VARCHAR(200),
-    office_id       UUID REFERENCES offices(id),
-    depository_id   UUID REFERENCES depositories(id),
-    partner_id      UUID REFERENCES partners(id),
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code                VARCHAR(50),
+    date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    funds_slip_type     VARCHAR(50) NOT NULL,
+    user_id             UUID REFERENCES users(id),
+    user_name           VARCHAR(200),
+    office_id           UUID REFERENCES offices(id),
+    depository_id       UUID REFERENCES depositories(id),
+    partner_id          UUID REFERENCES partners(id),
     display_currency_id UUID REFERENCES currencies(id),
-    is_completed    BOOLEAN NOT NULL DEFAULT FALSE,
-    is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
-    group_name      VARCHAR(200),
-    tags            TEXT[],
-    description     TEXT,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    is_completed        BOOLEAN NOT NULL DEFAULT FALSE,
+    is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
+    group_name          VARCHAR(200),
+    tags                TEXT[],
+    description         TEXT,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Funds Slip Lines
@@ -449,33 +449,117 @@ CREATE INDEX idx_funds_slip_lines_slip_id ON funds_slip_lines(funds_slip_id);
 
 -- Funds Transfers (between depositories)
 CREATE TABLE funds_transfers (
-    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    code            VARCHAR(50),
-    date            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    user_id         UUID REFERENCES users(id),
-    user_name       VARCHAR(200),
-    from_depository_id UUID REFERENCES depositories(id),
-    to_depository_id   UUID REFERENCES depositories(id),
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code                VARCHAR(50),
+    date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id             UUID REFERENCES users(id),
+    user_name           VARCHAR(200),
+    from_depository_id  UUID REFERENCES depositories(id),
+    to_depository_id    UUID REFERENCES depositories(id),
     display_currency_id UUID REFERENCES currencies(id),
-    is_completed    BOOLEAN NOT NULL DEFAULT FALSE,
-    is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
-    group_name      VARCHAR(200),
-    tags            TEXT[],
-    description     TEXT,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    is_completed        BOOLEAN NOT NULL DEFAULT FALSE,
+    is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
+    group_name          VARCHAR(200),
+    tags                TEXT[],
+    description         TEXT,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Funds Transfer Lines
 CREATE TABLE funds_transfer_lines (
-    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    funds_transfer_id UUID NOT NULL REFERENCES funds_transfers(id) ON DELETE CASCADE,
-    amount          NUMERIC(18,4) NOT NULL DEFAULT 0,
-    currency_id     UUID REFERENCES currencies(id),
-    sort_order      INT NOT NULL DEFAULT 0
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    funds_transfer_id   UUID NOT NULL REFERENCES funds_transfers(id) ON DELETE CASCADE,
+    amount              NUMERIC(18,4) NOT NULL DEFAULT 0,
+    received_amount     NUMERIC(18,4) NOT NULL DEFAULT 0,
+    currency_id         UUID REFERENCES currencies(id),
+    sort_order          INT NOT NULL DEFAULT 0
 );
 
 CREATE INDEX idx_funds_transfer_lines_transfer_id ON funds_transfer_lines(funds_transfer_id);
+
+-- ============================================================================
+-- EXPENSES (Spending categories & Expense Slips)
+-- ============================================================================
+
+CREATE TABLE expenses (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name            VARCHAR(255) NOT NULL,
+    type            VARCHAR(100),
+    group_name      VARCHAR(200),
+    description     TEXT,
+    tags            TEXT[],
+    is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_expenses_name_trgm ON expenses USING GIN (name gin_trgm_ops);
+CREATE INDEX idx_expenses_group_name ON expenses(group_name);
+CREATE INDEX idx_expenses_is_disabled ON expenses(is_disabled) WHERE NOT is_disabled;
+
+-- Expense Slips (Расходные кассовые ордера)
+CREATE TABLE expense_slips (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code                VARCHAR(50),
+    date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id             UUID REFERENCES users(id),
+    user_name           VARCHAR(200),
+    office_id           UUID REFERENCES offices(id),
+    depository_id       UUID REFERENCES depositories(id),
+    display_currency_id UUID REFERENCES currencies(id),
+    is_completed        BOOLEAN NOT NULL DEFAULT FALSE,
+    is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
+    group_name          VARCHAR(200),
+    tags                TEXT[],
+    description         TEXT,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_expense_slips_date ON expense_slips(date DESC);
+
+-- Daily Funds Registeries (Реестры кассы / закрытие смены)
+CREATE TABLE daily_funds_registeries (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code                VARCHAR(50),
+    date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id             UUID REFERENCES users(id),
+    user_name           VARCHAR(200),
+    depository_id       UUID REFERENCES depositories(id),
+    display_currency_id UUID REFERENCES currencies(id),
+    is_completed        BOOLEAN NOT NULL DEFAULT FALSE,
+    is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
+    group_name          VARCHAR(200),
+    tags                TEXT[],
+    description         TEXT,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE daily_funds_registery_lines (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    registery_id        UUID NOT NULL REFERENCES daily_funds_registeries(id) ON DELETE CASCADE,
+    amount              NUMERIC(18,4) NOT NULL DEFAULT 0,
+    currency_id         UUID REFERENCES currencies(id),
+    sort_order          INT NOT NULL DEFAULT 0
+);
+
+CREATE INDEX idx_daily_funds_reg_date ON daily_funds_registeries(date DESC);
+CREATE INDEX idx_daily_funds_reg_dep ON daily_funds_registeries(depository_id);
+CREATE INDEX idx_daily_funds_reg_lines_reg_id ON daily_funds_registery_lines(registery_id);
+
+-- Expense Slip Lines (Строки расходов)
+CREATE TABLE expense_slip_lines (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    expense_slip_id     UUID NOT NULL REFERENCES expense_slips(id) ON DELETE CASCADE,
+    expense_id          UUID REFERENCES expenses(id),
+    amount              NUMERIC(18,4) NOT NULL DEFAULT 0,
+    currency_id         UUID REFERENCES currencies(id),
+    sort_order          INT NOT NULL DEFAULT 0
+);
+
+CREATE INDEX idx_expense_slip_lines_slip_id ON expense_slip_lines(expense_slip_id);
 
 -- ============================================================================
 -- MATERIALIZED VIEW: Stock Search (replaces 3 Couchbase round-trips with 1 query)
@@ -556,9 +640,3 @@ BEGIN
     END LOOP;
 END;
 $$;
-
--- ============================================================================
--- REFRESH MATERIALIZED VIEW (call periodically or after stock changes)
--- ============================================================================
-
--- To refresh: REFRESH MATERIALIZED VIEW CONCURRENTLY mv_stock_search;

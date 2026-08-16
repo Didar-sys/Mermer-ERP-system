@@ -79,9 +79,11 @@ app.MapHealthEndpoints();
 app.MapAuthEndpoints(); // ДОБАВЛЕНО: Регистрация эндпоинтов авторизации (/api/auth/login)
 app.MapEnterpriseEndpoints();
 app.MapFinanceEndpoints();
+app.MapExpensesEndpoints();
 app.MapStockSlipsEndpoints();
 app.MapStocksEndpoints();
 app.MapInvoicesEndpoints();
+app.MapSpendingEndpoints();
 app.MapDepositoriesEndpoints();
 app.MapPartnersEndpoints();
 app.MapBalancesEndpoints();

@@ -92,8 +92,10 @@
               <dxg:GridColumn FieldName="DisplayTotal" ReadOnly="true" Style="{StaticResource AmountDisplayFormat}"
                               TotalSummaryContentStyle="{StaticResource TotalSummaryStyle}" Header="{Localize Total}"/>
               <dxg:GridControl.View>
-                <dxg:TableView AutoWidth="true" ShowGroupPanel="false" ShowTotalSummary="true" NewItemRowPosition="Bottom"
-                               hlp:GridExtender.ForceTotalSummaryUpdate="true" AllowEditing="{Binding HasSaveAccess}"/>
+                                <dxg:TableView AutoWidth="true" ShowGroupPanel="false" ShowTotalSummary="true" NewItemRowPosition="Bottom"
+                               hlp:GridExtender.ForceTotalSummaryUpdate="true" 
+                               AllowEditing="{Binding HasSaveAccess}"
+                               EnableImmediatePosting="True"/>
               </dxg:GridControl.View>
               <dxg:GridControl.TotalSummary>
                 <dxg:GridSummaryItem FieldName="Amount" SummaryType="Count" DisplayFormat="{}{0}"/>

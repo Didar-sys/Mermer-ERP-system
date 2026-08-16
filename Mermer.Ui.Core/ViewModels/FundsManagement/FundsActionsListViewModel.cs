@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Core.ViewModels.FundsManagement.FundsActionsListViewModel
-// Assembly: Mermer.Ui.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: DC92D011-8413-44AC-9F10-F866D891CF66
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
-
-using Mermer.Commerce.Models;
+﻿using Mermer.Commerce.Models;
 using Mermer.Common.Settings;
 using Mermer.CRM.Models;
 using Mermer.Enterprise.Models;
@@ -32,13 +26,13 @@ using System.Windows.Input;
 namespace Mermer.Ui.Core.ViewModels.FundsManagement;
 
 public class FundsActionsListViewModel :
-  ListViewModelBaseWithFilterDate<FundsAction>,
-  IMvxViewModel<FundsActionsFilter>,
-  IMvxViewModel
+    ListViewModelBaseWithFilterDate<FundsAction>,
+    IMvxViewModel<FundsActionsFilter>,
+    IMvxViewModel
 {
     private readonly IConfigurator _configurator;
     private readonly IFundsActionsRepository _repository;
-    private System.Collections.Generic.List<object> _selectedDepositoryIds;
+    private List<object> _selectedDepositoryIds;
     private FundsActionsFilter _parameter;
     private bool _loaded;
     private string _currencyId;
@@ -48,41 +42,46 @@ public class FundsActionsListViewModel :
         get => this._currencyId;
         set
         {
-            if (!this.SetProperty<string>(ref this._currencyId, value, nameof(CurrencyId)) || this.IsBusy)
-                return;
-            this.ApplyCustomCurrencyRate(); // Вызываем пересчет
+            if (this.SetProperty<string>(ref this._currencyId, value, nameof(CurrencyId)))
+            {
+                ApplyCustomCurrencyRate();
+            }
         }
     }
 
     public Reference<Currency> Currencies { get; private set; }
+
     public FundsActionsListViewModel(
-     IMvxMessenger messenger,
-     IConfigurator configurator,
-     Reference<Partner> partners,
-     Reference<Depository> depositories,
-     Reference<Currency> currencies, // ДОБАВЛЕНО
-     IFundsActionsRepository repository,
-     IMvxNavigationService navigationService,
-     IUserInteractionService userInteractionService)
-     : base(messenger, navigationService, userInteractionService)
+        IMvxMessenger messenger,
+        IConfigurator configurator,
+        Reference<Partner> partners,
+        Reference<Depository> depositories,
+        Reference<Currency> currencies,
+        IFundsActionsRepository repository,
+        IMvxNavigationService navigationService,
+        IUserInteractionService userInteractionService)
+        : base(messenger, navigationService, userInteractionService)
     {
         this._configurator = configurator;
         this._repository = repository;
         this.Partners = partners;
         this.Depositories = depositories;
         this.Types = new LocalizedTransactionTypes("Repricing");
-
-        this.Currencies = currencies; // ДОБАВЛЕНО
+        this.Currencies = currencies;
     }
 
-    public System.Collections.Generic.List<object> SelectedDepositoryIds
+    public List<object> SelectedDepositoryIds
     {
         get => this._selectedDepositoryIds;
         set
         {
-            if (this._selectedDepositoryIds != null && value != null && this._selectedDepositoryIds.SequenceEqual<object>((IEnumerable<object>)value) || !this.SetProperty<System.Collections.Generic.List<object>>(ref this._selectedDepositoryIds, value, nameof(SelectedDepositoryIds)) || this.IsBusy)
-                return;
-            this.Initialize();
+            if (this.SetProperty<List<object>>(ref this._selectedDepositoryIds, value, nameof(SelectedDepositoryIds)))
+            {
+                if (_loaded && !this.IsBusy)
+                {
+                    Task.Run(async () => await this.LoadByDateAsync(false));
+                }
+            }
         }
     }
 
@@ -90,15 +89,18 @@ public class FundsActionsListViewModel :
     {
         get
         {
-            System.Collections.Generic.List<object> selectedDepositoryIds = this.SelectedDepositoryIds;
-            return (selectedDepositoryIds != null ? selectedDepositoryIds.Cast<string>().ToArray<string>() : (string[])null) ?? Array.Empty<string>();
+            if (this.SelectedDepositoryIds == null || !this.SelectedDepositoryIds.Any())
+                return Array.Empty<string>();
+
+            return this.SelectedDepositoryIds
+                .Select(x => x?.ToString())
+                .Where(x => !string.IsNullOrEmpty(x))
+                .ToArray();
         }
     }
 
     public Reference<Partner> Partners { get; }
-
     public Reference<Depository> Depositories { get; }
-
     public LocalizedTransactionTypes Types { get; }
 
     public void Prepare(FundsActionsFilter parameter) => this._parameter = parameter;
@@ -109,14 +111,17 @@ public class FundsActionsListViewModel :
         {
             if (_parameter != null)
             {
-                SelectedDepositoryIds = _parameter.DepositoryIds.Cast<object>().ToList();
+                SelectedDepositoryIds = _parameter.DepositoryIds?.Cast<object>().ToList() ?? new List<object>();
                 DateFilterFrom = _parameter.DateFrom;
                 DateFilterTill = _parameter.DateTill;
             }
             else
             {
-                AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
-                SelectedDepositoryIds = new List<object> { configAsync.DefaultDepositoryId };
+                var config = await _configurator.GetConfigAsync<AppSettings>();
+                if (config != null && !string.IsNullOrEmpty(config.DefaultDepositoryId))
+                {
+                    SelectedDepositoryIds = new List<object> { config.DefaultDepositoryId };
+                }
             }
         }
 
@@ -126,88 +131,160 @@ public class FundsActionsListViewModel :
             base.PreLoad(),
             Depositories.Initialize(),
             Partners.Initialize(),
-            Currencies.Initialize() // ДОБАВЛЕНО
+            Currencies.Initialize()
         );
 
-        // ДОБАВЛЕНО: Ставим дефолтную валюту при загрузке
         if (string.IsNullOrEmpty(CurrencyId))
         {
-            CurrencyId = Currencies.List.FirstOrDefault(x => x.IsDefault)?.Id;
+            CurrencyId = Currencies.List.FirstOrDefault(x => x.IsDefault)?.Id
+                         ?? Currencies.List.FirstOrDefault()?.Id;
         }
     }
 
-
-    private void ApplyCustomCurrencyRate() => this.List = this.ApplyCustomCurrencyRate(this.List);
-
-    private IEnumerable<FundsAction> ApplyCustomCurrencyRate(IEnumerable<FundsAction> list)
+    private void ApplyCustomCurrencyRate()
     {
-        if (list == null) return list;
+        if (this.List == null || !this.List.Any()) return;
 
-        Decimal rate = 0M;
-        Currency currency = this.Currencies?.List?.SingleOrDefault(x => x.Id == this._currencyId);
-        CurrencyRate rate1 = currency != null ? currency.GetRate() : null;
+        var targetCurrency = this.Currencies?.List?.FirstOrDefault(x => x.Id == this._currencyId);
+        if (targetCurrency == null) return;
 
-        if (rate1 != null)
-            rate = rate1.Divider / rate1.Multiplier;
+        var updatedList = new List<FundsAction>();
 
-        return list.Select(item =>
+        foreach (var item in this.List)
         {
-            item.ActionEffectInCustomCurrency = item.ActionEffect * rate;
-            return item;
-        });
+            decimal sourceAmount = item.ActionEffect;
+            string sourceCurrencyId = item.ActionCurrencyId;
+
+            if (string.IsNullOrEmpty(sourceCurrencyId) || sourceCurrencyId == targetCurrency.Id)
+            {
+                item.ActionEffectInCustomCurrency = Math.Round(sourceAmount, targetCurrency.Decimals);
+            }
+            else
+            {
+                var sourceCurrency = this.Currencies?.List?.FirstOrDefault(x => x.Id == sourceCurrencyId);
+                if (sourceCurrency != null)
+                {
+                    var sourceRate = sourceCurrency.GetRate(item.TransactionDate);
+                    var targetRate = targetCurrency.GetRate(item.TransactionDate);
+
+                    if (sourceRate != null && targetRate != null && sourceRate.Divider != 0 && targetRate.Multiplier != 0)
+                    {
+                        decimal sMult = sourceRate.Multiplier;
+                        decimal sDiv = sourceRate.Divider;
+                        decimal tMult = targetRate.Multiplier;
+                        decimal tDiv = targetRate.Divider;
+
+                        decimal conversionRate = (sMult / sDiv) * (tDiv / tMult);
+                        item.ActionEffectInCustomCurrency = Math.Round(sourceAmount * conversionRate, targetCurrency.Decimals);
+                    }
+                    else
+                    {
+                        item.ActionEffectInCustomCurrency = sourceAmount;
+                    }
+                }
+                else
+                {
+                    item.ActionEffectInCustomCurrency = sourceAmount;
+                }
+            }
+
+            updatedList.Add(item);
+        }
+
+        this.List = updatedList;
+        this.RaisePropertyChanged(nameof(List));
     }
+
+    private IEnumerable<FundsAction> TransformWithCurrencyRate(IEnumerable<FundsAction> list)
+    {
+        if (list == null) return Enumerable.Empty<FundsAction>();
+
+        var targetCurrency = this.Currencies?.List?.FirstOrDefault(x => x.Id == this._currencyId);
+        if (targetCurrency == null) return list;
+
+        var result = list.ToList();
+        foreach (var item in result)
+        {
+            decimal sourceAmount = item.ActionEffect;
+            string sourceCurrencyId = item.ActionCurrencyId;
+
+            if (string.IsNullOrEmpty(sourceCurrencyId) || sourceCurrencyId == targetCurrency.Id)
+            {
+                item.ActionEffectInCustomCurrency = Math.Round(sourceAmount, targetCurrency.Decimals);
+            }
+            else
+            {
+                var sourceCurrency = this.Currencies?.List?.FirstOrDefault(x => x.Id == sourceCurrencyId);
+                if (sourceCurrency != null)
+                {
+                    var sourceRate = sourceCurrency.GetRate(item.TransactionDate);
+                    var targetRate = targetCurrency.GetRate(item.TransactionDate);
+
+                    if (sourceRate != null && targetRate != null && sourceRate.Divider != 0 && targetRate.Multiplier != 0)
+                    {
+                        decimal sMult = sourceRate.Multiplier;
+                        decimal sDiv = sourceRate.Divider;
+                        decimal tMult = targetRate.Multiplier;
+                        decimal tDiv = targetRate.Divider;
+
+                        decimal conversionRate = (sMult / sDiv) * (tDiv / tMult);
+                        item.ActionEffectInCustomCurrency = Math.Round(sourceAmount * conversionRate, targetCurrency.Decimals);
+                    }
+                    else
+                    {
+                        item.ActionEffectInCustomCurrency = sourceAmount;
+                    }
+                }
+                else
+                {
+                    item.ActionEffectInCustomCurrency = sourceAmount;
+                }
+            }
+        }
+
+        return result;
+    }
+
     protected override Task OnLoad()
     {
         if (this._parameter == null)
             return base.OnLoad();
-        this._parameter = (FundsActionsFilter)null;
+
+        this._parameter = null;
         return this.LoadByDateAsync(false);
     }
 
     protected override Task<int> CountFilteredListByDateAsync(DateTime from, DateTime till)
     {
-        return this._repository.CountAsync(new DateTime?(from), new DateTime?(till), (string)null, this.DepositoryIds);
+        return this._repository.CountAsync(from, till, (string)null, this.DepositoryIds);
     }
 
     protected override Task<int> CountFilteredListAsync(ListFilter filter)
     {
-        return this._repository.CountAsync(new DateTime?(), new DateTime?(), (string)null, this.DepositoryIds);
+        return this._repository.CountAsync(null, null, (string)null, this.DepositoryIds);
     }
 
     protected override async Task<IEnumerable<FundsAction>> GetFilteredListByDateAsync(DateTime from, DateTime till)
     {
         var result = await this._repository.GetAsync(from, till, (string)null, this.DepositoryIds);
-        return ApplyCustomCurrencyRate(result); // ДОБАВЛЕНО ОБГОРТКУ (ОБЕРТКУ)
+        return TransformWithCurrencyRate(result);
     }
 
     protected override async Task<IEnumerable<FundsAction>> GetFilteredListAsync(ListFilter filter)
     {
-        var result = await this._repository.GetAsync(default(DateTime?), default(DateTime?), (string)null, this.DepositoryIds);
-        return ApplyCustomCurrencyRate(result); // ДОБАВЛЕНО ОБГОРТКУ (ОБЕРТКУ)
+        var result = await this._repository.GetAsync(null, null, (string)null, this.DepositoryIds);
+        return TransformWithCurrencyRate(result);
     }
 
-    protected override Task<int> CountListAsync(
-    params Expression<Func<FundsAction, bool>>[] predicates)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task<IEnumerable<FundsAction>> GetListAsync(
-      params Expression<Func<FundsAction, bool>>[] predicates)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Expression<Func<FundsAction, bool>> GetDateFilter(DateTime from, DateTime till)
-    {
-        throw new NotImplementedException();
-    }
+    protected override Task<int> CountListAsync(params Expression<Func<FundsAction, bool>>[] predicates) => throw new NotImplementedException();
+    protected override Task<IEnumerable<FundsAction>> GetListAsync(params Expression<Func<FundsAction, bool>>[] predicates) => throw new NotImplementedException();
+    protected override Expression<Func<FundsAction, bool>> GetDateFilter(DateTime from, DateTime till) => throw new NotImplementedException();
 
     public ICommand SelectOrViewDetailsCommand
     {
         get
         {
-            return (ICommand)new MvxAsyncCommand(new Func<Task>(this.OnSelectOrViewDetailsAsync), (Func<bool>)(() => !this.IsBusy && this.SelectedItem != null));
+            return new MvxAsyncCommand(this.OnSelectOrViewDetailsAsync, () => !this.IsBusy && this.SelectedItem != null);
         }
     }
 

@@ -177,22 +177,20 @@ public class FundsTransferDetailsViewModel(
                     {
                         foreach (var line in this.Details.Lines)
                         {
+                            // Оповещаем UI только о существующих свойствах!
                             line.RaisePropertyChanged("Amount");
-                            line.RaisePropertyChanged("DisplayAmount");
-                            line.RaisePropertyChanged("DisplayTotal");
-
-                            // ДОБАВЛЕНО: Сигнал для обновления колонок перемещения
+                            line.RaisePropertyChanged("ReceivedAmount");
                             line.RaisePropertyChanged("ActionTotal");
                             line.RaisePropertyChanged("ActionReceivedTotal");
+                            line.RaisePropertyChanged("DisplayTotal");
+                            line.RaisePropertyChanged("DisplayReceivedTotal");
                         }
                     }
-                    this.Details.RaisePropertyChanged("DisplayAmount");
-                    this.Details.RaisePropertyChanged("DisplayTotal");
 
-                    // ДОБАВЛЕНО: Сигнал для обновления общих итогов внизу экрана
                     this.Details.RaisePropertyChanged("ActionTotal");
                     this.Details.RaisePropertyChanged("ActionReceivedTotal");
-
+                    this.Details.RaisePropertyChanged("DisplayTotal");
+                    this.Details.RaisePropertyChanged("IsConflicted");
                     this.Details.RaisePropertyChanged("Lines");
                 });
             });
