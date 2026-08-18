@@ -141,26 +141,42 @@ public class ApiStocksRepository : IRepository<Stock>, IReadOnlyRepository<Stock
     {
         if (stockIds == null || !stockIds.Any()) return Enumerable.Empty<StockInfo>();
         var stocks = await GetAsync(stockIds);
-        return stocks.Select(s => new StockInfo
+
+        return stocks.Select(stock => new StockInfo
         {
-            Id = s.Id,
-            Code = s.Code,
-            Name = s.Name,
-            Price = s.Price,
-            CurrencyId = s.CurrencyId
+            Id = stock.Id,
+            Code = stock.Code,
+            Name = stock.Name,
+            ShortName = stock.ShortName,
+            Unit = stock.Unit,
+            Price = stock.Price,
+            CurrencyId = stock.CurrencyId,
+            Type = stock.Type,
+            Group = stock.Group,
+            Tags = stock.Tags?.ToList(),
+            Barcodes = stock.Barcodes?.ToList(),
+            IsDisabled = stock.IsDisabled
         }).ToList();
     }
 
     public async Task<IEnumerable<StockInfo>> GetInfoAsync(string additionalPriceCurrencyId, string additionalPriceGroup)
     {
         var all = await GetAllAsync();
-        return all.Select(s => new StockInfo
+
+        return all.Select(stock => new StockInfo
         {
-            Id = s.Id,
-            Code = s.Code,
-            Name = s.Name,
-            Price = s.Price,
-            CurrencyId = s.CurrencyId
+            Id = stock.Id,
+            Code = stock.Code,
+            Name = stock.Name,
+            ShortName = stock.ShortName,
+            Unit = stock.Unit,
+            Price = stock.Price,
+            CurrencyId = stock.CurrencyId,
+            Type = stock.Type,
+            Group = stock.Group,
+            Tags = stock.Tags?.ToList(),
+            Barcodes = stock.Barcodes?.ToList(),
+            IsDisabled = stock.IsDisabled
         }).ToList();
     }
 

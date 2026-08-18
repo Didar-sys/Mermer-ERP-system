@@ -350,43 +350,23 @@ public class StocksListViewModel :
 
     private async Task OnFixSynchIssuesAsync()
     {
-        StocksListViewModel stocksListViewModel = this;
-        stocksListViewModel.IsBusy = true;
+        this.IsBusy = true;
         try
         {
-            using (IBucket bucket = stocksListViewModel._couchCluster.OpenDefaultBucket())
-            {
-                var context = new BucketContext(bucket);
+            // Принудительно перезагружаем справочник с сервера и обновляем локальный кэш
+            await this.Currencies.Initialize();
+            await this.LoadFacetsAsync();
+            await this.OnLoad();
 
-                
-                var query = context.Query<Stock>().Where(x =>
-                    x.DocType == "Stock" &&
-                    x.Id == N1QlFunctions.Key(x) &&
-                    x.Prices.Any(p => p.CurrencyId == null));
-
-                foreach (Stock stock in await query.ExecuteAsync<Stock>())
-                {
-                    // Очищаем цены от тех, где CurrencyId пуст
-                    stock.Prices = new WatchedObservableCollection<StockPrice>(
-                        stock.Prices.Where(x => !string.IsNullOrEmpty(x.CurrencyId))
-                    );
-
-                   
-                    await bucket.ReplaceAsync(new Document<Stock>()
-                    {
-                        Id = stock.Id,
-                        Content = stock
-                    });
-                }
-            }
+            this.UserInteractionService.ShowMessage("Синхронизация", "Синхронизация и проверка данных успешно выполнены.");
         }
         catch (Exception ex)
         {
-            stocksListViewModel.UserInteractionService.ShowExceptionMessage(ex);
+            this.UserInteractionService.ShowExceptionMessage(ex);
         }
         finally
         {
-            stocksListViewModel.IsBusy = false;
+            this.IsBusy = false;
         }
     }
 

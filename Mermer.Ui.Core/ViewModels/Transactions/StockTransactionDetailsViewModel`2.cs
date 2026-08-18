@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Core.ViewModels.Transactions.StockTransactionDetailsViewModel`2
-// Assembly: Mermer.Ui.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: DC92D011-8413-44AC-9F10-F866D891CF66
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
-
-using Mermer.Authorization.Services;
+﻿using Mermer.Authorization.Services;
 using Mermer.Common.Settings;
 using Mermer.Data;
 using Mermer.Data.Authorizers;
@@ -38,83 +32,79 @@ using System.Windows.Input;
 #nullable disable
 namespace Mermer.Ui.Core.ViewModels.Transactions;
 
-public class StockTransactionDetailsViewModel<T, TLine> : 
+public class StockTransactionDetailsViewModel<T, TLine> :
   TransactionDetailsViewModel<T, TLine>,
   IMvxViewModel<IEnumerable<CopyCreateLine>>,
   IMvxViewModel
   where T : StockTransaction<TLine>
   where TLine : StockTransactionLine
 {
-  private readonly IStocksRepository _stocksRepository;
-  private Decimal _addQuantity = 1M;
-  private ObservableCollection<Stock> _stocksCache;
-  private bool _allowReporting;
-  private IEnumerable<CopyCreateLine> _stockLineCopies;
-    private IMvxAsyncCommand _closeCommand;
+    private readonly IStocksRepository _stocksRepository;
+    private Decimal _addQuantity = 1M;
+    private ObservableCollection<Stock> _stocksCache;
+    private bool _allowReporting;
+    private IEnumerable<CopyCreateLine> _stockLineCopies;
+    private IMvxAsyncCommand _forceCloseCommand;
+
     public StockTransactionDetailsViewModel(
-    CopyCreate copyCreate,
-    IRepository<T> repository,
-    IListAuthorizer<T> authorizer,
-    IConfigurator configurator,
-    ILoginService loginService,
-    StockSearcher stockSearcher,
-    Reference<Currency> currencies,
-    Reference<Warehouse> warehouses,
-    IStocksRepository stocksRepository,
-    IMvxNavigationService navigationService,
-    ITransactionCodeGenerationService codegentor,
-    IUserInteractionService userInteractionService)
-    : base(configurator, repository, authorizer, loginService, currencies, navigationService, codegentor, userInteractionService)
-  {
-    this._stocksRepository = stocksRepository;
-    this.Warehouses = warehouses;
-    this.CopyCreate = copyCreate;
-    this.CopyCreate.GetLines = (Func<IEnumerable<CopyCreateLine>>) (() => this.Details.Lines.Select<TLine, CopyCreateLine>((Func<TLine, CopyCreateLine>) (x => new CopyCreateLine()
+        CopyCreate copyCreate,
+        IRepository<T> repository,
+        IListAuthorizer<T> authorizer,
+        IConfigurator configurator,
+        ILoginService loginService,
+        StockSearcher stockSearcher,
+        Reference<Currency> currencies,
+        Reference<Warehouse> warehouses,
+        IStocksRepository stocksRepository,
+        IMvxNavigationService navigationService,
+        ITransactionCodeGenerationService codegentor,
+        IUserInteractionService userInteractionService)
+        : base(configurator, repository, authorizer, loginService, currencies, navigationService, codegentor, userInteractionService)
     {
-      StockId = x.StockId,
-      Quantity = new Decimal?(x.Quantity),
-      UnitId = x.UnitId,
-      Price = new Decimal?(x.Price),
-      CurrencyId = x.CurrencyId
-    })));
-    this.StockSearcher = stockSearcher;
-    this.StockSearcher.ResultSelected += new SearchResultSelected(this.StockSearcher_ResultSelected);
-  }
-
-  public CopyCreate CopyCreate { get; }
-
-  public StockSearcher StockSearcher { get; }
-
-  public Reference<Warehouse> Warehouses { get; }
-
-  public virtual Decimal AddQuantity
-  {
-    get => this._addQuantity;
-    set => this.SetProperty<Decimal>(ref this._addQuantity, value, nameof (AddQuantity));
-  }
-
-  public ObservableCollection<Stock> StocksCache
-  {
-    get => this._stocksCache;
-    set
-    {
-      this.SetProperty<ObservableCollection<Stock>>(ref this._stocksCache, value, nameof (StocksCache));
+        this._stocksRepository = stocksRepository;
+        this.Warehouses = warehouses;
+        this.CopyCreate = copyCreate;
+        this.CopyCreate.GetLines = () => this.Details.Lines.Select(x => new CopyCreateLine
+        {
+            StockId = x.StockId,
+            Quantity = new Decimal?(x.Quantity),
+            UnitId = x.UnitId,
+            Price = new Decimal?(x.Price),
+            CurrencyId = x.CurrencyId
+        });
+        this.StockSearcher = stockSearcher;
+        this.StockSearcher.ResultSelected += this.StockSearcher_ResultSelected;
     }
-  }
 
-  public virtual bool AllowReporting
-  {
-    get => this._allowReporting;
-    set => this.SetProperty<bool>(ref this._allowReporting, value, nameof (AllowReporting));
-  }
+    public CopyCreate CopyCreate { get; }
+    public StockSearcher StockSearcher { get; }
+    public Reference<Warehouse> Warehouses { get; }
 
-  public void Prepare(IEnumerable<CopyCreateLine> parameter) => this._stockLineCopies = parameter;
+    public virtual Decimal AddQuantity
+    {
+        get => this._addQuantity;
+        set => this.SetProperty<Decimal>(ref this._addQuantity, value, nameof(AddQuantity));
+    }
 
-  protected override Task PreLoad()
-  {
-    this.StocksCache = new ObservableCollection<Stock>();
-    return Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize(), this.StockSearcher.Initialize());
-  }
+    public ObservableCollection<Stock> StocksCache
+    {
+        get => this._stocksCache;
+        set => this.SetProperty<ObservableCollection<Stock>>(ref this._stocksCache, value, nameof(StocksCache));
+    }
+
+    public virtual bool AllowReporting
+    {
+        get => this._allowReporting;
+        set => this.SetProperty<bool>(ref this._allowReporting, value, nameof(AllowReporting));
+    }
+
+    public void Prepare(IEnumerable<CopyCreateLine> parameter) => this._stockLineCopies = parameter;
+
+    protected override Task PreLoad()
+    {
+        this.StocksCache = new ObservableCollection<Stock>();
+        return Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize(), this.StockSearcher.Initialize());
+    }
 
     protected override async Task OnLoad()
     {
@@ -172,38 +162,28 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     }
 
     protected override void Details_PropertyChanged(object sender, PropertyChangedEventArgs e)
-  {
-    if (e.PropertyName == "WarehouseId")
-      this.StockSearcher.WarehouseId = this.Details.WarehouseId;
-    else if (e.PropertyName == "DisplayCurrencyId")
-      this.StockSearcher.CurrencyId = this.Details.DisplayCurrencyId;
-    base.Details_PropertyChanged(sender, e);
-  }
+    {
+        if (e.PropertyName == "WarehouseId")
+            this.StockSearcher.WarehouseId = this.Details.WarehouseId;
+        else if (e.PropertyName == "DisplayCurrencyId")
+            this.StockSearcher.CurrencyId = this.Details.DisplayCurrencyId;
+        base.Details_PropertyChanged(sender, e);
+    }
 
-  private StockUnitConvertion StockUnitConverter(string stockId, string unitId)
-  {
-    Stock fromStocksCache = this.GetFromStocksCache(stockId);
-    StockUnit stockUnit1;
-    if (fromStocksCache == null)
+    private StockUnitConvertion StockUnitConverter(string stockId, string unitId)
     {
-      stockUnit1 = (StockUnit) null;
+        Stock fromStocksCache = this.GetFromStocksCache(stockId);
+        StockUnit stockUnit2 = fromStocksCache?.Units?.SingleOrDefault(x => x.Id == unitId);
+        if (stockUnit2 == null)
+            return null;
+        return new StockUnitConvertion
+        {
+            StockId = fromStocksCache.Id,
+            UnitId = stockUnit2.Id,
+            Multiplier = stockUnit2.Multiplier,
+            Divider = stockUnit2.Divider
+        };
     }
-    else
-    {
-      ObservableCollection<StockUnit> units = fromStocksCache.Units;
-      stockUnit1 = units != null ? units.SingleOrDefault<StockUnit>((Func<StockUnit, bool>) (x => x.Id == unitId)) : (StockUnit) null;
-    }
-    StockUnit stockUnit2 = stockUnit1;
-    if (stockUnit2 == null)
-      return (StockUnitConvertion) null;
-    return new StockUnitConvertion()
-    {
-      StockId = fromStocksCache.Id,
-      UnitId = stockUnit2.Id,
-      Multiplier = stockUnit2.Multiplier,
-      Divider = stockUnit2.Divider
-    };
-  }
 
     private async Task LoadStocksCache()
     {
@@ -212,99 +192,90 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     }
 
     protected Stock GetFromStocksCache(string stockId)
-  {
-    return this.GetFromStocksCacheAsync(stockId).GetAwaiter().GetResult();
-  }
-
-  protected async Task<Stock> GetFromStocksCacheAsync(string stockId)
-  {
-    Stock stocksCacheAsync = this.StocksCache.SingleOrDefault<Stock>((Func<Stock, bool>) (x => x.Id == stockId));
-    if (stocksCacheAsync == null)
     {
-      stocksCacheAsync = await this._stocksRepository.GetAsync(stockId);
-      this.StocksCache.Add(stocksCacheAsync);
+        if (string.IsNullOrEmpty(stockId)) return null;
+        return this.StocksCache?.FirstOrDefault(x => x.Id == stockId);
     }
-    return stocksCacheAsync;
-  }
+
+    protected async Task<Stock> GetFromStocksCacheAsync(string stockId)
+    {
+        if (string.IsNullOrEmpty(stockId)) return null;
+        Stock cached = this.StocksCache?.FirstOrDefault(x => x.Id == stockId);
+        if (cached == null)
+        {
+            cached = await this._stocksRepository.GetAsync(stockId);
+            if (cached != null) this.StocksCache.Add(cached);
+        }
+        return cached;
+    }
 
     protected async Task UpdateStocksCacheAsync(params string[] stockIds)
     {
-        
-        string[] array = stockIds.Distinct().Where(id => !StocksCache.Any(sc => sc.Id == id)).ToArray();
+        string[] array = stockIds.Distinct().Where(id => !string.IsNullOrEmpty(id) && !StocksCache.Any(sc => sc.Id == id)).ToArray();
 
         if (!array.Any())
             return;
 
         foreach (Stock stock in await _stocksRepository.GetListAsync(array))
-            StocksCache.Add(stock);
+        {
+            if (stock != null) StocksCache.Add(stock);
+        }
     }
 
     protected async Task UpdateStocksCacheByCodeAsync(params string[] stockCodes)
     {
-        
         string[] stockCodesToAdd = stockCodes.Distinct().Where(code => !StocksCache.Any(sc => sc.Code == code)).ToArray();
 
         if (!stockCodesToAdd.Any())
-        {
             return;
-        }
 
         for (int i = 0; i < stockCodesToAdd.Length; i += 100)
         {
             string[] stockCodesToAddPartial = stockCodesToAdd.Skip(i).Take(100).ToArray();
-            var expressionArray = new System.Linq.Expressions.Expression<Func<Stock, bool>>[]
+            var expressionArray = new Expression<Func<Stock, bool>>[]
             {
-            x => stockCodesToAddPartial.Contains(x.Code)
+                x => stockCodesToAddPartial.Contains(x.Code)
             };
 
             foreach (Stock stock in await _stocksRepository.GetAsync(expressionArray))
-                StocksCache.Add(stock);
+            {
+                if (stock != null) StocksCache.Add(stock);
+            }
         }
     }
+
     protected async Task<Stock> GetFromStocksCacheByCodeAsync(string stockCode)
-  {
-    Stock cacheByCodeAsync = this.StocksCache.SingleOrDefault<Stock>((Func<Stock, bool>) (x => x.Code == stockCode));
-    if (cacheByCodeAsync == null)
     {
-      cacheByCodeAsync = (await this._stocksRepository.GetAsync((Expression<Func<Stock, bool>>) (x => x.Code == stockCode))).Single<Stock>();
-      this.StocksCache.Add(cacheByCodeAsync);
-    }
-    return cacheByCodeAsync;
-  }
-
-    protected virtual async void StockSearcher_ResultSelected(
-    StockSearcher searcher,
-    StockSearchResult result)
-    {
-        StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-        TLine newLineAsync = await detailsViewModel.CreateNewLineAsync(result.Id, new Decimal?(detailsViewModel.AddQuantity), result.UnitId, new Decimal?(result.Price), result.CurrencyId);
-
-        detailsViewModel.Details.Lines.Add(newLineAsync);
-        detailsViewModel.SelectedLine = newLineAsync;
-        detailsViewModel.AddQuantity = 1M;
-
-        await detailsViewModel.OnSelectedLineEditAsync();
+        Stock cacheByCodeAsync = this.StocksCache.FirstOrDefault(x => x.Code == stockCode);
+        if (cacheByCodeAsync == null)
+        {
+            cacheByCodeAsync = (await this._stocksRepository.GetAsync(x => x.Code == stockCode)).FirstOrDefault();
+            if (cacheByCodeAsync != null) this.StocksCache.Add(cacheByCodeAsync);
+        }
+        return cacheByCodeAsync;
     }
 
-    protected virtual async Task<TLine> CreateNewLineAsync(
-    string stockId,
-    Decimal? quantity = null,
-    string unitId = null,
-    Decimal? price = null,
-    string currencyId = null)
-  {
-    return this.CreateNewLine(await this.GetFromStocksCacheAsync(stockId), quantity, unitId, price, currencyId);
-  }
+    protected virtual async void StockSearcher_ResultSelected(StockSearcher searcher, StockSearchResult result)
+    {
+        if (result == null) return;
+        TLine newLineAsync = await CreateNewLineAsync(result.Id, new Decimal?(AddQuantity), result.UnitId, new Decimal?(result.Price), result.CurrencyId);
 
-    protected virtual TLine CreateNewLine(
-        Stock stock,
-        Decimal? quantity = null,
-        string unitId = null,
-        Decimal? price = null,
-        string currencyId = null)
+        Details.Lines.Add(newLineAsync);
+        SelectedLine = newLineAsync;
+        AddQuantity = 1M;
+
+        await OnSelectedLineEditAsync();
+    }
+
+    protected virtual async Task<TLine> CreateNewLineAsync(string stockId, Decimal? quantity = null, string unitId = null, Decimal? price = null, string currencyId = null)
+    {
+        return this.CreateNewLine(await this.GetFromStocksCacheAsync(stockId), quantity, unitId, price, currencyId);
+    }
+
+    protected virtual TLine CreateNewLine(Stock stock, Decimal? quantity = null, string unitId = null, Decimal? price = null, string currencyId = null)
     {
         if (price.HasValue && price.Value == 0M)
-            price = new Decimal?();
+            price = null;
 
         TLine instance = Activator.CreateInstance<TLine>();
         instance.Id = Guid.NewGuid().ToString();
@@ -314,9 +285,7 @@ public class StockTransactionDetailsViewModel<T, TLine> :
 
         if (!price.HasValue || string.IsNullOrEmpty(currencyId))
         {
-            // Исправлено: имя переменной теперь корректное (rawStockPrice)
             decimal rawStockPrice = stock != null ? stock.Price : 0m;
-
             string targetCurrencyId = !string.IsNullOrEmpty(this.Details?.DisplayCurrencyId)
                 ? this.Details.DisplayCurrencyId
                 : (stock?.CurrencyId ?? "");
@@ -354,172 +323,75 @@ public class StockTransactionDetailsViewModel<T, TLine> :
         return instance;
     }
 
-    // 1. Создаем публичный метод проверки (чтобы вызвать его из окна при нажатии на X)
     public bool CheckCanClose()
     {
-        if (!this.IsDirty)
-            return true;
-
-        // Используем встроенный сервис для стилизованной оверлей
-        var result = this.UserInteractionService.ShowMessage(
-            "Warning",
-            "Are you sure you want to close? Changes will be lost.",
-            Mermer.Mvvm.Services.UserInteractionType.YesNoCancel);
-
-        // Возвращаем true ТОЛЬКО если нажали "Yes"
+        if (!this.IsDirty) return true;
+        var result = this.UserInteractionService.ShowMessage("Warning", "Are you sure you want to close? Changes will be lost.", UserInteractionType.YesNoCancel);
         return result == true;
     }
-
-    private IMvxAsyncCommand _forceCloseCommand;
 
     public ICommand ForceCloseCommand
     {
         get
         {
-            if (_forceCloseCommand == null)
+            return _forceCloseCommand ??= new MvxAsyncCommand(async () =>
             {
-                _forceCloseCommand = new MvxAsyncCommand(async () =>
+                if (this.IsDirty)
                 {
-                    if (this.IsDirty)
-                    {
-                        var result = this.UserInteractionService.ShowMessage(
-                            "Warning",
-                            "Are you sure you want to close? Changes will be lost.",
-                            Mermer.Mvvm.Services.UserInteractionType.YesNoCancel);
-
-                        // Метод возвращает bool? Если нажато ЧТО-ТО ПРОЧЕЕ кроме "Yes" (true) - прерываем закрытие
-                        if (result != true)
-                        {
-                            return;
-                        }
-                    }
-
-                   
-                    await this.NavigationService.Close(this);
-                });
-            }
-            return _forceCloseCommand;
+                    var result = this.UserInteractionService.ShowMessage("Warning", "Are you sure you want to close? Changes will be lost.", UserInteractionType.YesNoCancel);
+                    if (result != true) return;
+                }
+                await this.NavigationService.Close(this);
+            });
         }
     }
-    private void DoCloseTransaction()
+
+    public ICommand SelectedLineMinusOneCommand => new MvxCommand(OnSelectedLineMinusOne, () => !IsBusy && HasSaveAccess && IsLineSelected);
+    private void OnSelectedLineMinusOne()
     {
-        // Этот метод отправляет сигнал закрытия, который мы ловим в MainViewPresenter
-        this.Close(this);
+        SelectedLine.Quantity -= 1M;
+        if (SelectedLine.Quantity == 0M) SelectedLineDeleteCommand.Execute(null);
     }
 
-    public ICommand SelectedLineMinusOneCommand
-  {
-    get
-    {
-      return (ICommand) new MvxCommand(new Action(this.OnSelectedLineMinusOne), (Func<bool>) (() => !this.IsBusy && this.HasSaveAccess && this.IsLineSelected));
-    }
-  }
+    public ICommand SelectedLinePlusOneCommand => new MvxCommand(() => SelectedLine.Quantity += 1M, () => !IsBusy && HasSaveAccess && IsLineSelected);
 
-  private void OnSelectedLineMinusOne()
-  {
-    this.SelectedLine.Quantity -= 1M;
-    if (!(this.SelectedLine.Quantity == 0M))
-      return;
-    this.SelectedLineDeleteCommand.Execute((object) null);
-  }
-
-  public ICommand SelectedLinePlusOneCommand
-  {
-    get
-    {
-      return (ICommand) new MvxCommand(new Action(this.OnSelectedLinePlusOne), (Func<bool>) (() => !this.IsBusy && this.HasSaveAccess && this.IsLineSelected));
-    }
-  }
-
-  private void OnSelectedLinePlusOne() => this.SelectedLine.Quantity += 1M;
-
-  public ICommand SelectedLineEditCommand
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSelectedLineEditAsync), (Func<bool>) (() => !this.IsBusy && this.HasSaveAccess && this.IsLineSelected));
-    }
-  }
+    public ICommand SelectedLineEditCommand => new MvxAsyncCommand(OnSelectedLineEditAsync, () => !IsBusy && HasSaveAccess && IsLineSelected);
 
     protected virtual async Task OnSelectedLineEditAsync()
     {
-        StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-        Stock stocksCacheAsync = await detailsViewModel.GetFromStocksCacheAsync(detailsViewModel.SelectedLine.StockId);
-        IMvxNavigationService navigationService = detailsViewModel.NavigationService;
-        StockTransactionDetailsLineEditViewModel.Params @params = new StockTransactionDetailsLineEditViewModel.Params();
-        @params.StockCode = stocksCacheAsync.Code;
-        @params.StockName = stocksCacheAsync.Name;
-        @params.Quantity = detailsViewModel.SelectedLine.Quantity;
-        @params.UnitId = detailsViewModel.SelectedLine.UnitId;
-        @params.Units = (IEnumerable<StockUnit>)stocksCacheAsync.Units;
-        @params.Price = detailsViewModel.SelectedLine.Price;
-        @params.CurrencyId = detailsViewModel.SelectedLine.CurrencyId;
-        @params.Currencies = detailsViewModel.Currencies.List;
-        @params.ActionDate = new DateTime?(detailsViewModel.Details.Date);
-        CancellationToken cancellationToken = new CancellationToken();
-        StockTransactionDetailsLineEditViewModel.Result result = await navigationService.Navigate<StockTransactionDetailsLineEditViewModel, StockTransactionDetailsLineEditViewModel.Params, StockTransactionDetailsLineEditViewModel.Result>(@params, cancellationToken: cancellationToken);
-        if (result == null)
-            return;
-        detailsViewModel.SelectedLine.Quantity = result.Quantity;
-        detailsViewModel.SelectedLine.UnitId = result.UnitId;
-        detailsViewModel.SelectedLine.Price = result.Price;
-        detailsViewModel.SelectedLine.CurrencyId = result.CurrencyId;
+        if (SelectedLine == null) return;
+        Stock stocksCacheAsync = await GetFromStocksCacheAsync(SelectedLine.StockId);
+        StockTransactionDetailsLineEditViewModel.Params @params = new()
+        {
+            StockCode = stocksCacheAsync?.Code,
+            StockName = stocksCacheAsync?.Name,
+            Quantity = SelectedLine.Quantity,
+            UnitId = SelectedLine.UnitId,
+            Units = stocksCacheAsync?.Units,
+            Price = SelectedLine.Price,
+            CurrencyId = SelectedLine.CurrencyId,
+            Currencies = Currencies.List,
+            ActionDate = Details?.Date
+        };
+
+        var result = await NavigationService.Navigate<StockTransactionDetailsLineEditViewModel, StockTransactionDetailsLineEditViewModel.Params, StockTransactionDetailsLineEditViewModel.Result>(@params);
+        if (result == null) return;
+
+        SelectedLine.Quantity = result.Quantity;
+        SelectedLine.UnitId = result.UnitId;
+        SelectedLine.Price = result.Price;
+        SelectedLine.CurrencyId = result.CurrencyId;
     }
 
-    public ICommand SelectedLineDeleteCommand
-  {
-    get
-    {
-      return (ICommand) new MvxCommand(new Action(this.OnSelectedLineDelete), (Func<bool>) (() => !this.IsBusy && this.HasSaveAccess && this.IsLineSelected));
-    }
-  }
+    public ICommand SelectedLineDeleteCommand => new MvxCommand(() => SelectedLine = Details.Lines.RemoveWithSelection(SelectedLine), () => !IsBusy && HasSaveAccess && IsLineSelected);
 
-  private void OnSelectedLineDelete()
-  {
-    this.SelectedLine = this.Details.Lines.RemoveWithSelection<TLine>(this.SelectedLine);
-  }
+    public ICommand SelectWarehouseCommand => new MvxAsyncCommand(async () => Details.WarehouseId = await NavigationService.Navigate<ListViewModel<Warehouse>, string, string>(Details.WarehouseId ?? Guid.Empty.ToString()), () => !IsBusy && HasSaveAccess);
 
-  public ICommand SelectWarehouseCommand
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSelectWarehouseAsync), (Func<bool>) (() => !this.IsBusy && this.HasSaveAccess));
-    }
-  }
+    public ICommand ShowStockTrackinsList => new MvxAsyncCommand(() => NavigationService.Navigate<StokTrackingsListViewModel, (string, string)>((Details.Id, Details.Code)), () => !IsBusy && !IsDirty && AllowReporting && AllowStockTracking());
 
-  private async Task OnSelectWarehouseAsync()
-  {
-    StockTransactionDetailsViewModel<T, TLine> detailsViewModel = this;
-    T obj = detailsViewModel.Details;
-    obj.WarehouseId = await detailsViewModel.NavigationService.Navigate<ListViewModel<Warehouse>, string, string>(detailsViewModel.Details.WarehouseId ?? Guid.Empty.ToString());
-    obj = default (T);
-  }
+    protected virtual bool AllowStockTracking() => Details != null && Details.IsStockIncome;
 
-  public ICommand ShowStockTrackinsList
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnShowStockTrackinsListAsync), (Func<bool>) (() => !this.IsBusy && !this.IsDirty && this.AllowReporting && this.AllowStockTracking()));
-    }
-  }
-
-    protected virtual bool AllowStockTracking()
-    {
-        return Details != null && Details.IsStockIncome;
-    }
-
-    protected virtual Task OnShowStockTrackinsListAsync()
-  {
-    return this.NavigationService.Navigate<StokTrackingsListViewModel, (string, string)>((this.Details.Id, this.Details.Code));
-  }
-
-  public ICommand ImportCommand
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnImportCommandAsync), (Func<bool>) (() => !this.IsBusy && this.HasSaveAccess));
-    }
-  }
+    public ICommand ImportCommand => new MvxAsyncCommand(OnImportCommandAsync, () => !IsBusy && HasSaveAccess);
 
     protected virtual async Task OnImportCommandAsync()
     {
@@ -542,25 +414,17 @@ public class StockTransactionDetailsViewModel<T, TLine> :
                     foreach (LineImport item in list)
                     {
                         i++;
+                        InvokeOnMainThread(() => Status = this[$"Importing {i} of {itemsCount} lines"]);
 
-                        // Используем MvvmCross диспетчер
-                        InvokeOnMainThread(() =>
-                        {
-                            Status = this[$"Importing {i} of {itemsCount} lines"];
-                        });
-
-                        Stock stock = StocksCache.Single(x => x.Code == item.StockCode);
-                        string id1 = stock.Units.SingleOrDefault(x => x.Name == item.Unit)?.Id;
-                        string id2 = Currencies.List.SingleOrDefault(x => x.Name == item.Currency)?.Id;
+                        Stock stock = StocksCache.FirstOrDefault(x => x.Code == item.StockCode);
+                        string id1 = stock?.Units?.FirstOrDefault(x => x.Name == item.Unit)?.Id;
+                        string id2 = Currencies.List.FirstOrDefault(x => x.Name == item.Currency)?.Id;
 
                         TLine newLine = CreateNewLine(stock, item.Quantity, id1, item.Price, id2);
                         collection.Add(newLine);
                     }
 
-                    InvokeOnMainThread(() =>
-                    {
-                        Details.Lines = new WatchedObservableCollection<TLine>(collection);
-                    });
+                    InvokeOnMainThread(() => Details.Lines = new WatchedObservableCollection<TLine>(collection));
                 });
             }
         }
@@ -575,15 +439,11 @@ public class StockTransactionDetailsViewModel<T, TLine> :
     }
 
     public class LineImport
-  {
-    public string StockCode { get; set; }
-
-    public Decimal Quantity { get; set; }
-
-    public string Unit { get; set; }
-
-    public Decimal Price { get; set; }
-
-    public string Currency { get; set; }
-  }
+    {
+        public string StockCode { get; set; }
+        public Decimal Quantity { get; set; }
+        public string Unit { get; set; }
+        public Decimal Price { get; set; }
+        public string Currency { get; set; }
+    }
 }

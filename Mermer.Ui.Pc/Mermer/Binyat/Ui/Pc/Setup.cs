@@ -185,6 +185,12 @@ public class Setup : MvxWpfSetup
                 .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Enterprise.Models.Depository>>() // <-- ДОБАВЛЕНО!
                 .SingleInstance();
 
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockSlipsRepository>()
+                .As<Mermer.Data.Storage.IRepository<Mermer.Warehousing.Models.StockSlip>>()
+                .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Warehousing.Models.StockSlip>>()
+                .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Warehousing.Models.StockSlip>>()
+                .SingleInstance();
+
         // --- ФИНАНСЫ И ДОКУМЕНТЫ ---
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiFundsActionRepository>()
                .As<Mermer.FundsManagement.Services.IFundsActionsRepository>()
@@ -288,6 +294,30 @@ public class Setup : MvxWpfSetup
        .As<Mermer.Data.Storage.IRepository<Mermer.Warehousing.Models.StockTransfer>>()
        .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Warehousing.Models.StockTransfer>>()
        .SingleInstance();
+
+        // Журнал движения товаров (Stock Actions)
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockActionsRepository>()
+               .As<Mermer.StockManagement.Services.IStockActionsRepository>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockBalancesRepository>()
+               .As<Mermer.StockManagement.Services.IStockBalancesRepository>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockBalancesAggregatedRepository>()
+               .As<Mermer.StockManagement.Services.IStockBalancesAggregatedRepository>()
+               .SingleInstance();
+
+        // Инвентаризация (Stock Revisions)
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockRevisionsRepository>()
+               .As<Mermer.Warehousing.Revisioning.Services.IStockRevisionsRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Warehousing.Revisioning.Models.StockRevision>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Warehousing.Revisioning.Models.StockRevision>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Warehousing.Revisioning.Models.StockRevision>>()
+               .SingleInstance();
+
+
+
 
         var container = builder.Build();
 

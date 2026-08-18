@@ -45,7 +45,8 @@ public static class StocksEndpoints
                         Id = p.Id.ToString(),
                         Price = p.Price,
                         CurrencyId = p.CurrencyId?.ToString(),
-                        PriceGroup = p.PriceGroup
+                        PriceGroup = p.PriceGroup,
+                        ValidFrom = p.ValidFrom
                     }).ToList()
                     : new List<object>();
 
@@ -82,8 +83,6 @@ public static class StocksEndpoints
                 };
             });
 
-            // ИСПРАВЛЕНИЕ: Используем Ok(), чтобы ASP.NET Core автоматически 
-            // перевел свойства в формат "id", "code", "name" для WPF-клиента!
             return Results.Ok(result);
         })
         .WithName("StocksList");
@@ -118,6 +117,152 @@ public static class StocksEndpoints
             return Results.Ok(facets);
         })
         .WithName("StocksFacets");
+
+        // --- ЖУРНАЛ ДВИЖЕНИЯ ТОВАРОВ (STOCK ACTIONS) ---
+        group.MapGet("/actions", async (DateTime? from, DateTime? till, string? stockId, HttpRequest req, MermerDbContext db, CancellationToken ct) =>
+        {
+            DateTimeOffset startDate = from.HasValue ? new DateTimeOffset(from.Value.ToUniversalTime()) : DateTimeOffset.MinValue;
+            DateTimeOffset endDate = till.HasValue ? new DateTimeOffset(till.Value.ToUniversalTime()) : DateTimeOffset.MaxValue;
+
+            var whIds = req.Query["warehouseId"].Select(x => Guid.TryParse(x, out var g) ? (Guid?)g : null).Where(x => x.HasValue).Select(x => x!.Value).ToList();
+            Guid? filterStockGuid = Guid.TryParse(stockId, out var sG) ? sG : null;
+
+            var actions = new List<object>();
+
+            // 1. Из складских ордеров (StockSlips) — IsDisabled убран
+            var slipsQuery = db.StockSlips.Include(s => s.Lines).ThenInclude(l => l.Stock).AsSplitQuery().AsNoTracking()
+                .Where(s => s.Date >= startDate && s.Date <= endDate);
+
+            if (whIds.Any()) slipsQuery = slipsQuery.Where(s => s.WarehouseId.HasValue && whIds.Contains(s.WarehouseId.Value));
+
+            var slips = await slipsQuery.ToListAsync(ct);
+            foreach (var s in slips)
+            {
+                foreach (var l in s.Lines ?? Enumerable.Empty<StockSlipLineEntity>())
+                {
+                    if (filterStockGuid.HasValue && l.StockId != filterStockGuid) continue;
+
+                    bool isIncome = s.SlipType == "StockOpening" || s.SlipType == "RevisionExceed";
+                    actions.Add(new
+                    {
+                        TransactionId = s.Id.ToString(),
+                        TransactionCode = s.Code ?? "",
+                        TransactionDate = s.Date.UtcDateTime,
+                        TransactionType = s.SlipType,
+                        TransactionIsCompleted = s.IsCompleted,
+                        TransactionIsDisabled = false,
+                        ActionId = l.Id.ToString(),
+                        ActionWarehouseId = s.WarehouseId?.ToString(),
+                        ActionStockId = l.StockId?.ToString(),
+                        StockCode = l.Stock?.Code ?? "",
+                        StockName = l.Stock?.Name ?? "",
+                        ActionPrice = l.Price,
+                        ActionIncome = isIncome ? l.Quantity : 0m,
+                        ActionExpense = !isIncome ? l.Quantity : 0m,
+                        GrandTotal = l.Price * l.Quantity
+                    });
+                }
+            }
+
+            // 2. Из перемещений (StockTransfers)
+            var transfersQuery = db.StockTransfers.Include(t => t.Lines).ThenInclude(l => l.Stock).AsSplitQuery().AsNoTracking()
+                .Where(t => t.Date >= startDate && t.Date <= endDate && !t.IsDisabled);
+
+            var transfers = await transfersQuery.ToListAsync(ct);
+            foreach (var t in transfers)
+            {
+                foreach (var l in t.Lines ?? Enumerable.Empty<StockTransferLineEntity>())
+                {
+                    if (filterStockGuid.HasValue && l.StockId != filterStockGuid) continue;
+
+                    // Списание со склада-источника
+                    if (!whIds.Any() || (t.WarehouseId.HasValue && whIds.Contains(t.WarehouseId.Value)))
+                    {
+                        actions.Add(new
+                        {
+                            TransactionId = t.Id.ToString(),
+                            TransactionCode = t.Code ?? "",
+                            TransactionDate = t.Date.UtcDateTime,
+                            TransactionType = "StockTransferSource",
+                            TransactionIsCompleted = t.IsCompleted,
+                            TransactionIsDisabled = t.IsDisabled,
+                            ActionId = l.Id.ToString(),
+                            ActionWarehouseId = t.WarehouseId?.ToString(),
+                            ActionRelatedWarehouseId = t.DestinationWarehouseId?.ToString(),
+                            ActionStockId = l.StockId?.ToString(),
+                            StockCode = l.Stock?.Code ?? "",
+                            StockName = l.Stock?.Name ?? "",
+                            ActionPrice = l.Price,
+                            ActionIncome = 0m,
+                            ActionExpense = l.Quantity,
+                            GrandTotal = l.Price * l.Quantity
+                        });
+                    }
+
+                    // Приход на склад-получатель
+                    if (!whIds.Any() || (t.DestinationWarehouseId.HasValue && whIds.Contains(t.DestinationWarehouseId.Value)))
+                    {
+                        actions.Add(new
+                        {
+                            TransactionId = t.Id.ToString(),
+                            TransactionCode = t.Code ?? "",
+                            TransactionDate = t.Date.UtcDateTime,
+                            TransactionType = "StockTransferDestination",
+                            TransactionIsCompleted = t.IsCompleted,
+                            TransactionIsDisabled = t.IsDisabled,
+                            ActionId = l.Id.ToString(),
+                            ActionWarehouseId = t.DestinationWarehouseId?.ToString(),
+                            ActionRelatedWarehouseId = t.WarehouseId?.ToString(),
+                            ActionStockId = l.StockId?.ToString(),
+                            StockCode = l.Stock?.Code ?? "",
+                            StockName = l.Stock?.Name ?? "",
+                            ActionPrice = l.Price,
+                            ActionIncome = l.ReceivedQuantity,
+                            ActionExpense = 0m,
+                            GrandTotal = l.Price * l.ReceivedQuantity
+                        });
+                    }
+                }
+            }
+
+            // 3. Из продаж и закупок (Invoices)
+            var invQuery = db.Invoices.Include(i => i.Lines).ThenInclude(l => l.Stock).AsSplitQuery().AsNoTracking()
+                .Where(i => i.Date >= startDate && i.Date <= endDate && !i.IsDisabled && i.IsCompleted);
+
+            if (whIds.Any()) invQuery = invQuery.Where(i => i.WarehouseId.HasValue && whIds.Contains(i.WarehouseId.Value));
+
+            var invoices = await invQuery.ToListAsync(ct);
+            foreach (var i in invoices)
+            {
+                foreach (var l in i.Lines ?? Enumerable.Empty<InvoiceLineEntity>())
+                {
+                    if (filterStockGuid.HasValue && l.StockId != filterStockGuid) continue;
+
+                    bool isIncome = i.InvoiceType == "Purchase" || i.InvoiceType == "SalesReturn";
+                    actions.Add(new
+                    {
+                        TransactionId = i.Id.ToString(),
+                        TransactionCode = i.Code ?? "",
+                        TransactionDate = i.Date.UtcDateTime,
+                        TransactionType = i.InvoiceType,
+                        TransactionIsCompleted = i.IsCompleted,
+                        TransactionIsDisabled = i.IsDisabled,
+                        ActionId = l.Id.ToString(),
+                        ActionWarehouseId = i.WarehouseId?.ToString(),
+                        ActionRelatedPartnerId = i.PartnerId?.ToString(),
+                        ActionStockId = l.StockId?.ToString(),
+                        StockCode = l.Stock?.Code ?? "",
+                        StockName = l.Stock?.Name ?? "",
+                        ActionPrice = l.Price,
+                        ActionIncome = isIncome ? l.Quantity : 0m,
+                        ActionExpense = !isIncome ? l.Quantity : 0m,
+                        GrandTotal = l.Price * l.Quantity
+                    });
+                }
+            }
+
+            return Results.Ok(actions.OrderByDescending(a => ((dynamic)a).TransactionDate));
+        });
 
         // --- СОХРАНЕНИЕ ---
         Func<HttpRequest, MermerDbContext, Task<IResult>> saveStockHandler = async (request, db) =>

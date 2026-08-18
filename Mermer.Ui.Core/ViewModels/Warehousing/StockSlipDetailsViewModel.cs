@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Core.ViewModels.Warehousing.StockSlipDetailsViewModel
-// Assembly: Mermer.Ui.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: DC92D011-8413-44AC-9F10-F866D891CF66
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
-
-using Mermer.Authorization.Services;
+﻿using Mermer.Authorization.Services;
 using Mermer.Data.Authorizers;
 using Mermer.Data.Storage;
 using Mermer.Enterprise.Models;
@@ -34,34 +28,60 @@ using System.Windows.Input;
 #nullable disable
 namespace Mermer.Ui.Core.ViewModels.Warehousing;
 
-public class StockSlipDetailsViewModel : 
+public class StockSlipDetailsViewModel :
   StockTransactionDetailsViewModel<StockSlip, StockSlipLine, StockSlipType>,
   IMvxViewModel<StockSlipType>,
   IMvxViewModel
 {
-  private StockSlipType _newSlipType = StockSlipType.StockUsage;
-  private readonly IPrintingService _printingService;
+    private StockSlipType _newSlipType = StockSlipType.StockUsage;
+    private readonly IPrintingService _printingService;
+    private IEnumerable<CopyCreateLine> _stockLineCopies;
+    private IMvxAsyncCommand _forceCloseCommand;
 
-  public StockSlipDetailsViewModel(
-    CopyCreate copyCreate,
-    IConfigurator configurator,
-    ILoginService loginService,
-    StockSearcher stockSearcher,
-    Reference<Currency> currencies,
-    Reference<Warehouse> warehouses,
-    IPrintingService printingService,
-    IRepository<StockSlip> repository,
-    IListAuthorizer<StockSlip> authorizer,
-    IStocksRepository stocksRepository,
-    IMvxNavigationService navigationService,
-    ITransactionCodeGenerationService codegentor,
-    IUserInteractionService userInteractionService)
-    : base(copyCreate, repository, authorizer, configurator, loginService, stockSearcher, currencies, warehouses, stocksRepository, navigationService, codegentor, userInteractionService)
-  {
-    this._printingService = printingService;
-  }
+    public StockSlipDetailsViewModel(
+      CopyCreate copyCreate,
+      IConfigurator configurator,
+      ILoginService loginService,
+      StockSearcher stockSearcher,
+      Reference<Currency> currencies,
+      Reference<Warehouse> warehouses,
+      IPrintingService printingService,
+      IRepository<StockSlip> repository,
+      IListAuthorizer<StockSlip> authorizer,
+      IStocksRepository stocksRepository,
+      IMvxNavigationService navigationService,
+      ITransactionCodeGenerationService codegentor,
+      IUserInteractionService userInteractionService)
+      : base(copyCreate, repository, authorizer, configurator, loginService, stockSearcher, currencies, warehouses, stocksRepository, navigationService, codegentor, userInteractionService)
+    {
+        this._printingService = printingService;
+    }
 
-  public void Prepare(StockSlipType parameter) => this._newSlipType = parameter;
+    public void Prepare(StockSlipType parameter) => this._newSlipType = parameter;
+
+    // --- ИСПРАВЛЕНИЕ: Заполняем список типов вручную ---
+    protected override async Task PreLoad()
+    {
+        await base.PreLoad();
+
+        // Защита: если базовый класс не смог загрузить типы ордеров
+        if (this.Types == null || !this.Types.Any())
+        {
+            this.Types = Enum.GetValues(typeof(StockSlipType))
+                .Cast<StockSlipType>()
+                .Select(x => new ListHelper<StockSlipType>
+                {
+                    Text = this[x.ToString()], // Локализованное название
+                    Value = x
+                }).ToArray();
+
+            // Если создаем новый документ, разрешаем выбор типа
+            if (string.IsNullOrEmpty(this.ItemId))
+            {
+                this.CanChangeType = true;
+            }
+        }
+    }
 
     protected override async Task PostLoad()
     {
@@ -75,26 +95,21 @@ public class StockSlipDetailsViewModel :
     {
         try
         {
-            
             if (string.IsNullOrEmpty(Details.WarehouseId))
             {
                 throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
             }
 
-  
             if (Details.Lines == null || !Details.Lines.Any())
             {
                 throw new Exception(this["Document cannot be empty"]);
             }
 
-            // Валидация каждой строки накладной
             foreach (var line in Details.Lines)
             {
-                
                 if (line.Quantity <= 0)
                     throw new Exception(this["Quantity must be greater than zero"]);
 
-                
                 if (Details.IsPriceEditable && line.Price < 0)
                     throw new Exception(this["Price cannot be negative"]);
 
@@ -104,12 +119,10 @@ public class StockSlipDetailsViewModel :
         }
         catch (Exception ex)
         {
-           
             UserInteractionService.ShowExceptionMessage(ex);
             return false;
         }
 
-        
         _newSlipType = Details.SlipType;
         if (!await base.OnSaveAsync())
             return false;
@@ -126,10 +139,8 @@ public class StockSlipDetailsViewModel :
         {
             var newCurrencyId = this.Details.DisplayCurrencyId;
 
-            // 1. ТРЕБОВАНИЕ ЛЕОНА: Обновляем валюту в поисковике товаров
             if (StockSearcher != null && !string.IsNullOrEmpty(newCurrencyId))
             {
-                // Используем Reflection для надежности, если свойство скрыто
                 var prop = StockSearcher.GetType().GetProperty("CurrencyId");
                 if (prop != null)
                 {
@@ -137,34 +148,26 @@ public class StockSlipDetailsViewModel :
                 }
             }
 
-            // 2. ЛЕЧИМ РАССИНХРОН: Делаем микро-паузу для загрузки курсов
             System.Threading.Tasks.Task.Run(async () =>
             {
-                // Ждем 150 миллисекунд, пока ядро ERP подтянет CurrencyConvertions
                 await System.Threading.Tasks.Task.Delay(150);
 
-                // Возвращаемся в главный поток интерфейса
                 InvokeOnMainThread(() =>
                 {
                     if (this.Details.Lines != null)
                     {
                         foreach (var line in this.Details.Lines)
                         {
-                            // Обновляем каждую ячейку
                             line.RaisePropertyChanged("DisplayTotal");
                         }
                     }
 
-                    // Принудительно обновляем итог документа
                     this.Details.RaisePropertyChanged("DisplayTotal");
-
-                    // Эта магическая строка заставляет DevExpress GridControl мгновенно пересчитать TotalSummary внизу экрана!
                     this.Details.RaisePropertyChanged("Lines");
                 });
             });
         }
 
-        // Существующая логика для расчета цен остается без изменений
         if (!(e.PropertyName == "IsPriceEditable") || this.Details.IsPriceEditable)
             return;
 
@@ -180,43 +183,43 @@ public class StockSlipDetailsViewModel :
     }
 
     protected override async Task OnSelectedLineEditAsync()
-  {
-    StockSlipDetailsViewModel detailsViewModel = this;
-    Stock stocksCacheAsync = await detailsViewModel.GetFromStocksCacheAsync(detailsViewModel.SelectedLine.StockId);
-    IMvxNavigationService navigationService = detailsViewModel.NavigationService;
-    StockSlipDetailsLineEditViewModel.Params @params = new StockSlipDetailsLineEditViewModel.Params();
-    @params.StockCode = stocksCacheAsync.Code;
-    @params.StockName = stocksCacheAsync.Name;
-    @params.Quantity = detailsViewModel.SelectedLine.Quantity;
-    @params.UnitId = detailsViewModel.SelectedLine.UnitId;
-    @params.Units = (IEnumerable<StockUnit>) stocksCacheAsync.Units;
-    @params.Price = detailsViewModel.SelectedLine.Price;
-    @params.CurrencyId = detailsViewModel.SelectedLine.CurrencyId;
-    @params.Currencies = detailsViewModel.Currencies.List;
-    @params.IsPriceEditable = detailsViewModel.Details.IsPriceEditable;
-    CancellationToken cancellationToken = new CancellationToken();
-    StockTransactionDetailsLineEditViewModel.Result result = await navigationService.Navigate<StockSlipDetailsLineEditViewModel, StockSlipDetailsLineEditViewModel.Params, StockTransactionDetailsLineEditViewModel.Result>(@params, cancellationToken: cancellationToken);
-    if (result == null)
-      return;
-    detailsViewModel.SelectedLine.Quantity = result.Quantity;
-    detailsViewModel.SelectedLine.UnitId = result.UnitId;
-    if (!detailsViewModel.Details.IsPriceEditable)
-      return;
-    detailsViewModel.SelectedLine.Price = result.Price;
-    detailsViewModel.SelectedLine.CurrencyId = result.CurrencyId;
-  }
-
-  public ICommand PrintCommand
-  {
-    get
     {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnPrintCommandAsync), (Func<bool>) (() => !this.IsBusy && !this.IsDirty));
+        StockSlipDetailsViewModel detailsViewModel = this;
+        Stock stocksCacheAsync = await detailsViewModel.GetFromStocksCacheAsync(detailsViewModel.SelectedLine.StockId);
+        IMvxNavigationService navigationService = detailsViewModel.NavigationService;
+        StockSlipDetailsLineEditViewModel.Params @params = new StockSlipDetailsLineEditViewModel.Params();
+        @params.StockCode = stocksCacheAsync.Code;
+        @params.StockName = stocksCacheAsync.Name;
+        @params.Quantity = detailsViewModel.SelectedLine.Quantity;
+        @params.UnitId = detailsViewModel.SelectedLine.UnitId;
+        @params.Units = (IEnumerable<StockUnit>)stocksCacheAsync.Units;
+        @params.Price = detailsViewModel.SelectedLine.Price;
+        @params.CurrencyId = detailsViewModel.SelectedLine.CurrencyId;
+        @params.Currencies = detailsViewModel.Currencies.List;
+        @params.IsPriceEditable = detailsViewModel.Details.IsPriceEditable;
+        CancellationToken cancellationToken = new CancellationToken();
+        StockTransactionDetailsLineEditViewModel.Result result = await navigationService.Navigate<StockSlipDetailsLineEditViewModel, StockSlipDetailsLineEditViewModel.Params, StockTransactionDetailsLineEditViewModel.Result>(@params, cancellationToken: cancellationToken);
+        if (result == null)
+            return;
+        detailsViewModel.SelectedLine.Quantity = result.Quantity;
+        detailsViewModel.SelectedLine.UnitId = result.UnitId;
+        if (!detailsViewModel.Details.IsPriceEditable)
+            return;
+        detailsViewModel.SelectedLine.Price = result.Price;
+        detailsViewModel.SelectedLine.CurrencyId = result.CurrencyId;
     }
-  }
 
-  protected virtual async Task OnPrintCommandAsync()
-  {
-    StockSlipDetailsViewModel detailsViewModel = this;
-    await detailsViewModel._printingService.PrintStockSlip(detailsViewModel.Details, true);
-  }
+    public ICommand PrintCommand
+    {
+        get
+        {
+            return (ICommand)new MvxAsyncCommand(new Func<Task>(this.OnPrintCommandAsync), (Func<bool>)(() => !this.IsBusy && !this.IsDirty));
+        }
+    }
+
+    protected virtual async Task OnPrintCommandAsync()
+    {
+        StockSlipDetailsViewModel detailsViewModel = this;
+        await detailsViewModel._printingService.PrintStockSlip(detailsViewModel.Details, true);
+    }
 }

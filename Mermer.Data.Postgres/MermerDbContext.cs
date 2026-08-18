@@ -31,6 +31,10 @@ public class MermerDbContext : DbContext
     public DbSet<StockBalanceEntity> StockBalances => Set<StockBalanceEntity>();
     public DbSet<StockSlipEntity> StockSlips => Set<StockSlipEntity>();
     public DbSet<StockSlipLineEntity> StockSlipLines => Set<StockSlipLineEntity>();
+    public DbSet<StockTransferEntity> StockTransfers => Set<StockTransferEntity>();
+    public DbSet<StockTransferLineEntity> StockTransferLines => Set<StockTransferLineEntity>();
+    public DbSet<StockRevisionEntity> StockRevisions => Set<StockRevisionEntity>();
+    public DbSet<StockRevisionLineEntity> StockRevisionLines => Set<StockRevisionLineEntity>();
 
     // ── Commerce ──
     public DbSet<InvoiceEntity> Invoices => Set<InvoiceEntity>();

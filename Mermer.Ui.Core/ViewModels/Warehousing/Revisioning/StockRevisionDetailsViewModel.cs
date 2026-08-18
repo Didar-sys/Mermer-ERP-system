@@ -598,40 +598,40 @@ public class StockRevisionDetailsViewModel : TransactionDetailsViewModel<StockRe
     }
   }
 
-    protected override async Task<bool> OnSaveAsync()
-    {
-        try
-        {
-            // 1. Обязательно должен быть выбран состав для инвентаризации
-            if (string.IsNullOrEmpty(Details.WarehouseId))
-            {
-                throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
-            }
+    //protected override async Task<bool> OnSaveAsync()
+    //{
+    //    try
+    //    {
+    //        // 1. Обязательно должен быть выбран состав для инвентаризации
+    //        if (string.IsNullOrEmpty(Details.WarehouseId))
+    //        {
+    //            throw new Exception(this["Field '{0}' is required", this["Warehouse"]]);
+    //        }
 
-            // 2. Документ инвентаризации не может быть без товарных позиций (строк)
-            if (Lines == null || !Lines.Any())
-            {
-                throw new Exception(this["Document cannot be empty"]);
-            }
+    //        // 2. Документ инвентаризации не может быть без товарных позиций (строк)
+    //        if (Lines == null || !Lines.Any())
+    //        {
+    //            throw new Exception(this["Document cannot be empty"]);
+    //        }
 
-            // 3. При необходимости валидируем каждую строчку (зависит от структуры StockRevisionLine)
-            // Например, запрещаем отрицательное фактическое количество, если это запрещено логикой бизнеса
-            foreach (var line in Lines)
-            {
-                // Если в вашей системе CountedQuantity (или подобное поле) не может быть < 0
-                // if (line.Quantity < 0) 
-                // throw new Exception(this["Quantity cannot be negative"]);
-            }
-        }
-        catch (Exception ex)
-        {
+    //        // 3. При необходимости валидируем каждую строчку (зависит от структуры StockRevisionLine)
+    //        // Например, запрещаем отрицательное фактическое количество, если это запрещено логикой бизнеса
+    //        foreach (var line in Lines)
+    //        {
+    //            // Если в вашей системе CountedQuantity (или подобное поле) не может быть < 0
+    //            // if (line.Quantity < 0) 
+    //            // throw new Exception(this["Quantity cannot be negative"]);
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
             
-            UserInteractionService.ShowExceptionMessage(ex);
-            return false;
-        }
+    //        UserInteractionService.ShowExceptionMessage(ex);
+    //        return false;
+    //    }
 
-        return await base.OnSaveAsync();
-    }
+    //    return await base.OnSaveAsync();
+    //}
     protected virtual async Task OnCreateRevisionDeficitsSlipCommandAsync()
   {
     StockRevisionDetailsViewModel detailsViewModel = this;

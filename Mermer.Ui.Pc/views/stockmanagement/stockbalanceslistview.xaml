@@ -43,16 +43,18 @@
             <dxlc:LayoutGroup Orientation="Vertical" Margin="10, 10, 10, 0">
                 <dxlc:LayoutItem HorizontalAlignment="Left" Width="500" Label="{Localize Warehouse}">
                     <dxlc:LayoutGroup>
-                        <dxe:ComboBoxEdit ShowCustomItems="True" DisplayMember="Name" ValueMember="Id"
-                              EditValue="{Binding SelectedWarehouseIds, UpdateSourceTrigger=PropertyChanged}"
-                              ItemsSource="{Binding Warehouses.List}">
-                            <dxe:BaseEdit.StyleSettings>
+                        <!-- УБРАНО: ShowCustomItems="True" -->
+                        <dxe:ComboBoxEdit DisplayMember="Name" ValueMember="Id"
+                          IsTextEditable="False" SeparatorString=", " NullText="{Localize 'All Warehouses'}"
+                          EditValue="{Binding SelectedWarehouseIds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          ItemsSource="{Binding Warehouses.List}">
+                            <dxe:ComboBoxEdit.StyleSettings>
                                 <dxe:CheckedComboBoxStyleSettings/>
-                            </dxe:BaseEdit.StyleSettings>
+                            </dxe:ComboBoxEdit.StyleSettings>
                         </dxe:ComboBoxEdit>
-                        <dxe:CheckEdit HorizontalAlignment="Right"
-                           EditValue="{Binding AggregateWarehouses, UpdateSourceTrigger=PropertyChanged}"
-                           Content="{Localize Aggregate}"/>
+                        <dxe:CheckEdit HorizontalAlignment="Right" Margin="10,0,0,0"
+                       EditValue="{Binding AggregateWarehouses, UpdateSourceTrigger=PropertyChanged}"
+                       Content="{Localize Aggregate}"/>
                     </dxlc:LayoutGroup>
                 </dxlc:LayoutItem>
                 <dxlc:LayoutItem HorizontalAlignment="Left" Width="730" Label="{Localize Stock}">

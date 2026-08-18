@@ -84,27 +84,37 @@ public class StockActionsListViewModel :
         this.Currencies = currencies; 
     }
 
-    public System.Collections.Generic.List<object> SelectedWarehouseIds
-  {
-    get => this._selectedWarehouseIds;
-    set
+    public List<object> SelectedWarehouseIds
     {
-      if (this._selectedWarehouseIds != null && value != null && this._selectedWarehouseIds.SequenceEqual<object>((IEnumerable<object>) value) || !this.SetProperty<System.Collections.Generic.List<object>>(ref this._selectedWarehouseIds, value, nameof (SelectedWarehouseIds)) || this.IsBusy)
-        return;
-      this.Initialize();
-    }
-  }
+        get => this._selectedWarehouseIds;
+        set
+        {
+            if (this._selectedWarehouseIds != null && value != null && this._selectedWarehouseIds.SequenceEqual(value))
+                return;
 
-  public string[] WarehouseIds
-  {
-    get
+            if (!this.SetProperty(ref this._selectedWarehouseIds, value ?? new List<object>(), nameof(SelectedWarehouseIds)))
+                return;
+
+            if (!this.IsBusy)
+                this.Initialize();
+        }
+    }
+
+    public string[] WarehouseIds
     {
-      System.Collections.Generic.List<object> selectedWarehouseIds = this.SelectedWarehouseIds;
-      return (selectedWarehouseIds != null ? selectedWarehouseIds.Cast<string>().ToArray<string>() : (string[]) null) ?? Array.Empty<string>();
-    }
-  }
+        get
+        {
+            if (this.SelectedWarehouseIds == null || !this.SelectedWarehouseIds.Any())
+                return Array.Empty<string>();
 
-  public virtual string StockId
+            return this.SelectedWarehouseIds
+                .Select(x => x?.ToString())
+                .Where(x => !string.IsNullOrEmpty(x))
+                .ToArray();
+        }
+    }
+
+    public virtual string StockId
   {
     get => this._stockId;
     set
@@ -146,42 +156,6 @@ public class StockActionsListViewModel :
 
     protected override async Task PreLoad()
     {
-        if (!_loaded)
-        {
-            if (_parameter != null)
-            {
-                SelectedWarehouseIds = _parameter.WarehouseIds.Cast<object>().ToList();
-                StockId = _parameter.StockId;
-                DateFilterFrom = _parameter.DateFrom;
-                DateFilterTill = _parameter.DateTill;
-
-                if (!string.IsNullOrEmpty(StockId))
-                {
-                    Stock async = await _stocksRepository.GetAsync(StockId);
-                    SelectedStockMessage = this["Showing actions for stock: {0} | {1}", async.Code, async.Name];
-                }
-            }
-            else
-            {
-                AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
-
-                // Защищаем список от null-элемента
-                if (configAsync != null && !string.IsNullOrEmpty(configAsync.DefaultWarehouseId))
-                {
-                    SelectedWarehouseIds = new List<object> { configAsync.DefaultWarehouseId };
-                }
-                else
-                {
-                    SelectedWarehouseIds = new List<object>();
-                }
-            }
-        }
-
-        _loaded = true;
-
-        if (string.IsNullOrEmpty(StockId))
-            SelectedStockMessage = this["Showing actions for all stocks"];
-
         await Task.WhenAll(
             base.PreLoad(),
             Warehouses.Initialize(),
@@ -189,9 +163,37 @@ public class StockActionsListViewModel :
             Currencies.Initialize()
         );
 
+        if (!_loaded)
+        {
+            if (_parameter != null)
+            {
+                SelectedWarehouseIds = _parameter.WarehouseIds?.Cast<object>().ToList() ?? new List<object>();
+                StockId = _parameter.StockId;
+                DateFilterFrom = _parameter.DateFrom;
+                DateFilterTill = _parameter.DateTill;
+
+                if (!string.IsNullOrEmpty(StockId))
+                {
+                    Stock asyncStock = await _stocksRepository.GetAsync(StockId);
+                    if (asyncStock != null)
+                        SelectedStockMessage = this["Showing actions for stock: {0} | {1}", asyncStock.Code, asyncStock.Name];
+                }
+            }
+            else
+            {
+                // По умолчанию открываем со сброшенным фильтром (по всем складам)
+                SelectedWarehouseIds = new List<object>();
+            }
+
+            _loaded = true;
+        }
+
+        if (string.IsNullOrEmpty(StockId))
+            SelectedStockMessage = this["Showing actions for all stocks"];
+
         if (string.IsNullOrEmpty(CurrencyId))
         {
-            CurrencyId = Currencies.List.FirstOrDefault(x => x.IsDefault)?.Id;
+            CurrencyId = Currencies.List?.FirstOrDefault(x => x.IsDefault)?.Id;
         }
     }
 

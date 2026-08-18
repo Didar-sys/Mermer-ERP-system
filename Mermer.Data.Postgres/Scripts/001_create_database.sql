@@ -1,7 +1,7 @@
 ﻿-- ============================================================================
 -- Mermer ERP — PostgreSQL Database Schema
 -- Migration from Couchbase (NoSQL) to PostgreSQL (Relational)
--- Version: 1.0.0 | Stage 1
+-- Version: 1.1.0 | Stage 1
 -- ============================================================================
 
 -- Enable required extensions
@@ -207,7 +207,6 @@ CREATE TABLE stocks (
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    -- Full-text search vector (maintained by trigger below)
     search_vector   TSVECTOR
 );
 
@@ -278,6 +277,89 @@ CREATE TABLE stock_additional_prices (
 CREATE INDEX idx_stock_additional_prices_stock_id ON stock_additional_prices(stock_id);
 
 -- ============================================================================
+-- WAREHOUSING & TRANSACTIONS (Stock Slips & Stock Transfers)
+-- ============================================================================
+
+-- Stock Slips (Складские ордера: оприходование, списание, инвентаризация)
+CREATE TABLE stock_slips (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code                VARCHAR(50),
+    slip_type           VARCHAR(50) NOT NULL,
+    is_completed        BOOLEAN NOT NULL DEFAULT FALSE,
+    is_stock_income     BOOLEAN NOT NULL DEFAULT FALSE,
+    display_total       NUMERIC(18,4) NOT NULL DEFAULT 0,
+    description         TEXT,
+    tags                TEXT[],
+    date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id             UUID REFERENCES users(id),
+    warehouse_id        UUID REFERENCES warehouses(id),
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_stock_slips_date ON stock_slips(date DESC);
+CREATE INDEX idx_stock_slips_warehouse_id ON stock_slips(warehouse_id);
+CREATE INDEX idx_stock_slips_slip_type ON stock_slips(slip_type);
+
+-- Stock Slip Lines (Строки складских ордеров)
+CREATE TABLE stock_slip_lines (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    stock_slip_id       UUID NOT NULL REFERENCES stock_slips(id) ON DELETE CASCADE,
+    stock_id            UUID REFERENCES stocks(id),
+    unit_id             UUID REFERENCES stock_units(id),
+    quantity            NUMERIC(18,4) NOT NULL DEFAULT 0,
+    action_quantity     NUMERIC(18,4) NOT NULL DEFAULT 0,
+    price               NUMERIC(18,4) NOT NULL DEFAULT 0,
+    action_total        NUMERIC(18,4) NOT NULL DEFAULT 0,
+    sort_order          INT NOT NULL DEFAULT 0
+);
+
+CREATE INDEX idx_stock_slip_lines_slip_id ON stock_slip_lines(stock_slip_id);
+CREATE INDEX idx_stock_slip_lines_stock_id ON stock_slip_lines(stock_id);
+
+-- Stock Transfers (Перемещения товаров между складами)
+CREATE TABLE stock_transfers (
+    id                          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code                        VARCHAR(50),
+    date                        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    warehouse_id                UUID REFERENCES warehouses(id),
+    destination_warehouse_id    UUID REFERENCES warehouses(id),
+    display_currency_id         UUID REFERENCES currencies(id),
+    is_completed                BOOLEAN NOT NULL DEFAULT FALSE,
+    is_disabled                 BOOLEAN NOT NULL DEFAULT FALSE,
+    user_name                   VARCHAR(100),
+    group_name                  VARCHAR(200),
+    description                 TEXT,
+    tags                        TEXT[],
+    action_total                NUMERIC(18,4) NOT NULL DEFAULT 0,
+    action_received_total       NUMERIC(18,4) NOT NULL DEFAULT 0,
+    created_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_stock_transfers_date ON stock_transfers(date DESC);
+CREATE INDEX idx_stock_transfers_wh ON stock_transfers(warehouse_id);
+CREATE INDEX idx_stock_transfers_dest_wh ON stock_transfers(destination_warehouse_id);
+
+-- Stock Transfer Lines (Строки перемещений)
+CREATE TABLE stock_transfer_lines (
+    id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    stock_transfer_id       UUID NOT NULL REFERENCES stock_transfers(id) ON DELETE CASCADE,
+    stock_id                UUID REFERENCES stocks(id),
+    unit_id                 UUID REFERENCES stock_units(id),
+    received_unit_id        UUID REFERENCES stock_units(id),
+    quantity                NUMERIC(18,4) NOT NULL DEFAULT 0,
+    received_quantity       NUMERIC(18,4) NOT NULL DEFAULT 0,
+    price                   NUMERIC(18,4) NOT NULL DEFAULT 0,
+    action_total            NUMERIC(18,4) NOT NULL DEFAULT 0,
+    action_received_total   NUMERIC(18,4) NOT NULL DEFAULT 0,
+    sort_order              INT NOT NULL DEFAULT 0
+);
+
+CREATE INDEX idx_stock_transfer_lines_doc ON stock_transfer_lines(stock_transfer_id);
+CREATE INDEX idx_stock_transfer_lines_stock ON stock_transfer_lines(stock_id);
+
+-- ============================================================================
 -- COMMERCE — Invoices (Sales, Purchases, Returns)
 -- ============================================================================
 
@@ -328,7 +410,7 @@ CREATE INDEX idx_invoice_lines_invoice_id ON invoice_lines(invoice_id);
 CREATE INDEX idx_invoice_lines_stock_id ON invoice_lines(stock_id);
 CREATE INDEX idx_invoice_lines_source_id ON invoice_lines(source_id) WHERE source_id IS NOT NULL;
 
--- Invoice Currency Convertions (snapshot of exchange rates at invoice time)
+-- Invoice Currency Convertions
 CREATE TABLE invoice_currency_convertions (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     invoice_id      UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
@@ -342,7 +424,7 @@ CREATE TABLE invoice_currency_convertions (
 
 CREATE INDEX idx_inv_cc_invoice_id ON invoice_currency_convertions(invoice_id);
 
--- Invoice Stock Unit Convertions (snapshot of unit conversions at invoice time)
+-- Invoice Stock Unit Convertions
 CREATE TABLE invoice_stock_unit_convertions (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     invoice_id      UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
@@ -381,7 +463,7 @@ CREATE TABLE invoice_payments (
 
 CREATE INDEX idx_invoice_payments_invoice_id ON invoice_payments(invoice_id);
 
--- Invoice Overheads (additional costs like shipping, customs)
+-- Invoice Overheads
 CREATE TABLE invoice_overheads (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     invoice_id      UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
@@ -394,10 +476,9 @@ CREATE TABLE invoice_overheads (
 CREATE INDEX idx_invoice_overheads_invoice_id ON invoice_overheads(invoice_id);
 
 -- ============================================================================
--- STOCK BALANCES (Materialized view for fast queries)
+-- STOCK BALANCES
 -- ============================================================================
 
--- Raw stock balance tracking per warehouse
 CREATE TABLE stock_balances (
     warehouse_id    UUID NOT NULL REFERENCES warehouses(id),
     stock_id        UUID NOT NULL REFERENCES stocks(id),
@@ -415,7 +496,7 @@ CREATE INDEX idx_stock_balances_warehouse_id ON stock_balances(warehouse_id);
 -- FUNDS MANAGEMENT
 -- ============================================================================
 
--- Funds Slips (cash receipts / disbursements / openings)
+-- Funds Slips
 CREATE TABLE funds_slips (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code                VARCHAR(50),
@@ -447,7 +528,7 @@ CREATE TABLE funds_slip_lines (
 
 CREATE INDEX idx_funds_slip_lines_slip_id ON funds_slip_lines(funds_slip_id);
 
--- Funds Transfers (between depositories)
+-- Funds Transfers
 CREATE TABLE funds_transfers (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code                VARCHAR(50),
@@ -479,7 +560,7 @@ CREATE TABLE funds_transfer_lines (
 CREATE INDEX idx_funds_transfer_lines_transfer_id ON funds_transfer_lines(funds_transfer_id);
 
 -- ============================================================================
--- EXPENSES (Spending categories & Expense Slips)
+-- EXPENSES & REGISTRIES
 -- ============================================================================
 
 CREATE TABLE expenses (
@@ -498,7 +579,7 @@ CREATE INDEX idx_expenses_name_trgm ON expenses USING GIN (name gin_trgm_ops);
 CREATE INDEX idx_expenses_group_name ON expenses(group_name);
 CREATE INDEX idx_expenses_is_disabled ON expenses(is_disabled) WHERE NOT is_disabled;
 
--- Expense Slips (Расходные кассовые ордера)
+-- Expense Slips
 CREATE TABLE expense_slips (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code                VARCHAR(50),
@@ -519,7 +600,19 @@ CREATE TABLE expense_slips (
 
 CREATE INDEX idx_expense_slips_date ON expense_slips(date DESC);
 
--- Daily Funds Registeries (Реестры кассы / закрытие смены)
+-- Expense Slip Lines
+CREATE TABLE expense_slip_lines (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    expense_slip_id     UUID NOT NULL REFERENCES expense_slips(id) ON DELETE CASCADE,
+    expense_id          UUID REFERENCES expenses(id),
+    amount              NUMERIC(18,4) NOT NULL DEFAULT 0,
+    currency_id         UUID REFERENCES currencies(id),
+    sort_order          INT NOT NULL DEFAULT 0
+);
+
+CREATE INDEX idx_expense_slip_lines_slip_id ON expense_slip_lines(expense_slip_id);
+
+-- Daily Funds Registeries
 CREATE TABLE daily_funds_registeries (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code                VARCHAR(50),
@@ -549,22 +642,6 @@ CREATE INDEX idx_daily_funds_reg_date ON daily_funds_registeries(date DESC);
 CREATE INDEX idx_daily_funds_reg_dep ON daily_funds_registeries(depository_id);
 CREATE INDEX idx_daily_funds_reg_lines_reg_id ON daily_funds_registery_lines(registery_id);
 
--- Expense Slip Lines (Строки расходов)
-CREATE TABLE expense_slip_lines (
-    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    expense_slip_id     UUID NOT NULL REFERENCES expense_slips(id) ON DELETE CASCADE,
-    expense_id          UUID REFERENCES expenses(id),
-    amount              NUMERIC(18,4) NOT NULL DEFAULT 0,
-    currency_id         UUID REFERENCES currencies(id),
-    sort_order          INT NOT NULL DEFAULT 0
-);
-
-CREATE INDEX idx_expense_slip_lines_slip_id ON expense_slip_lines(expense_slip_id);
-
--- ============================================================================
--- MATERIALIZED VIEW: Stock Search (replaces 3 Couchbase round-trips with 1 query)
--- ============================================================================
-
 -- Partner actions (debit/credit ledger)
 CREATE TABLE IF NOT EXISTS partner_actions (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -579,6 +656,10 @@ CREATE TABLE IF NOT EXISTS partner_actions (
 
 CREATE INDEX idx_partner_actions_partner_id ON partner_actions(partner_id);
 CREATE INDEX idx_partner_actions_office_id  ON partner_actions(office_id);
+
+-- ============================================================================
+-- MATERIALIZED VIEW: Stock Search
+-- ============================================================================
 
 CREATE MATERIALIZED VIEW mv_stock_search AS
 SELECT
@@ -621,7 +702,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Apply trigger to all tables with updated_at
 DO $$
 DECLARE
     tbl TEXT;

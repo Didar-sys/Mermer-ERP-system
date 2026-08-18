@@ -87,6 +87,8 @@ app.MapSpendingEndpoints();
 app.MapDepositoriesEndpoints();
 app.MapPartnersEndpoints();
 app.MapBalancesEndpoints();
+app.MapStockBalancesEndpoints();
+app.MapStockRevisionsEndpoints();
 app.MapSyncEndpoints();
 app.MapStockTransfersEndpoints();
 
