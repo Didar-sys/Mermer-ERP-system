@@ -10,39 +10,40 @@
                 xmlns:cnv="clr-namespace:Mermer.Ui.Pc.Converters"
                 xmlns:ctrl="clr-namespace:Mermer.Ui.Pc.Controls"
                 xmlns:menu="clr-namespace:Mermer.Ui.Pc.Controls.MenuItems"
-                xmlns:vm="clr-namespace:Mermer.Ui.Core.ViewModels.Warehousing;assembly=Mermer.Ui.Core" xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors">
-  <DockPanel>
-    <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
-      <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
-      <menu:ListCreateNew/>
-      <menu:ListViewDetails/>
-      <dxwui:AppBarSeparator/>
-      <menu:CommonReload/>
-      <menu:ListPrint x:Name="PrintButton" IsEnabled="{DXBinding '@e(GridControl).VisibleRowCount != 0'}"/>
-      <menu:ListFilter x:Name="FilterButton"/>
-      <menu:CommonClose/>
-    </dxwui:AppBar>
-    <ctrl:ListFilterTileControl DockPanel.Dock="Left"
+                xmlns:vm="clr-namespace:Mermer.Ui.Core.ViewModels.Warehousing;assembly=Mermer.Ui.Core"
+                xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors">
+    <DockPanel>
+        <dxwui:AppBar DockPanel.Dock="Bottom" Style="{StaticResource MenuStyle}">
+            <ctrl:StyledGridSearchControl x:Name="SearchControl" View="{Binding View, ElementName=GridControl}"/>
+            <menu:ListCreateNew/>
+            <menu:ListViewDetails/>
+            <dxwui:AppBarSeparator/>
+            <menu:CommonReload/>
+            <menu:ListPrint x:Name="PrintButton" IsEnabled="{DXBinding '@e(GridControl).VisibleRowCount != 0'}"/>
+            <menu:ListFilter x:Name="FilterButton"/>
+            <menu:CommonClose/>
+        </dxwui:AppBar>
+        <ctrl:ListFilterTileControl DockPanel.Dock="Left"
                                 Visibility="{Binding ElementName=ExpandButton, Path=IsChecked, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
-    <ToggleButton x:Name="ExpandButton" DockPanel.Dock="Left" Style="{StaticResource HideButtonStyle}"
+        <ToggleButton x:Name="ExpandButton" DockPanel.Dock="Left" Style="{StaticResource HideButtonStyle}"
                   IsChecked="True" VerticalAlignment="Center"/>
-    <ctrl:StyledGridControl x:Name="GridControl" PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
+        <ctrl:StyledGridControl x:Name="GridControl" PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
                             FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
                             SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}">
-      <dxg:GridControl.Columns>
-        <dxg:GridColumn FieldName="Name" SortOrder="Ascending" Width="300" Header="{Localize Name}"/>
-        <dxg:GridColumn FieldName="IsDisabled" Width="70" Header="{Localize Deleted}"/>
-        <dxg:GridColumn Binding="{Binding Tags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
-          <dxg:ColumnBase.EditSettings>
-            <dxg:LookUpEditSettings>
-              <dxe:BaseEditSettings.StyleSettings>
-                <dxg:TokenLookUpEditStyleSettings/>
-                            </dxe:BaseEditSettings.StyleSettings>
-                        </dxg:LookUpEditSettings>
-          </dxg:ColumnBase.EditSettings>
-        </dxg:GridColumn>
-        <dxg:GridColumn FieldName="Group" GroupIndex="0" Header="{Localize Group}"/>
-      </dxg:GridControl.Columns>
-    </ctrl:StyledGridControl>
-  </DockPanel>
+            <dxg:GridControl.Columns>
+                <dxg:GridColumn FieldName="Name" SortOrder="Ascending" Width="300" Header="{Localize Name}"/>
+                <dxg:GridColumn FieldName="IsDisabled" Width="70" Header="{Localize Deleted}"/>
+                <dxg:GridColumn Binding="{Binding Tags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
+                    <dxg:ColumnBase.EditSettings>
+                        <dxe:ComboBoxEditSettings>
+                            <dxe:ComboBoxEditSettings.StyleSettings>
+                                <dxe:TokenComboBoxStyleSettings/>
+                            </dxe:ComboBoxEditSettings.StyleSettings>
+                        </dxe:ComboBoxEditSettings>
+                    </dxg:ColumnBase.EditSettings>
+                </dxg:GridColumn>
+                <dxg:GridColumn FieldName="Group" GroupIndex="0" Header="{Localize Group}"/>
+            </dxg:GridControl.Columns>
+        </ctrl:StyledGridControl>
+    </DockPanel>
 </mvx:MvxWpfView>

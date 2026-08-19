@@ -148,18 +148,18 @@ public class StockBalancesByStatusesListViewModel : ListViewModelBaseWithFilter<
 
     protected override async Task PreLoad()
     {
-        await Task.WhenAll(Currencies.Initialize(), Warehouses.Initialize());
-
         if (!_loaded)
         {
+            await Task.WhenAll(Currencies.Initialize(), Warehouses.Initialize());
+
             AppSettings configAsync = await _configurator.GetConfigAsync<AppSettings>();
             SelectedWarehouseIds = new List<object> { configAsync.DefaultWarehouseId };
             DisplayCurrencyId = Currencies.List.Single(x => x.IsDefault).Id;
+            _loaded = true;
         }
 
-        _loaded = true;
         await PreLoadBalances();
-        await base.PreLoad(); 
+        await base.PreLoad();
     }
 
     private async Task PreLoadBalances()

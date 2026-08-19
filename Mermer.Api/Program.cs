@@ -91,5 +91,9 @@ app.MapStockBalancesEndpoints();
 app.MapStockRevisionsEndpoints();
 app.MapSyncEndpoints();
 app.MapStockTransfersEndpoints();
+app.MapStockOrdersEndpoints();
+app.MapAggregatedStockOrdersEndpoints();
+app.MapStockNameComposersEndpoints();
+app.MapStockAlternativesEndpoints();
 
 app.Run();

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Mermer.Http;
 using Mermer.StockManagement.Models;
@@ -18,20 +17,65 @@ namespace Mermer.Ui.Pc.Services
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
 
-        public Task<IEnumerable<StockBalance>> GetAsync(string stockId, DateTime date, params string[] warehouses)
-            => Task.FromResult(Enumerable.Empty<StockBalance>());
+        public async Task<IEnumerable<StockBalance>> GetAsync(string stockId, DateTime date, params string[] warehouses)
+        {
+            try
+            {
+                var queryParams = new List<string>();
+                if (!string.IsNullOrEmpty(stockId)) queryParams.Add($"stockId={stockId}");
+                if (warehouses != null)
+                {
+                    foreach (var w in warehouses.Where(x => !string.IsNullOrEmpty(x)))
+                        queryParams.Add($"warehouseId={w}");
+                }
+
+                var query = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
+                var remote = await _restClient.GetAsync<List<StockBalance>>($"/api/stock-balances{query}");
+                return remote ?? new List<StockBalance>();
+            }
+            catch { return new List<StockBalance>(); }
+        }
 
         public Task<IEnumerable<StockBalance>> GetAsync(string warehouseId, string[] stockIds, DateTime? date = null)
-            => Task.FromResult(Enumerable.Empty<StockBalance>());
+        {
+            var wh = string.IsNullOrEmpty(warehouseId) ? null : new[] { warehouseId };
+            return GetAsync(wh, stockIds, date);
+        }
 
-        public Task<IEnumerable<StockBalance>> GetAsync(string[] warehouseIds, string[] stockIds, DateTime? date = null)
-            => Task.FromResult(Enumerable.Empty<StockBalance>());
+        public async Task<IEnumerable<StockBalance>> GetAsync(string[] warehouseIds, string[] stockIds, DateTime? date = null)
+        {
+            try
+            {
+                var queryParams = new List<string>();
+                if (warehouseIds != null)
+                {
+                    foreach (var w in warehouseIds.Where(x => !string.IsNullOrEmpty(x)))
+                        queryParams.Add($"warehouseId={w}");
+                }
+                if (stockIds != null)
+                {
+                    foreach (var s in stockIds.Where(x => !string.IsNullOrEmpty(x)))
+                        queryParams.Add($"stockId={s}");
+                }
+
+                var query = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
+                var remote = await _restClient.GetAsync<List<StockBalance>>($"/api/stock-balances{query}");
+                return remote ?? new List<StockBalance>();
+            }
+            catch { return new List<StockBalance>(); }
+        }
 
         public Task<IEnumerable<StockBalance>> GetAsync(string warehouseId, (string stockId, DateTime? balanceDate)[] stockBalanceDates)
-            => Task.FromResult(Enumerable.Empty<StockBalance>());
+        {
+            var stockIds = stockBalanceDates?.Select(x => x.stockId).ToArray() ?? Array.Empty<string>();
+            return GetAsync(warehouseId, stockIds);
+        }
 
         public Task<IEnumerable<StockBalance>> GetAsync(string[] warehouseIds, (string stockId, DateTime? balanceDate)[] stockBalanceDates)
-            => Task.FromResult(Enumerable.Empty<StockBalance>());
+        {
+            var stockIds = stockBalanceDates?.Select(x => x.stockId).ToArray() ?? Array.Empty<string>();
+            return GetAsync(warehouseIds, stockIds);
+        }
 
         public Task<IEnumerable<StockBalanceWithCodeAndName>> GetAsync(string warehouseId, string[] stockIds, string excludedTransactionId)
             => Task.FromResult(Enumerable.Empty<StockBalanceWithCodeAndName>());
@@ -40,7 +84,6 @@ namespace Mermer.Ui.Pc.Services
         {
             try
             {
-                // ИСПРАВЛЕНИЕ: Форматируем даты в безопасный для URL UTC-стандарт
                 var query = $"?dateFrom={dateFrom.ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}&dateTill={dateTill.ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}&aggregate={aggregate}";
                 if (!string.IsNullOrEmpty(stockId)) query += $"&stockId={stockId}";
                 if (warehouseIds != null) foreach (var w in warehouseIds) query += $"&warehouseId={w}";
@@ -55,7 +98,6 @@ namespace Mermer.Ui.Pc.Services
         {
             try
             {
-                // ИСПРАВЛЕНИЕ: Форматируем даты в безопасный для URL UTC-стандарт
                 var query = $"?date={date.ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}&displayCurrencyId={displayCurrencyId}";
                 if (warehouseIds != null) foreach (var w in warehouseIds) query += $"&warehouseId={w}";
                 if (stockIds != null) foreach (var s in stockIds) query += $"&stockId={s}";
@@ -80,9 +122,7 @@ namespace Mermer.Ui.Pc.Services
         {
             try
             {
-                // ИСПРАВЛЕНИЕ: Форматируем даты в безопасный UTC-формат
                 var query = $"?dateFrom={dateFrom.ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}&dateTill={dateTill.ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}";
-
                 if (warehouseIds != null) foreach (var w in warehouseIds) query += $"&warehouseId={w}";
                 var remote = await _restClient.GetAsync<StockBalanceAggregated>($"/api/stock-balances/aggregated{query}");
                 return remote ?? new StockBalanceAggregated { Lines = Array.Empty<StockBalanceAggregatedLine>() };

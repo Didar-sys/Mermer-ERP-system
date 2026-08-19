@@ -36,6 +36,19 @@ public class MermerDbContext : DbContext
     public DbSet<StockRevisionEntity> StockRevisions => Set<StockRevisionEntity>();
     public DbSet<StockRevisionLineEntity> StockRevisionLines => Set<StockRevisionLineEntity>();
 
+    public DbSet<StockOrderEntity> StockOrders => Set<StockOrderEntity>();
+    public DbSet<StockOrderLineEntity> StockOrderLines => Set<StockOrderLineEntity>();
+    public DbSet<StockOrderUnitConvertionEntity> StockOrderUnitConvertions => Set<StockOrderUnitConvertionEntity>();
+    public DbSet<StockOrderTemplateEntity> StockOrderTemplates => Set<StockOrderTemplateEntity>();
+    public DbSet<StockOrderTemplateLineEntity> StockOrderTemplateLines => Set<StockOrderTemplateLineEntity>();
+    public DbSet<AggregatedStockOrderEntity> AggregatedStockOrders => Set<AggregatedStockOrderEntity>();
+    public DbSet<AggregatedStockOrderLineEntity> AggregatedStockOrderLines => Set<AggregatedStockOrderLineEntity>();
+    public DbSet<StockNameComposerEntity> StockNameComposers => Set<StockNameComposerEntity>();
+    public DbSet<StockNameComposerValueEntity> StockNameComposerValues => Set<StockNameComposerValueEntity>();
+    public DbSet<StockAlternativeEntity> StockAlternatives => Set<StockAlternativeEntity>();
+    public DbSet<StockAlternativeLineEntity> StockAlternativeLines => Set<StockAlternativeLineEntity>();
+
+
     // ── Commerce ──
     public DbSet<InvoiceEntity> Invoices => Set<InvoiceEntity>();
     public DbSet<InvoiceLineEntity> InvoiceLines => Set<InvoiceLineEntity>();

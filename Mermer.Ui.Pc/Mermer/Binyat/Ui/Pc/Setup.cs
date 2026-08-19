@@ -316,8 +316,39 @@ public class Setup : MvxWpfSetup
                .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Warehousing.Revisioning.Models.StockRevision>>()
                .SingleInstance();
 
+        // Заказы складов (Stock Orders)
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockOrdersRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Warehousing.Ordering.Models.StockOrder>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Warehousing.Ordering.Models.StockOrder>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Warehousing.Ordering.Models.StockOrder>>()
+               .SingleInstance();
 
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiAggregatedStockOrdersRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Warehousing.Ordering.Models.AggregatedStockOrder>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Warehousing.Ordering.Models.AggregatedStockOrder>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Warehousing.Ordering.Models.AggregatedStockOrder>>()
+               .SingleInstance();
 
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockOrderTemplatesRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Warehousing.Ordering.Models.StockOrderTemplate>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.Warehousing.Ordering.Models.StockOrderTemplate>>()
+               .As<Mermer.Data.Storage.IRepositoryWithFacets<Mermer.Warehousing.Ordering.Models.StockOrderTemplate>>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockOrderActionsRepository>()
+               .As<Mermer.Warehousing.Ordering.Services.IStockOrderActionsRepository>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockNameComposersRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.StockManagement.Models.StockNameComposer>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.StockManagement.Models.StockNameComposer>>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockAlternativesRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.StockManagement.Models.StockAlternative>>()
+               .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.StockManagement.Models.StockAlternative>>()
+               .As<Mermer.StockManagement.Services.IStockAlternativesRepository>()
+               .SingleInstance();
 
         var container = builder.Build();
 

@@ -1,7 +1,7 @@
 ﻿-- ============================================================================
 -- Mermer ERP — PostgreSQL Database Schema
 -- Migration from Couchbase (NoSQL) to PostgreSQL (Relational)
--- Version: 1.1.0 | Stage 1
+-- Version: 1.7.0 | Stage 1
 -- ============================================================================
 
 -- Enable required extensions
@@ -188,7 +188,7 @@ CREATE INDEX idx_partner_transfer_lines_transfer_id ON partner_transfer_lines(pa
 CREATE INDEX idx_partner_transfer_lines_partner_id ON partner_transfer_lines(partner_id);
 
 -- ============================================================================
--- STOCK MANAGEMENT — Products
+-- STOCK MANAGEMENT — Products, Composers & Alternatives
 -- ============================================================================
 
 -- Stocks (Products / Items)
@@ -206,34 +206,14 @@ CREATE TABLE stocks (
     description     TEXT,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    search_vector   TSVECTOR
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE UNIQUE INDEX idx_stocks_code ON stocks(code) WHERE code IS NOT NULL;
-CREATE INDEX idx_stocks_search_vector ON stocks USING GIN(search_vector);
 CREATE INDEX idx_stocks_name_trgm ON stocks USING GIN (name gin_trgm_ops);
 CREATE INDEX idx_stocks_code_trgm ON stocks USING GIN (code gin_trgm_ops) WHERE code IS NOT NULL;
 CREATE INDEX idx_stocks_barcodes ON stocks USING GIN (barcodes);
 CREATE INDEX idx_stocks_is_disabled ON stocks(is_disabled) WHERE NOT is_disabled;
-
--- Trigger to maintain search_vector on insert/update
-CREATE OR REPLACE FUNCTION fn_stocks_search_vector()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.search_vector := to_tsvector('simple'::regconfig,
-        COALESCE(NEW.code, '') || ' ' ||
-        COALESCE(NEW.name, '') || ' ' ||
-        COALESCE(NEW.short_name, '') || ' ' ||
-        COALESCE(array_to_string(NEW.barcodes, ' '), '')
-    );
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_stocks_search_vector
-    BEFORE INSERT OR UPDATE ON stocks
-    FOR EACH ROW EXECUTE FUNCTION fn_stocks_search_vector();
 
 -- Stock Units (e.g., pcs, kg, box — with conversion multiplier/divider)
 CREATE TABLE stock_units (
@@ -276,8 +256,52 @@ CREATE TABLE stock_additional_prices (
 
 CREATE INDEX idx_stock_additional_prices_stock_id ON stock_additional_prices(stock_id);
 
+-- Stock Name Composers (Конструктор названий товаров)
+CREATE TABLE stock_name_composers (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "order"         INT NOT NULL DEFAULT 0,
+    name            VARCHAR(500) NOT NULL,
+    description     TEXT,
+    is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_stock_name_composers_order ON stock_name_composers("order");
+
+-- Stock Name Composer Values (Значения для конструктора названий)
+CREATE TABLE stock_name_composer_values (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    composer_id     UUID NOT NULL REFERENCES stock_name_composers(id) ON DELETE CASCADE,
+    "order"         INT NOT NULL DEFAULT 0,
+    name            VARCHAR(500),
+    short_name      VARCHAR(200)
+);
+
+CREATE INDEX idx_snc_values_composer_id ON stock_name_composer_values(composer_id);
+
+-- Stock Alternatives (Аналоги/Заменители товаров)
+CREATE TABLE stock_alternatives (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name            VARCHAR(500) NOT NULL,
+    description     TEXT,
+    is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Stock Alternative Lines (Связи товаров-аналогов)
+CREATE TABLE stock_alternative_lines (
+    id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    stock_alternative_id    UUID NOT NULL REFERENCES stock_alternatives(id) ON DELETE CASCADE,
+    stock_id                UUID REFERENCES stocks(id)
+);
+
+CREATE INDEX idx_stock_alt_lines_alt_id ON stock_alternative_lines(stock_alternative_id);
+CREATE INDEX idx_stock_alt_lines_stock_id ON stock_alternative_lines(stock_id);
+
 -- ============================================================================
--- WAREHOUSING & TRANSACTIONS (Stock Slips & Stock Transfers)
+-- WAREHOUSING & TRANSACTIONS (Slips, Transfers, Revisions, Orders & Templates)
 -- ============================================================================
 
 -- Stock Slips (Складские ордера: оприходование, списание, инвентаризация)
@@ -358,6 +382,150 @@ CREATE TABLE stock_transfer_lines (
 
 CREATE INDEX idx_stock_transfer_lines_doc ON stock_transfer_lines(stock_transfer_id);
 CREATE INDEX idx_stock_transfer_lines_stock ON stock_transfer_lines(stock_id);
+
+-- Stock Revisions (Документы инвентаризации складов)
+CREATE TABLE stock_revisions (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code                VARCHAR(50),
+    date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    finish_date         TIMESTAMPTZ,
+    warehouse_id        UUID REFERENCES warehouses(id),
+    exceed_slip_id      UUID,
+    deficit_slip_id     UUID,
+    user_id             UUID REFERENCES users(id),
+    user_name           VARCHAR(100),
+    is_completed        BOOLEAN NOT NULL DEFAULT FALSE,
+    is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
+    group_name          VARCHAR(100),
+    tags                TEXT[],
+    description         TEXT,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_stock_revisions_date ON stock_revisions(date DESC);
+CREATE INDEX idx_stock_revisions_wh ON stock_revisions(warehouse_id);
+
+-- Stock Revision Lines (Строки подсчёта инвентаризации)
+CREATE TABLE stock_revision_lines (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    stock_revision_id   UUID NOT NULL REFERENCES stock_revisions(id) ON DELETE CASCADE,
+    stock_id            UUID REFERENCES stocks(id),
+    date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    quantity            NUMERIC(18,4) NOT NULL DEFAULT 0,
+    unit_id             UUID REFERENCES stock_units(id),
+    price               NUMERIC(18,4),
+    currency_id         UUID REFERENCES currencies(id),
+    user_id             UUID REFERENCES users(id),
+    user_name           VARCHAR(100),
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_stock_revision_lines_rev_id ON stock_revision_lines(stock_revision_id);
+CREATE INDEX idx_stock_revision_lines_stock_id ON stock_revision_lines(stock_id);
+
+-- Stock Orders (Заказы товаров со склада / поставщикам)
+CREATE TABLE stock_orders (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code                VARCHAR(50),
+    date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    warehouse_id        UUID REFERENCES warehouses(id),
+    partner_id          UUID REFERENCES partners(id),
+    user_id             UUID REFERENCES users(id),
+    user_name           VARCHAR(200),
+    is_completed        BOOLEAN NOT NULL DEFAULT FALSE,
+    is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
+    group_name          VARCHAR(200),
+    tags                TEXT[],
+    description         TEXT,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_stock_orders_date ON stock_orders(date DESC);
+CREATE INDEX idx_stock_orders_warehouse ON stock_orders(warehouse_id);
+CREATE INDEX idx_stock_orders_partner ON stock_orders(partner_id);
+
+-- Stock Order Lines (Строки заказов товаров)
+CREATE TABLE stock_order_lines (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    stock_order_id      UUID NOT NULL REFERENCES stock_orders(id) ON DELETE CASCADE,
+    stock_id            UUID REFERENCES stocks(id),
+    quantity            NUMERIC(18,4) NOT NULL DEFAULT 0,
+    unit_id             UUID REFERENCES stock_units(id)
+);
+
+CREATE INDEX idx_stock_order_lines_order_id ON stock_order_lines(stock_order_id);
+CREATE INDEX idx_stock_order_lines_stock_id ON stock_order_lines(stock_id);
+
+-- Stock Order Unit Convertions (Конвертации единиц измерения в заказе)
+CREATE TABLE stock_order_unit_convertions (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    stock_order_id      UUID NOT NULL REFERENCES stock_orders(id) ON DELETE CASCADE,
+    stock_id            UUID REFERENCES stocks(id),
+    unit_id             UUID REFERENCES stock_units(id),
+    multiplier          NUMERIC(18,8) NOT NULL DEFAULT 1,
+    divider             NUMERIC(18,8) NOT NULL DEFAULT 1
+);
+
+CREATE INDEX idx_stock_order_conv_order_id ON stock_order_unit_convertions(stock_order_id);
+
+-- Stock Order Templates (Шаблоны заказов товаров)
+CREATE TABLE stock_order_templates (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name                VARCHAR(500) NOT NULL,
+    group_name          VARCHAR(200),
+    tags                TEXT[],
+    description         TEXT,
+    is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Stock Order Template Lines (Строки шаблонов заказов товаров)
+CREATE TABLE stock_order_template_lines (
+    id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    stock_order_template_id UUID NOT NULL REFERENCES stock_order_templates(id) ON DELETE CASCADE,
+    stock_id                UUID REFERENCES stocks(id)
+);
+
+CREATE INDEX idx_sot_lines_template_id ON stock_order_template_lines(stock_order_template_id);
+CREATE INDEX idx_sot_lines_stock_id ON stock_order_template_lines(stock_id);
+
+-- Aggregated Stock Orders (Сводные заказы товаров)
+CREATE TABLE aggregated_stock_orders (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code                VARCHAR(50),
+    date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    warehouse_id        UUID REFERENCES warehouses(id),
+    partner_id          UUID REFERENCES partners(id),
+    user_id             UUID REFERENCES users(id),
+    user_name           VARCHAR(200),
+    is_completed        BOOLEAN NOT NULL DEFAULT FALSE,
+    is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
+    group_name          VARCHAR(200),
+    tags                TEXT[],
+    description         TEXT,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_agg_orders_date ON aggregated_stock_orders(date DESC);
+CREATE INDEX idx_agg_orders_wh ON aggregated_stock_orders(warehouse_id);
+CREATE INDEX idx_agg_orders_partner ON aggregated_stock_orders(partner_id);
+
+-- Aggregated Stock Order Lines (Строки сводных заказов товаров)
+CREATE TABLE aggregated_stock_order_lines (
+    id                          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    aggregated_stock_order_id   UUID NOT NULL REFERENCES aggregated_stock_orders(id) ON DELETE CASCADE,
+    stock_id                    UUID REFERENCES stocks(id),
+    unit_id                     UUID REFERENCES stock_units(id),
+    orders                      JSONB NOT NULL DEFAULT '{}'
+);
+
+CREATE INDEX idx_agg_order_lines_order_id ON aggregated_stock_order_lines(aggregated_stock_order_id);
+CREATE INDEX idx_agg_order_lines_stock_id ON aggregated_stock_order_lines(stock_id);
 
 -- ============================================================================
 -- COMMERCE — Invoices (Sales, Purchases, Returns)
