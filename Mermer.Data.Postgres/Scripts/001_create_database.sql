@@ -87,19 +87,22 @@ CREATE INDEX idx_currency_rates_valid_from ON currency_rates(currency_id, valid_
 CREATE TABLE users (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username        VARCHAR(100) NOT NULL UNIQUE,
-    password_hash   VARCHAR(500) NOT NULL,
-    display_name    VARCHAR(200),
+    password        VARCHAR(500) NOT NULL DEFAULT '',
+    is_admin        BOOLEAN NOT NULL DEFAULT FALSE,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
+    description     TEXT,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE roles (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name            VARCHAR(100) NOT NULL UNIQUE,
-    permissions     JSONB NOT NULL DEFAULT '{}',
+    name            VARCHAR(200) NOT NULL,
+    description     TEXT,
+    authorizations  TEXT,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE user_roles (

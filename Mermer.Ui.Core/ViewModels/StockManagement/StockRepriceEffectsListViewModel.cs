@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Core.ViewModels.StockManagement.StockRepriceEffectsListViewModel
-// Assembly: Mermer.Ui.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: DC92D011-8413-44AC-9F10-F866D891CF66
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
-
-using MvvmCross.Core.Navigation;
+﻿using MvvmCross.Core.Navigation;
 using MvvmCross.Plugins.Messenger;
 using Mermer.Common.Settings;
 using Mermer.Enterprise.Models;
@@ -45,8 +39,8 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
         this.Warehouses = warehouses;
         this.PriceChangeReasons = (IEnumerable<ListHelper<StockPriceChangeReason, string>>)new ListHelper<StockPriceChangeReason, string>[2]
         {
-      new ListHelper<StockPriceChangeReason, string>(StockPriceChangeReason.PriceChanged, this["PriceChange", Array.Empty<object>()]),
-      new ListHelper<StockPriceChangeReason, string>(StockPriceChangeReason.RateChanged, this["RateChange", Array.Empty<object>()])
+            new ListHelper<StockPriceChangeReason, string>(StockPriceChangeReason.PriceChanged, this["PriceChange", Array.Empty<object>()]),
+            new ListHelper<StockPriceChangeReason, string>(StockPriceChangeReason.RateChanged, this["RateChange", Array.Empty<object>()])
         };
     }
 
@@ -66,12 +60,15 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
         get => this._selectedWarehouseIds;
         set
         {
-            if (this._selectedWarehouseIds != null && value != null && this._selectedWarehouseIds.SequenceEqual<object>((IEnumerable<object>)value) || !this.SetProperty<System.Collections.Generic.List<object>>(ref this._selectedWarehouseIds, value, nameof(SelectedWarehouseIds)) || this.IsBusy)
+            if (this._selectedWarehouseIds != null && value != null && this._selectedWarehouseIds.SequenceEqual<object>((IEnumerable<object>)value))
                 return;
+
+            if (!this.SetProperty<System.Collections.Generic.List<object>>(ref this._selectedWarehouseIds, value, nameof(SelectedWarehouseIds)) || this.IsBusy)
+                return;
+
             this.Initialize();
         }
     }
-
 
     public System.Windows.Input.ICommand SelectOrViewDetailsCommand => new MvvmCross.Core.ViewModels.MvxCommand(() =>
     {
@@ -87,8 +84,6 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
         {
             var selectedWarehouseIds = this.SelectedWarehouseIds;
 
-            // Если список пуст (пользователь убрал все галочки), 
-            // возвращаем null, чтобы база отключила фильтр по слогам и отдала ВСЕ.
             if (selectedWarehouseIds == null || selectedWarehouseIds.Count == 0)
             {
                 return null;
@@ -98,17 +93,25 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
         }
     }
 
-    protected override Task PreLoad()
+    protected override async Task PreLoad()
     {
+        // ИСПРАВЛЕНИЕ: Загружаем справочник складов и выставляем дефолтный склад ТОЛЬКО ОДИН РАЗ при открытии окна!
         if (!this._initialized)
         {
-            this.SelectedWarehouseIds = new System.Collections.Generic.List<object>((IEnumerable<object>)new object[1]
+            await Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize());
+
+            var defaultWhId = this._configurator.GetConfig<AppSettings>()?.DefaultWarehouseId;
+            if (!string.IsNullOrEmpty(defaultWhId))
             {
-        (object) this._configurator.GetConfig<AppSettings>().DefaultWarehouseId
-            });
+                this.SelectedWarehouseIds = new System.Collections.Generic.List<object> { defaultWhId };
+            }
+
             this._initialized = true;
         }
-        return Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize());
+        else
+        {
+            await base.PreLoad();
+        }
     }
 
     protected override Task<int> CountFilteredListAsync(ListFilter filter)
@@ -140,7 +143,6 @@ public class StockRepriceEffectsListViewModel : ListViewModelBaseWithFilterDate<
 
     protected override Task<IEnumerable<StockRepriceEffect>> GetListAsync(params Expression<Func<StockRepriceEffect, bool>>[] predicates)
     {
-       
         return this._repository.GetAsync(DateTime.MinValue, DateTime.MaxValue, this.WarehouseIds);
     }
 

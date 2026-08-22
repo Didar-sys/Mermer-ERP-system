@@ -1,10 +1,20 @@
-﻿using Mermer.Api.DTOs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using Mermer.Api.DTOs;
 using Mermer.Data.Postgres;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
 namespace Mermer.Api.Endpoints;
 
 public record LoginRequestDto(string Username, string Password);
+public record UpdatePasswordRequestDto(string? UserId, string? CurrentPassword, string? NewPassword);
 
 public static class AuthEndpoints
 {
@@ -12,6 +22,7 @@ public static class AuthEndpoints
     {
         var group = routes.MapGroup("/api/auth").WithTags("Auth");
 
+        // 1. Авторизация
         group.MapPost("/login", async (LoginRequestDto request, MermerDbContext db) =>
         {
             if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
@@ -20,8 +31,7 @@ public static class AuthEndpoints
             }
 
             var user = await db.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Username.ToLower() == request.Username.ToLower());
+                .FirstOrDefaultAsync(u => u.Username.ToLower() == request.Username.Trim().ToLower());
 
             if (user == null)
             {
@@ -33,9 +43,15 @@ public static class AuthEndpoints
                 return Results.BadRequest(new { message = "Учетная запись отключена." });
             }
 
-            // Проверка пароля (учитывая Base64/SHA из PostgreSQL для admin)
-            bool isPasswordValid = user.Password == request.Password
-                                   || (request.Username == "admin" && user.Password == "0DPiKuNIrrVmD8IUCuw1hQxNqZc=");
+            string inputSha256 = HashPassword(request.Password);
+
+            // Проверка:
+            // 1) Прямое совпадение (если клиент передал уже готовый хеш)
+            // 2) Совпадение по вычисленному SHA-256
+            // 3) Маппинг для дефолтного администратора
+            bool isPasswordValid = string.Equals(user.Password, request.Password, StringComparison.Ordinal)
+                                || string.Equals(user.Password, inputSha256, StringComparison.Ordinal)
+                                || (request.Password == "admin" && user.Password == "0DPiKuNIrrVmD8IUCuw1hQxNqZc=");
 
             if (!isPasswordValid)
             {
@@ -50,7 +66,7 @@ public static class AuthEndpoints
                 Username: user.Username,
                 Name: name,
                 Role: role,
-                Token: "active-session-token"
+                Token: Guid.NewGuid().ToString()
             );
 
             return Results.Ok(response);
@@ -58,20 +74,76 @@ public static class AuthEndpoints
         .WithName("Login")
         .WithSummary("Авторизация пользователя в системе");
 
-        // Эндпоинт получения ролей для разблокировки интерфейса WPF
-        group.MapPost("/roles", (List<string> roleIds) =>
+        // 2. Смена пароля
+        group.MapPost("/update-password", async (UpdatePasswordRequestDto request, MermerDbContext db) =>
         {
-            var roles = new[]
+            if (string.IsNullOrWhiteSpace(request.UserId) || !Guid.TryParse(request.UserId, out var userId))
             {
-                new
-                {
-                    Id = "admin",
-                    Name = "Administrator"
-                }
-            };
-            return Results.Ok(roles);
+                return Results.BadRequest(new { message = "Некорректный ID пользователя." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.CurrentPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                return Results.BadRequest(new { message = "Текущий и новый пароли обязательны." });
+            }
+
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                return Results.NotFound(new { message = "Пользователь не найден." });
+            }
+
+            string currentSha256 = HashPassword(request.CurrentPassword);
+
+            bool isCurrentValid = string.Equals(user.Password, request.CurrentPassword, StringComparison.Ordinal)
+                               || string.Equals(user.Password, currentSha256, StringComparison.Ordinal)
+                               || (request.CurrentPassword == "admin" && user.Password == "0DPiKuNIrrVmD8IUCuw1hQxNqZc=");
+
+            if (!isCurrentValid)
+            {
+                return Results.BadRequest(new { message = "Неверный текущий пароль!" });
+            }
+
+            user.Password = HashPassword(request.NewPassword);
+            user.UpdatedAt = DateTimeOffset.UtcNow;
+
+            await db.SaveChangesAsync();
+
+            return Results.Ok(new { message = "Пароль успешно обновлен." });
+        })
+        .WithName("UpdatePassword")
+        .WithSummary("Смена пароля текущего пользователя");
+
+        // 3. Получение ролей
+        group.MapPost("/roles", async (List<string> roleIds, MermerDbContext db) =>
+        {
+            var guids = (roleIds ?? new List<string>())
+                .Select(x => Guid.TryParse(x, out var g) ? (Guid?)g : null)
+                .Where(x => x.HasValue)
+                .Select(x => x!.Value)
+                .ToList();
+
+            var roles = await db.Roles
+                .AsNoTracking()
+                .Where(r => guids.Contains(r.Id) && !r.IsDisabled)
+                .ToListAsync();
+
+            return Results.Ok(roles.Select(r => new
+            {
+                Id = r.Id.ToString(),
+                Name = r.Name,
+                Authorizations = r.Authorizations
+            }));
         })
         .WithName("GetRoles")
         .WithSummary("Получение ролей пользователя");
+    }
+
+    private static string HashPassword(string password)
+    {
+        if (string.IsNullOrEmpty(password)) return string.Empty;
+        using var sha256 = SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+        return Convert.ToBase64String(bytes);
     }
 }

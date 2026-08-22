@@ -66,13 +66,34 @@ public class RestClient
     return !string.IsNullOrEmpty(str) ? JsonConvert.DeserializeObject<T>(str) : default (T);
   }
 
-  private static async Task<Exception> ExportException(HttpResponseMessage response)
-  {
-    string str = await response.Content.ReadAsStringAsync();
-    return !string.IsNullOrEmpty(str) ? JsonConvert.DeserializeObject<RestException>(str, RestClient.JsonSerializerSettings)?.ToExecption() ?? new Exception() : new Exception();
-  }
+    private static async Task<Exception> ExportException(HttpResponseMessage response)
+    {
+        try
+        {
+            string str = await response.Content.ReadAsStringAsync();
+            if (!string.IsNullOrWhiteSpace(str))
+            {
+                try
+                {
+                    var restEx = JsonConvert.DeserializeObject<RestException>(str, RestClient.JsonSerializerSettings);
+                    if (restEx != null)
+                        return restEx.ToExecption();
+                }
+                catch
+                {
+                    // Если пришел не RestException, возвращаем тело ответа как текст ошибки
+                    return new Exception($"{(int)response.StatusCode} {response.ReasonPhrase}: {str}");
+                }
+            }
+        }
+        catch(Exception ex) { 
+            Console.WriteLine(ex.ToString());
+        }
 
-  private static StringContent PrepareContent(object model)
+        return new Exception($"HTTP Error: {(int)response.StatusCode} ({response.ReasonPhrase})");
+    }
+
+    private static StringContent PrepareContent(object model)
   {
     StringContent stringContent = new StringContent(JsonConvert.SerializeObject(model, Formatting.Indented, RestClient.JsonSerializerSettings));
     stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");

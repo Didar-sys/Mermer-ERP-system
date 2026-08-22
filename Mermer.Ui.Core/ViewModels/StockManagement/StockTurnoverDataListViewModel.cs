@@ -123,12 +123,18 @@ public class StockTurnoverDataListViewModel : ListViewModelBaseWithFilter<StockT
     return (Task) this.PreLoadList().ContinueWith<Task>((Func<Task, Task>) (t => Task.WhenAll(base.PreLoad(), this.Warehouses.Initialize())));
   }
 
-  protected async Task PreLoadList()
-  {
-    this.AllItems = await this._repository.GetAsync(this.WarehouseId);
-  }
+    protected async Task PreLoadList()
+    {
+        this.AllItems = await this._repository.GetAsync(this.WarehouseId);
 
-  protected override PredicateBuilder<StockTurnoverData> GetPredicateBuilder(ListFilter filter)
+        // ИСПРАВЛЕНИЕ: Защита от null
+        if (this.AllItems == null)
+        {
+            this.AllItems = new List<StockTurnoverData>();
+        }
+    }
+
+    protected override PredicateBuilder<StockTurnoverData> GetPredicateBuilder(ListFilter filter)
   {
     PredicateBuilder<StockTurnoverData> predicateBuilder = base.GetPredicateBuilder(filter);
     if (filter.Tag is string tag)
@@ -152,15 +158,16 @@ public class StockTurnoverDataListViewModel : ListViewModelBaseWithFilter<StockT
     return predicateBuilder;
   }
 
-  protected override Task<int> CountListAsync(
-    params Expression<Func<StockTurnoverData, bool>>[] predicates)
-  {
-    return Task.Run<int>((Func<int>) (() => ((IEnumerable<Expression<Func<StockTurnoverData, bool>>>) predicates).Aggregate<Expression<Func<StockTurnoverData, bool>>, IEnumerable<StockTurnoverData>>(this.AllItems, (Func<IEnumerable<StockTurnoverData>, Expression<Func<StockTurnoverData, bool>>, IEnumerable<StockTurnoverData>>) ((current, filter) => current.Where<StockTurnoverData>(filter.Compile()))).Count<StockTurnoverData>()));
-  }
+    // Обновите методы подсчета, чтобы они не падали, если AllItems оказался null в процессе работы:
+    protected override Task<int> CountListAsync(params Expression<Func<StockTurnoverData, bool>>[] predicates)
+    {
+        var safeItems = this.AllItems ?? Enumerable.Empty<StockTurnoverData>();
+        return Task.Run(() => predicates.Aggregate(safeItems, (current, filter) => current.Where(filter.Compile())).Count());
+    }
 
-  protected override Task<IEnumerable<StockTurnoverData>> GetListAsync(
-    params Expression<Func<StockTurnoverData, bool>>[] predicates)
-  {
-    return Task.Run<IEnumerable<StockTurnoverData>>((Func<IEnumerable<StockTurnoverData>>) (() => ((IEnumerable<Expression<Func<StockTurnoverData, bool>>>) predicates).Aggregate<Expression<Func<StockTurnoverData, bool>>, IEnumerable<StockTurnoverData>>(this.AllItems, (Func<IEnumerable<StockTurnoverData>, Expression<Func<StockTurnoverData, bool>>, IEnumerable<StockTurnoverData>>) ((current, filter) => current.Where<StockTurnoverData>(filter.Compile())))));
-  }
+    protected override Task<IEnumerable<StockTurnoverData>> GetListAsync(params Expression<Func<StockTurnoverData, bool>>[] predicates)
+    {
+        var safeItems = this.AllItems ?? Enumerable.Empty<StockTurnoverData>();
+        return Task.Run(() => predicates.Aggregate(safeItems, (current, filter) => current.Where(filter.Compile())));
+    }
 }

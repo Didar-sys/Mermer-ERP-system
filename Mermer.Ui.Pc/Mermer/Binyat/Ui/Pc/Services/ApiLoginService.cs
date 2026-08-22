@@ -1,29 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Mermer.Authorization.Models;
 using Mermer.Core.Authorization.Services;
+using Mermer.Data.Storage;
 using Mermer.Http;
 using Mermer.Ui.Pc.DTOs;
 
-
 namespace Mermer.Ui.Pc.Services
 {
-
     public class ApiLoginService : LoginService
     {
         private readonly RestClient _restClient;
+        private readonly IRepository<Role> _rolesRepository;
 
-        public ApiLoginService(RestClient restClient)
+        public ApiLoginService(RestClient restClient, IRepository<Role> rolesRepository)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
+            _rolesRepository = rolesRepository;
         }
 
         protected override async Task<User> GetUser(string username, string password)
         {
             try
             {
-                // Запрос к API
                 var apiResponse = await _restClient.PostAsync<ApiLoginResponse>("/api/auth/login", new
                 {
                     Username = username,
@@ -35,59 +36,56 @@ namespace Mermer.Ui.Pc.Services
                     throw new InvalidOperationException("Неверный логин или пароль!");
                 }
 
-                // Определяем статус администратора по полю Role из DTO
                 bool isAdmin = string.Equals(apiResponse.Role, "Admin", StringComparison.OrdinalIgnoreCase);
 
-                // Маппим ответ в доменную модель User WPF-клиента
-                var user = new User
+                return new User
                 {
                     Id = apiResponse.Id,
                     Username = apiResponse.Username,
                     IsAdmin = isAdmin
                 };
-
-                return user;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Ошибка входа через API: {ex.Message}", ex);
+                throw new InvalidOperationException($"Ошибка входа: {ex.Message}", ex);
             }
         }
 
         protected override async Task<IEnumerable<Role>> GetRoles(IEnumerable<string> roleIds)
         {
+            if (roleIds == null || !roleIds.Any()) return Enumerable.Empty<Role>();
+
             try
             {
-                var roles = await _restClient.PostAsync<List<Role>>("/api/auth/roles", roleIds);
-                if (roles != null && roles.Count > 0)
-                {
-                    return roles;
-                }
+                return await _rolesRepository.GetAsync(roleIds.ToArray());
             }
             catch
             {
-                // Игнорируем ошибки запроса к нереализованному эндпоинту
+                return Enumerable.Empty<Role>();
             }
-
-            // Локальный массив/список ролей по умолчанию (заглушка)
-            return new List<Role>
-            {
-                new Role
-                {
-                    Id = "admin",
-                    Name = "Administrator"
-                }
-            };
         }
 
         public override async Task UpdatePassword(string currentPassword, string newPassword)
         {
-            await _restClient.PostAsync<object>("/api/auth/update-password", new
+            if (Session == null || string.IsNullOrEmpty(Session.UserId))
+                throw new InvalidOperationException("Пользователь не авторизован.");
+
+            await _restClient.PostAsync("/api/auth/update-password", new
             {
-                userId = this.Session?.UserId,
-                currentPassword = currentPassword,
-                newPassword = newPassword
+                UserId = Session.UserId,
+                CurrentPassword = currentPassword,
+                NewPassword = newPassword
             });
+
+            // Обновляем пароль в локальном кэше пользователя
+            var localUser = LocalSqliteCache.GetAllDocuments<User>("User")
+                ?.FirstOrDefault(u => string.Equals(u.Id, Session.UserId, StringComparison.OrdinalIgnoreCase));
+
+            if (localUser != null)
+            {
+                localUser.Password = newPassword;
+                LocalSqliteCache.SaveDocument("User", localUser.Id, localUser, isSynced: true);
+            }
         }
     }
 }

@@ -15,6 +15,10 @@ public class ApiStocksRepository : IRepository<Stock>, IReadOnlyRepository<Stock
     private readonly RestClient _restClient;
     private const string DocType = "Stock";
 
+    // RAM-кэш для мгновенной отдачи справочника (0 миллисекунд)
+    private List<Stock>? _ramCache;
+    private bool _isSyncing = false;
+
     public ApiStocksRepository(RestClient restClient)
     {
         _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
@@ -22,45 +26,49 @@ public class ApiStocksRepository : IRepository<Stock>, IReadOnlyRepository<Stock
 
     public async Task<IEnumerable<Stock>> GetAllAsync()
     {
-        // 1. Досылаем неотправленные товары в фоне
-        _ = Task.Run(async () =>
+        // 1. Читаем из SQLite ТОЛЬКО один раз (или если кэш сброшен)
+        if (_ramCache == null)
         {
-            try
+            _ramCache = LocalSqliteCache.GetAllDocuments<Stock>(DocType)?.ToList() ?? new List<Stock>();
+        }
+
+        // 2. Фоновое обновление с сервера (без блокировки UI)
+        if (!_isSyncing)
+        {
+            _isSyncing = true;
+            _ = Task.Run(async () =>
             {
-                var unsynced = LocalSqliteCache.GetUnsyncedDocuments<Stock>(DocType);
-                if (unsynced != null)
+                try
                 {
-                    foreach (var item in unsynced)
+                    // Досылаем локальные
+                    var unsynced = LocalSqliteCache.GetUnsyncedDocuments<Stock>(DocType);
+                    if (unsynced != null)
                     {
-                        await _restClient.PutAsync($"/api/stocks/{item.id}", item.entity);
-                        LocalSqliteCache.SaveDocument(DocType, item.id, item.entity, isSynced: true);
+                        foreach (var item in unsynced)
+                        {
+                            await _restClient.PutAsync($"/api/stocks/{item.id}", item.entity);
+                            LocalSqliteCache.SaveDocument(DocType, item.id, item.entity, isSynced: true);
+                        }
+                    }
+
+                    // Получаем новые
+                    var remote = await _restClient.GetAsync<List<Stock>>("/api/stocks");
+                    if (remote != null)
+                    {
+                        foreach (var s in remote)
+                        {
+                            LocalSqliteCache.SaveDocument(DocType, s.Id, s, isSynced: true);
+                        }
+                        // Тихая подмена RAM-кэша новыми данными
+                        _ramCache = remote;
                     }
                 }
-            }
-            catch { }
-        });
+                catch { }
+                finally { _isSyncing = false; }
+            });
+        }
 
-        // 2. Отдаем локальный кэш
-        var local = LocalSqliteCache.GetAllDocuments<Stock>(DocType) ?? new List<Stock>();
-
-        // 3. Фоновое обновление с сервера
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                var remote = await _restClient.GetAsync<List<Stock>>("/api/stocks");
-                if (remote != null)
-                {
-                    foreach (var s in remote)
-                    {
-                        LocalSqliteCache.SaveDocument(DocType, s.Id, s, isSynced: true);
-                    }
-                }
-            }
-            catch { }
-        });
-
-        return local;
+        return _ramCache;
     }
 
     public async Task<Stock> GetAsync(string id)
@@ -108,6 +116,14 @@ public class ApiStocksRepository : IRepository<Stock>, IReadOnlyRepository<Stock
 
         LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: false);
 
+        // Мгновенно обновляем RAM-кэш, чтобы UI обновился сразу
+        if (_ramCache != null)
+        {
+            var existing = _ramCache.FirstOrDefault(x => x.Id == entity.Id);
+            if (existing != null) _ramCache.Remove(existing);
+            _ramCache.Add(entity);
+        }
+
         try
         {
             if (isNew) await _restClient.PostAsync("/api/stocks", entity);
@@ -122,6 +138,11 @@ public class ApiStocksRepository : IRepository<Stock>, IReadOnlyRepository<Stock
 
     public async Task DeleteAsync(string id)
     {
+        if (_ramCache != null)
+        {
+            var existing = _ramCache.FirstOrDefault(x => x.Id == id);
+            if (existing != null) _ramCache.Remove(existing);
+        }
         try { await _restClient.DeleteAsync($"/api/stocks/{id}"); } catch { }
     }
 
@@ -134,8 +155,6 @@ public class ApiStocksRepository : IRepository<Stock>, IReadOnlyRepository<Stock
         }
         return await Task.FromResult(result);
     }
-
-    // --- МЕТОДЫ СПЕЦИФИЧЕСКИЕ ДЛЯ ISTOCKSREPOSITORY ---
 
     public async Task<IEnumerable<StockInfo>> GetInfoAsync(params string[] stockIds)
     {

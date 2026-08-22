@@ -140,6 +140,19 @@ public class Setup : MvxWpfSetup
         builder.RegisterType<Mermer.Http.RestClient>().AsSelf().SingleInstance();
         builder.RegisterType<Mermer.Ui.Pc.Services.ApiLoginService>().As<ILoginService>().SingleInstance();
 
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiUsersRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Authorization.Models.User>>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiRolesRepository>()
+               .As<Mermer.Data.Storage.IRepository<Mermer.Authorization.Models.Role>>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiLoginService>()
+               .As<Mermer.Authorization.Services.ILoginService>()
+               .SingleInstance();
+
+
         // --- ЛОКАЛЬНЫЙ ГЕНЕРАТОР КОДОВ (ОТКЛЮЧАЕТ COUCHBASE ДЛЯ ВСЕХ ФОРМ) ---
         builder.RegisterType<Mermer.Ui.Pc.Services.LocalTransactionCodeGenerationService>()
                .As<Mermer.Transactions.Services.ITransactionCodeGenerationService>()
@@ -348,6 +361,22 @@ public class Setup : MvxWpfSetup
                .As<Mermer.Data.Storage.IRepository<Mermer.StockManagement.Models.StockAlternative>>()
                .As<Mermer.Data.Storage.IReadOnlyRepository<Mermer.StockManagement.Models.StockAlternative>>()
                .As<Mermer.StockManagement.Services.IStockAlternativesRepository>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockTurnoverDataRepository>()
+               .As<Mermer.StockManagement.Services.IStockTurnoverDataRepository>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiStockRepriceEffectsRepository>()
+               .As<Mermer.StockManagement.Services.IStockRepriceEffectsRepository>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiAggregatedReportsRepository>()
+               .As<Mermer.Reporting.Services.IAggregatedReportsRepository>()
+               .SingleInstance();
+
+        builder.RegisterType<Mermer.Ui.Pc.Services.ApiRevenueReportsRepository>()
+               .As<Mermer.Reporting.Services.IRevenueReportsRepository>()
                .SingleInstance();
 
         var container = builder.Build();

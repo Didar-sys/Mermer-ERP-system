@@ -95,5 +95,13 @@ app.MapStockOrdersEndpoints();
 app.MapAggregatedStockOrdersEndpoints();
 app.MapStockNameComposersEndpoints();
 app.MapStockAlternativesEndpoints();
+app.MapStockTurnoversEndpoints();
+app.MapStockRepriceEndpoints();
+app.MapAggregatedReportsEndpoints();
+app.MapRevenueReportsEndpoints();
+app.MapUsersEndpoints();
+app.MapRolesEndpoints();
+
+
 
 app.Run();

@@ -75,6 +75,10 @@ public class MermerDbContext : DbContext
 
     public DbSet<DailyFundsRegisteryEntity> DailyFundsRegisteries { get; set; }
     public DbSet<DailyFundsRegisteryLineEntity> DailyFundsRegisteryLines { get; set; }
+
+    // settings
+    public DbSet<RoleEntity> Roles => Set<RoleEntity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

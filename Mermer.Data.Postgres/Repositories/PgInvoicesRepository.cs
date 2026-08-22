@@ -34,6 +34,7 @@ public class PgInvoicesRepository : IInvoicesRepository
             .Include(i => i.Discounts)
             .Include(i => i.Payments)
             .Include(i => i.Overheads)
+            .AsSplitQuery() // <-- Устраняет предупреждение 20504 MultipleCollectionIncludeWarning
             .FirstOrDefaultAsync(i => i.Id == guid, ct);
 
         return entity == null ? null : MapToModel(entity);
@@ -144,7 +145,8 @@ public class PgInvoicesRepository : IInvoicesRepository
             UserId = ((Guid?)r.user_id)?.ToString(),
             UserName = (string?)r.user_name,
             Group = (string?)r.group,
-            Tags = r.tags is string[] tagsArray ? tagsArray.ToList() : null,
+            // <-- Гарантируем, что Tags не будет null (чтобы не ломать TokenConverter)
+            Tags = r.tags is string[] tagsArray ? tagsArray.ToList() : new List<string>(),
             Subtotal = (decimal)r.subtotal,
             DiscountsTotal = (decimal)r.discounts_total,
             OverheadsTotal = (decimal)r.overheads_total,
@@ -160,7 +162,7 @@ public class PgInvoicesRepository : IInvoicesRepository
         var safeTill = till >= DateTime.MaxValue.AddDays(-2) ? new DateTime(2099, 1, 1, 0, 0, 0, DateTimeKind.Utc) : till.AddDays(1).ToUniversalTime();
 
         return await _db.Invoices
-            .Where(i => i.Date >= safeFrom && i.Date < safeTill) // Убрали !i.IsDisabled
+            .Where(i => i.Date >= safeFrom && i.Date < safeTill)
             .CountAsync(ct);
     }
 
@@ -354,6 +356,7 @@ public class PgInvoicesRepository : IInvoicesRepository
             .Include(i => i.Discounts)
             .Include(i => i.Payments)
             .Include(i => i.Overheads)
+            .AsSplitQuery() // <-- Устраняет предупреждение 20504 MultipleCollectionIncludeWarning
             .FirstOrDefaultAsync(i => i.Id == guid, ct)
             ?? throw new InvalidOperationException($"Invoice {guid} not found");
 
@@ -366,6 +369,9 @@ public class PgInvoicesRepository : IInvoicesRepository
         entity.StockPriceGroup = model.StockPriceGroup;
         entity.DebitCreditLeftAmount = model.DebitCreditLeftAmount;
         entity.Description = model.Description;
+        entity.Group = model.Group;
+        // <-- Гарантируем корректный маппинг в PostgreSQL массив
+        entity.Tags = model.Tags != null && model.Tags.Count > 0 ? model.Tags.ToArray() : Array.Empty<string>();
         entity.UpdatedAt = DateTimeOffset.UtcNow;
 
         entity.Lines.Clear();
@@ -488,7 +494,8 @@ public class PgInvoicesRepository : IInvoicesRepository
             UserId = e.UserId?.ToString(),
             UserName = e.UserName,
             Group = e.Group,
-            Tags = e.Tags?.ToList(),
+            // <-- Гарантируем, что список никогда не равен null
+            Tags = e.Tags != null ? e.Tags.ToList() : new List<string>(),
             Lines = e.Lines.Select(l => new InvoiceLine
             {
                 Id = l.Id.ToString(),
@@ -566,7 +573,8 @@ public class PgInvoicesRepository : IInvoicesRepository
             StockPriceGroup = m.StockPriceGroup,
             DebitCreditLeftAmount = m.DebitCreditLeftAmount,
             Group = m.Group,
-            Tags = m.Tags?.ToArray(),
+            // <-- Конвертируем в совместимый с PostgreSQL массив
+            Tags = m.Tags != null && m.Tags.Count > 0 ? m.Tags.ToArray() : Array.Empty<string>(),
             Description = m.Description,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow

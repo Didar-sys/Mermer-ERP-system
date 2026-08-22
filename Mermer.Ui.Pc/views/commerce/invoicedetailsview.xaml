@@ -63,7 +63,7 @@
                         <dxlc:LayoutGroup.TabsStyle>
                             <Style TargetType="{x:Type dx:DXTabControl}">
                                 <Setter Property="TabContentCacheMode" Value="CacheAllTabs"/>
-                                <Setter Property="dx:DXTabControl.View">
+                                    <Setter Property="dx:DXTabControl.View">
                                     <Setter.Value>
                                         <dx:TabControlMultiLineView HeaderLocation="Bottom"/>
                                     </Setter.Value>

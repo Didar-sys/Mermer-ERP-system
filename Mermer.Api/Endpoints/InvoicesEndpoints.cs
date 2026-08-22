@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -71,7 +72,53 @@ public static class InvoicesEndpoints
         })
         .WithName("InvoicesCountInfo");
 
-        // --- 3. НАКЛАДНАЯ ПО ID ---
+        // --- 3. ФАСЕТЫ (GroupNames, TagNames) ---
+        group.MapGet("/facets", async (string? fields, MermerDbContext db, CancellationToken ct) =>
+        {
+            var fieldList = fields?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                            ?? Array.Empty<string>();
+
+            var result = new Dictionary<string, Dictionary<string, int>>();
+
+            foreach (var field in fieldList)
+            {
+                if (field.Equals("Group", StringComparison.OrdinalIgnoreCase) || field.Equals("GroupNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var groups = await db.Invoices
+                        .AsNoTracking()
+                        .Where(x => !string.IsNullOrEmpty(x.Group))
+                        .GroupBy(x => x.Group!)
+                        .Select(g => new { Key = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+
+                    result[field] = groups;
+                }
+                else if (field.Equals("Tags", StringComparison.OrdinalIgnoreCase) || field.Equals("TagNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var allTags = await db.Invoices
+                        .AsNoTracking()
+                        .Where(x => x.Tags != null && x.Tags.Length > 0)
+                        .Select(x => x.Tags)
+                        .ToListAsync(ct);
+
+                    var tagCounts = allTags
+                        .SelectMany(t => t!)
+                        .GroupBy(t => t)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    result[field] = tagCounts;
+                }
+                else
+                {
+                    result[field] = new Dictionary<string, int>();
+                }
+            }
+
+            return Results.Ok(result);
+        })
+        .WithName("InvoicesGetFacets");
+
+        // --- 4. НАКЛАДНАЯ ПО ID ---
         group.MapGet("/{id}", async (string id, IInvoicesRepository repo, CancellationToken ct) =>
         {
             var inv = await repo.GetAsync(id, ct);
@@ -79,7 +126,7 @@ public static class InvoicesEndpoints
         })
         .WithName("InvoicesGetById");
 
-        // --- 4. АВТОНУМЕРАТОР НАКЛАДНЫХ ---
+        // --- 5. АВТОНУМЕРАТОР НАКЛАДНЫХ ---
         group.MapGet("/next-code", async (MermerDbContext db) =>
         {
             var count = await db.Invoices.CountAsync();
@@ -88,7 +135,7 @@ public static class InvoicesEndpoints
         })
         .WithName("InvoicesGetNextCode");
 
-        // --- 5. СОЗДАНИЕ И ОБНОВЛЕНИЕ (POST / PUT) ЧЕРЕЗ JSON ---
+        // --- 6. СОЗДАНИЕ И ОБНОВЛЕНИЕ (POST / PUT) ЧЕРЕЗ JSON ---
         Func<HttpRequest, IInvoicesRepository, CancellationToken, Task<IResult>> saveInvoiceHandler = async (request, repo, ct) =>
         {
             using var reader = new StreamReader(request.Body);
@@ -100,7 +147,6 @@ public static class InvoicesEndpoints
 
             if (pgInvoice == null) return Results.BadRequest("Invalid JSON");
 
-            // ИСПРАВЛЕНИЕ: Проверяем, существует ли накладная реально в базе
             var existing = await repo.GetAsync(pgInvoice.Id, ct);
 
             try
@@ -118,7 +164,6 @@ public static class InvoicesEndpoints
             }
             catch (Exception ex)
             {
-                // Если вдруг EF Core выкинет ошибку сохранения связей, мы ее поймаем
                 Console.WriteLine($"[Invoice Save Error]: {ex}");
                 return Results.Problem(ex.Message);
             }
@@ -127,7 +172,7 @@ public static class InvoicesEndpoints
         group.MapPost("/", saveInvoiceHandler).WithName("InvoicesCreate");
         group.MapPut("/{id}", async (string id, HttpRequest request, IInvoicesRepository repo, CancellationToken ct) => await saveInvoiceHandler(request, repo, ct)).WithName("InvoicesUpdate");
 
-        // --- 6. УДАЛЕНИЕ (DELETE) ---
+        // --- 7. УДАЛЕНИЕ (DELETE) ---
         group.MapDelete("/{id}", async (string id, IInvoicesRepository repo, CancellationToken ct) =>
         {
             await repo.DeleteAsync(id, ct);

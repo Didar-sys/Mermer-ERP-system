@@ -10,7 +10,7 @@ using Mermer.Http;
 
 namespace Mermer.Ui.Pc.Services
 {
-    public class ApiInvoicesRepository : IRepository<Invoice>, IReadOnlyRepository<Invoice>, IInvoicesRepository
+    public class ApiInvoicesRepository : IRepository<Invoice>, IReadOnlyRepository<Invoice>, IRepositoryWithFacets<Invoice>, IInvoicesRepository
     {
         private readonly RestClient _restClient;
         private const string DocType = "Invoice";
@@ -18,6 +18,26 @@ namespace Mermer.Ui.Pc.Services
         public ApiInvoicesRepository(RestClient restClient)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
+        }
+
+        // --- IRepositoryWithFacets (Выпадающие списки Group и Tags) ---
+
+        public async Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
+        {
+            try
+            {
+                var fieldsParam = fields != null && fields.Length > 0 ? string.Join(",", fields) : "";
+                var res = await _restClient.GetAsync<Dictionary<string, Dictionary<string, int>>>($"/api/invoices/facets?fields={fieldsParam}");
+                if (res != null) return res;
+            }
+            catch { }
+
+            var fallback = new Dictionary<string, Dictionary<string, int>>();
+            if (fields != null)
+            {
+                foreach (var field in fields) fallback[field] = new Dictionary<string, int>();
+            }
+            return fallback;
         }
 
         // --- IInvoicesRepository СРЕЗЫ ДАННЫХ ---
@@ -104,7 +124,7 @@ namespace Mermer.Ui.Pc.Services
             }
         }
 
-        // --- БАЗОВЫЕ МЕТОДЫ ЧТЕНИЯ (ГИБРИДНЫЕ: SQLITE + API) ---
+        // --- БАЗОВЫЕ МЕТОДЫ ЧТЕНИЯ ---
 
         public async Task<IEnumerable<Invoice>> GetAllAsync()
         {
@@ -114,7 +134,6 @@ namespace Mermer.Ui.Pc.Services
             {
                 try
                 {
-                    // 1. Досылаем несинхронизированные накладные
                     var unsynced = LocalSqliteCache.GetUnsyncedDocuments<Invoice>(DocType);
                     foreach (var (id, inv) in unsynced)
                     {
@@ -126,7 +145,6 @@ namespace Mermer.Ui.Pc.Services
                         catch { }
                     }
 
-                    // 2. Скачиваем свежие с сервера
                     var remote = await _restClient.GetAsync<List<Invoice>>("/api/invoices");
                     if (remote != null)
                     {
@@ -177,7 +195,7 @@ namespace Mermer.Ui.Pc.Services
             return result.Count();
         }
 
-        // --- CUD ОПЕРАЦИИ (СОХРАНЕНИЕ В SQLITE + POST/PUT) ---
+        // --- CUD ОПЕРАЦИИ ---
 
         public async Task SaveAsync(Invoice entity)
         {
@@ -186,7 +204,6 @@ namespace Mermer.Ui.Pc.Services
             bool isNew = string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString();
             if (isNew) entity.Id = Guid.NewGuid().ToString();
 
-            // Сохраняем локально
             LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: false);
 
             try
