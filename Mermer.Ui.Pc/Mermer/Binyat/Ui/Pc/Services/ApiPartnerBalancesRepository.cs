@@ -23,10 +23,20 @@ namespace Mermer.Ui.Pc.Services
             {
                 var queryParams = new List<string>
                 {
-                    $"from={dateFrom:yyyy-MM-ddTHH:mm:ss}",
-                    $"till={dateTill:yyyy-MM-ddTHH:mm:ss}"
+                    $"from={dateFrom:yyyy-MM-ddTHH:mm:ssZ}",
+                    $"till={dateTill:yyyy-MM-ddTHH:mm:ssZ}"
                 };
-                if (!string.IsNullOrEmpty(partnerId)) queryParams.Add($"partnerId={partnerId}");
+
+                if (!string.IsNullOrEmpty(partnerId))
+                    queryParams.Add($"partnerId={partnerId}");
+
+                if (officeIds != null && officeIds.Length > 0)
+                {
+                    foreach (var offId in officeIds.Where(x => !string.IsNullOrWhiteSpace(x)))
+                    {
+                        queryParams.Add($"officeIds={offId}");
+                    }
+                }
 
                 string url = "/api/partners/balances/by-type?" + string.Join("&", queryParams);
 

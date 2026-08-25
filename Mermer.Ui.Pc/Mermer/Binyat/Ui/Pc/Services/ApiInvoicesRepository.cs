@@ -87,6 +87,7 @@ namespace Mermer.Ui.Pc.Services
 
         public async Task<IEnumerable<InvoicePaymentInfo>> GetPaymentInfoAsync(DateTime from, DateTime till, string officeId, string partnerId, string displayCurrencyId)
         {
+            // 1. SERVER: Пытаемся получить актуальные данные из API
             try
             {
                 var fromStr = from.ToString("yyyy-MM-ddTHH:mm:ssZ");
@@ -96,17 +97,119 @@ namespace Mermer.Ui.Pc.Services
                 if (!string.IsNullOrEmpty(partnerId)) url += $"&partnerId={partnerId}";
                 if (!string.IsNullOrEmpty(displayCurrencyId)) url += $"&displayCurrencyId={displayCurrencyId}";
 
-                var result = await _restClient.GetAsync<List<InvoicePaymentInfo>>(url);
-                return result ?? Enumerable.Empty<InvoicePaymentInfo>();
+                var dtoResult = await _restClient.GetAsync<List<InvoicePaymentInfoDto>>(url);
+                if (dtoResult != null && dtoResult.Any())
+                {
+                    return dtoResult.Select(d =>
+                    {
+                        var info = new InvoicePaymentInfo
+                        {
+                            Id = d.Id,
+                            Code = d.Code,
+                            Date = d.Date,
+                            DueDate = d.DueDate ?? default,
+                            InvoiceType = d.InvoiceType,
+                            IsCompleted = d.IsCompleted,
+                            PartnerId = d.PartnerId,
+                            OfficeId = d.OfficeId,
+                            UserName = d.UserName
+                        };
+
+                        // Передаем тотал и оплату через штатный механизм модели
+                        info.UpdatePaymentInfo(new[]
+                        {
+                            new CRM.Models.PartnerActionInfo
+                            {
+                                TransactionId = d.Id,
+                                TransactionDate = d.Date,
+                                ActionCredit = d.Total > 0 ? d.Total : d.GrandTotal,
+                                ActionDebit = d.PaymentsTotal
+                            }
+                        });
+
+                        return info;
+                    }).ToList();
+                }
             }
             catch
             {
-                return Enumerable.Empty<InvoicePaymentInfo>();
+                // При ошибке связи с сервером переходим на локальный кэш
             }
+
+            // 2. OFFLINE-FIRST: Сбор данных из локального SQLite
+            var allLocal = LocalSqliteCache.GetAllDocuments<Invoice>(DocType) ?? new List<Invoice>();
+            var localFiltered = allLocal.Where(i => i.Date >= from && i.Date < till && !i.IsDisabled);
+
+            if (!string.IsNullOrEmpty(officeId))
+                localFiltered = localFiltered.Where(i => i.OfficeId == officeId);
+            if (!string.IsNullOrEmpty(partnerId))
+                localFiltered = localFiltered.Where(i => i.PartnerId == partnerId);
+
+            return localFiltered.Select(i =>
+            {
+                decimal subtotal = i.Lines?.Sum(l => l.Quantity * l.Price) ?? 0m;
+                decimal discounts = i.Discounts?.Sum(d => d.Type == InvoiceDiscountType.Percentage ? subtotal * d.Amount / 100 : d.Amount) ?? 0m;
+                decimal overheads = i.Overheads?.Sum(o => o.Amount) ?? 0m;
+                decimal grandTotal = subtotal - discounts + overheads;
+                decimal payments = i.Payments?.Sum(p => p.Amount) ?? 0m;
+
+                var info = new InvoicePaymentInfo
+                {
+                    Id = i.Id,
+                    Code = i.Code,
+                    Date = i.Date,
+                    DueDate = i.DueDate,
+                    InvoiceType = i.InvoiceType,
+                    IsCompleted = i.IsCompleted,
+                    PartnerId = i.PartnerId,
+                    OfficeId = i.OfficeId,
+                    UserName = i.UserName
+                };
+
+                info.UpdatePaymentInfo(new[]
+                {
+                    new CRM.Models.PartnerActionInfo
+                    {
+                        TransactionId = i.Id,
+                        TransactionDate = i.Date,
+                        ActionCredit = grandTotal,
+                        ActionDebit = payments
+                    }
+                });
+
+                return info;
+            }).ToList();
+        }
+
+        private class InvoicePaymentInfoDto
+        {
+            public string Id { get; set; }
+            public string Code { get; set; }
+            public DateTime Date { get; set; }
+            public DateTime? DueDate { get; set; }
+            public InvoiceType InvoiceType { get; set; }
+            public bool IsCompleted { get; set; }
+            public string PartnerId { get; set; }
+            public string OfficeId { get; set; }
+            public string UserName { get; set; }
+            public decimal Total { get; set; }
+            public decimal GrandTotal { get; set; }
+            public decimal PaymentsTotal { get; set; }
+            public DateTime? LastPaymentDate { get; set; }
         }
 
         public async Task<int> CountPaymentInfoAsync(DateTime from, DateTime till, string officeId = null, string partnerId = null)
         {
+            // OFFLINE
+            var allLocal = LocalSqliteCache.GetAllDocuments<Invoice>(DocType) ?? new List<Invoice>();
+            var localFiltered = allLocal.Where(i => i.Date >= from && i.Date < till && !i.IsDisabled);
+
+            if (!string.IsNullOrEmpty(officeId)) localFiltered = localFiltered.Where(i => i.OfficeId == officeId);
+            if (!string.IsNullOrEmpty(partnerId)) localFiltered = localFiltered.Where(i => i.PartnerId == partnerId);
+
+            int localCount = localFiltered.Count();
+
+            // SERVER
             try
             {
                 var fromStr = from.ToString("yyyy-MM-ddTHH:mm:ssZ");
@@ -116,12 +219,11 @@ namespace Mermer.Ui.Pc.Services
                 if (!string.IsNullOrEmpty(partnerId)) url += $"&partnerId={partnerId}";
 
                 var res = await _restClient.GetAsync<CountResponse>(url);
-                return res?.Count ?? 0;
+                if (res != null && res.Count > 0) return res.Count;
             }
-            catch
-            {
-                return 0;
-            }
+            catch { }
+
+            return localCount;
         }
 
         // --- БАЗОВЫЕ МЕТОДЫ ЧТЕНИЯ ---

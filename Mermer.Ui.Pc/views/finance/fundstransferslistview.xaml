@@ -55,17 +55,20 @@
         <dxg:GridColumn FieldName="IsCompleted" Width="50" Header="{Localize Completed}"/>
         <dxg:GridColumn FieldName="IsDisabled" Width="50" Header="{Localize Deleted}"/>
         <dxg:GridColumn FieldName="UserName" Header="{Localize Author}"/>
-        <dxg:GridColumn Binding="{Binding Tags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
-          <dxg:ColumnBase.EditSettings>
-            <dxg:LookUpEditSettings>
-              <dxe:BaseEditSettings.StyleSettings>
-                <dxg:TokenLookUpEditStyleSettings/>
-              </dxe:BaseEditSettings.StyleSettings>
-            </dxg:LookUpEditSettings>
-          </dxg:ColumnBase.EditSettings>
-        </dxg:GridColumn>
-        <dxg:GridColumn FieldName="Group" GroupIndex="0" Header="{Localize Group}"/>
-      </dxg:GridControl.Columns>
+                <!-- Колонка с тегами -->
+                <dxg:GridColumn FieldName="Tags" Header="{Localize Tags}" Width="150">
+                    <dxg:GridColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding RowData.Row.Tags, Converter={cnv:TokenConverter}}"
+                         VerticalAlignment="Center"
+                         Margin="4,0"
+                         TextTrimming="CharacterEllipsis"/>
+                        </DataTemplate>
+                    </dxg:GridColumn.CellTemplate>
+                </dxg:GridColumn>
+
+                <dxg:GridColumn FieldName="Group" GroupIndex="0" Header="{Localize Group}"/>
+            </dxg:GridControl.Columns>
             <dxg:GridControl.View>
                 <dxg:TableView AllowEditing="False" NavigationStyle="Row" ShowGroupPanel="False">
                     <dxg:TableView.FormatConditions>

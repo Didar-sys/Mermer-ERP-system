@@ -167,9 +167,9 @@ public class PgInvoicesRepository : IInvoicesRepository
     }
 
     public async Task<IReadOnlyList<InvoicePaymentInfo>> GetPaymentInfoAsync(
-        DateTime from, DateTime till, string? officeId, string? partnerId,
-        string? displayCurrencyId = null,
-        CancellationToken ct = default)
+     DateTime from, DateTime till, string? officeId, string? partnerId,
+     string? displayCurrencyId = null,
+     CancellationToken ct = default)
     {
         Guid? officeGuid = Guid.TryParse(officeId, out var og) ? og : null;
         Guid? partnerGuid = Guid.TryParse(partnerId, out var pg) ? pg : null;
@@ -179,111 +179,118 @@ public class PgInvoicesRepository : IInvoicesRepository
         var safeTill = till >= DateTime.MaxValue.AddDays(-2) ? new DateTime(2099, 1, 1, 0, 0, 0, DateTimeKind.Utc) : till.AddDays(1).ToUniversalTime();
 
         const string sql = """
-            WITH conv AS (
-                SELECT invoice_id, currency_id, multiplier, divider
-                FROM invoice_currency_convertions
-            ),
-            lines_agg AS (
-                SELECT il.invoice_id,
-                       COALESCE(SUM(
-                           il.quantity * il.price
-                           * COALESCE(c.multiplier / c.divider, 1)
-                           * (CASE WHEN @displayCurrencyId::uuid IS NOT NULL
-                                   THEN COALESCE(d.divider / d.multiplier, 1)
-                                   ELSE 1 END)
-                       ), 0)::numeric(18,4) AS subtotal
-                FROM invoice_lines il
-                LEFT JOIN conv c ON c.invoice_id = il.invoice_id AND c.currency_id = il.currency_id
-                LEFT JOIN conv d ON d.invoice_id = il.invoice_id AND d.currency_id = @displayCurrencyId::uuid
-                GROUP BY il.invoice_id
-            ),
-            discounts_agg AS (
-                SELECT
-                    id2.invoice_id,
-                    COALESCE(SUM(
-                        CASE id2.discount_type
-                            WHEN 'Percentage' THEN COALESCE(la.subtotal,0) * id2.amount / 100
-                            ELSE id2.amount
-                              * (CASE WHEN @displayCurrencyId::uuid IS NOT NULL
-                                      THEN COALESCE(d.divider / d.multiplier, 1)
-                                      ELSE 1 END)
-                        END
-                    ), 0)::numeric(18,4) AS discount_total
-                FROM invoice_discounts id2
-                LEFT JOIN lines_agg la ON la.invoice_id = id2.invoice_id
-                LEFT JOIN conv d       ON d.invoice_id  = id2.invoice_id AND d.currency_id = @displayCurrencyId::uuid
-                GROUP BY id2.invoice_id
-            ),
-            payments_agg AS (
-                SELECT ip.invoice_id,
-                       COALESCE(SUM(ip.amount
-                           * COALESCE(c.multiplier / c.divider, 1)
-                           * (CASE WHEN @displayCurrencyId::uuid IS NOT NULL
-                                   THEN COALESCE(d.divider / d.multiplier, 1)
-                                   ELSE 1 END)
-                       ) FILTER (WHERE ip.payment_type = 'Payment'), 0)::numeric(18,4) AS payment_total,
-                       COALESCE(SUM(ip.amount
-                           * COALESCE(c.multiplier / c.divider, 1)
-                           * (CASE WHEN @displayCurrencyId::uuid IS NOT NULL
-                                   THEN COALESCE(d.divider / d.multiplier, 1)
-                                   ELSE 1 END)
-                       ) FILTER (WHERE ip.payment_type = 'Change'),  0)::numeric(18,4) AS change_total
-                FROM invoice_payments ip
-                LEFT JOIN conv c ON c.invoice_id = ip.invoice_id AND c.currency_id = ip.currency_id
-                LEFT JOIN conv d ON d.invoice_id = ip.invoice_id AND d.currency_id = @displayCurrencyId::uuid
-                GROUP BY ip.invoice_id
-            ),
-            overheads_agg AS (
-                SELECT io.invoice_id,
-                       COALESCE(SUM(io.amount
-                           * COALESCE(c.multiplier / c.divider, 1)
-                           * (CASE WHEN @displayCurrencyId::uuid IS NOT NULL
-                                   THEN COALESCE(d.divider / d.multiplier, 1)
-                                   ELSE 1 END)
-                       ), 0)::numeric(18,4) AS overhead_total
-                FROM invoice_overheads io
-                LEFT JOIN conv c ON c.invoice_id = io.invoice_id AND c.currency_id = io.currency_id
-                LEFT JOIN conv d ON d.invoice_id = io.invoice_id AND d.currency_id = @displayCurrencyId::uuid
-                GROUP BY io.invoice_id
-            )
+        WITH conv AS (
+            SELECT invoice_id, currency_id, multiplier, divider
+            FROM invoice_currency_convertions
+        ),
+        lines_agg AS (
+            SELECT il.invoice_id,
+                   COALESCE(SUM(
+                       il.quantity * il.price
+                       * COALESCE(c.multiplier / c.divider, 1)
+                       * (CASE WHEN @displayCurrencyId::uuid IS NOT NULL
+                               THEN COALESCE(d.divider / d.multiplier, 1)
+                               ELSE 1 END)
+                   ), 0)::numeric(18,4) AS subtotal
+            FROM invoice_lines il
+            LEFT JOIN conv c ON c.invoice_id = il.invoice_id AND c.currency_id = il.currency_id
+            LEFT JOIN conv d ON d.invoice_id = il.invoice_id AND d.currency_id = @displayCurrencyId::uuid
+            GROUP BY il.invoice_id
+        ),
+        discounts_agg AS (
             SELECT
-                i.id,
-                i.code,
-                i.date,
-                i.invoice_type,
-                i.is_completed,
-                i.partner_id,
-                p.name                                              AS partner_name,
+                id2.invoice_id,
+                COALESCE(SUM(
+                    CASE id2.discount_type
+                        WHEN 'Percentage' THEN COALESCE(la.subtotal,0) * id2.amount / 100
+                        ELSE id2.amount
+                          * (CASE WHEN @displayCurrencyId::uuid IS NOT NULL
+                                  THEN COALESCE(d.divider / d.multiplier, 1)
+                                  ELSE 1 END)
+                    END
+                ), 0)::numeric(18,4) AS discount_total
+            FROM invoice_discounts id2
+            LEFT JOIN lines_agg la ON la.invoice_id = id2.invoice_id
+            LEFT JOIN conv d       ON d.invoice_id  = id2.invoice_id AND d.currency_id = @displayCurrencyId::uuid
+            GROUP BY id2.invoice_id
+        ),
+        payments_agg AS (
+            SELECT ip.invoice_id,
+                   COALESCE(SUM(ip.amount
+                       * COALESCE(c.multiplier / c.divider, 1)
+                       * (CASE WHEN @displayCurrencyId::uuid IS NOT NULL
+                               THEN COALESCE(d.divider / d.multiplier, 1)
+                               ELSE 1 END)
+                   ) FILTER (WHERE ip.payment_type = 'Payment'), 0)::numeric(18,4) AS payment_total,
+                   COALESCE(SUM(ip.amount
+                       * COALESCE(c.multiplier / c.divider, 1)
+                       * (CASE WHEN @displayCurrencyId::uuid IS NOT NULL
+                               THEN COALESCE(d.divider / d.multiplier, 1)
+                               ELSE 1 END)
+                   ) FILTER (WHERE ip.payment_type = 'Change'),  0)::numeric(18,4) AS change_total
+            FROM invoice_payments ip
+            LEFT JOIN conv c ON c.invoice_id = ip.invoice_id AND c.currency_id = ip.currency_id
+            LEFT JOIN conv d ON d.invoice_id = ip.invoice_id AND d.currency_id = @displayCurrencyId::uuid
+            GROUP BY ip.invoice_id
+        ),
+        overheads_agg AS (
+            SELECT io.invoice_id,
+                   COALESCE(SUM(io.amount
+                       * COALESCE(c.multiplier / c.divider, 1)
+                       * (CASE WHEN @displayCurrencyId::uuid IS NOT NULL
+                               THEN COALESCE(d.divider / d.multiplier, 1)
+                               ELSE 1 END)
+                   ), 0)::numeric(18,4) AS overhead_total
+            FROM invoice_overheads io
+            LEFT JOIN conv c ON c.invoice_id = io.invoice_id AND c.currency_id = io.currency_id
+            LEFT JOIN conv d ON d.invoice_id = io.invoice_id AND d.currency_id = @displayCurrencyId::uuid
+            GROUP BY io.invoice_id
+        )
+        SELECT
+            i.id,
+            i.code,
+            i.date,
+            i.due_date,
+            i.user_name,
+            i.office_id,
+            i.group_name AS "group",
+            i.tags,
+            i.invoice_type,
+            i.is_completed,
+            i.partner_id,
+            p.name                                              AS partner_name,
 
-                (COALESCE(la.subtotal, 0)
-                 - COALESCE(da.discount_total, 0)
-                 + COALESCE(oa.overhead_total, 0))::numeric(18,4)   AS grand_total,
+            (COALESCE(la.subtotal, 0)
+             - COALESCE(da.discount_total, 0)
+             + COALESCE(oa.overhead_total, 0))::numeric(18,4)   AS grand_total,
 
-                COALESCE(pa.payment_total, 0)::numeric(18,4)        AS payments_total,
-                COALESCE(pa.change_total,  0)::numeric(18,4)        AS changes_total,
+            COALESCE(pa.payment_total, 0)::numeric(18,4)        AS payments_total,
+            COALESCE(pa.change_total,  0)::numeric(18,4)        AS changes_total,
 
-                COALESCE(act.debit_total,  0)::numeric(18,4)        AS partner_debit,
-                COALESCE(act.credit_total, 0)::numeric(18,4)        AS partner_credit
-            FROM invoices i
-            LEFT JOIN partners      p   ON p.id  = i.partner_id
-            LEFT JOIN lines_agg     la  ON la.invoice_id = i.id
-            LEFT JOIN discounts_agg da  ON da.invoice_id = i.id
-            LEFT JOIN payments_agg  pa  ON pa.invoice_id = i.id
-            LEFT JOIN overheads_agg oa  ON oa.invoice_id = i.id
-            LEFT JOIN LATERAL (
-                SELECT
-                    SUM(amount) FILTER (WHERE action_type = 'Debit')  AS debit_total,
-                    SUM(amount) FILTER (WHERE action_type = 'Credit') AS credit_total
-                FROM partner_actions
-                WHERE partner_id = i.partner_id
-                  AND (i.office_id IS NULL OR office_id = i.office_id)
-            ) act ON true
-            WHERE i.date >= @from AND i.date < @till
-              AND i.is_disabled = false
-              AND (@officeId  IS NULL OR i.office_id  = @officeId)
-              AND (@partnerId IS NULL OR i.partner_id = @partnerId)
-            ORDER BY i.date DESC
-            """;
+            COALESCE(act.debit_total,  0)::numeric(18,4)        AS partner_debit,
+            COALESCE(act.credit_total, 0)::numeric(18,4)        AS partner_credit,
+            act.last_payment_date
+        FROM invoices i
+        LEFT JOIN partners      p   ON p.id  = i.partner_id
+        LEFT JOIN lines_agg     la  ON la.invoice_id = i.id
+        LEFT JOIN discounts_agg da  ON da.invoice_id = i.id
+        LEFT JOIN payments_agg  pa  ON pa.invoice_id = i.id
+        LEFT JOIN overheads_agg oa  ON oa.invoice_id = i.id
+        LEFT JOIN LATERAL (
+            SELECT
+                SUM(amount) FILTER (WHERE action_type = 'Debit')  AS debit_total,
+                SUM(amount) FILTER (WHERE action_type = 'Credit') AS credit_total,
+                MAX(created_at) AS last_payment_date
+            FROM partner_actions
+            WHERE partner_id = i.partner_id
+              AND (i.office_id IS NULL OR office_id = i.office_id)
+        ) act ON true
+        WHERE i.date >= @from AND i.date < @till
+          AND i.is_disabled = false
+          AND (@officeId  IS NULL OR i.office_id  = @officeId)
+          AND (@partnerId IS NULL OR i.partner_id = @partnerId)
+        ORDER BY i.date DESC
+        """;
 
         await using var conn = new NpgsqlConnection(_connectionString);
         var rows = await conn.QueryAsync(new CommandDefinition(sql, new
@@ -300,15 +307,19 @@ public class PgInvoicesRepository : IInvoicesRepository
             Id = ((Guid)r.id).ToString(),
             Code = (string?)r.code,
             Date = (DateTime)r.date,
+            DueDate = (DateTime?)r.due_date,
+            UserName = (string?)r.user_name,
+            OfficeId = ((Guid?)r.office_id)?.ToString(),
             InvoiceType = Enum.Parse<InvoiceType>((string)r.invoice_type),
             IsCompleted = (bool)r.is_completed,
             PartnerId = ((Guid?)r.partner_id)?.ToString(),
             PartnerName = (string?)r.partner_name,
-            GrandTotal = (decimal)r.grand_total,
+            Total = (decimal)r.grand_total,
             PaymentsTotal = (decimal)r.payments_total,
             ChangesTotal = (decimal)r.changes_total,
             PartnerDebit = (decimal)r.partner_debit,
-            PartnerCredit = (decimal)r.partner_credit
+            PartnerCredit = (decimal)r.partner_credit,
+            LastPaymentDate = (DateTime?)r.last_payment_date
         }).ToList();
     }
 

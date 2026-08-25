@@ -143,13 +143,21 @@ public class ApiDailyFundsRegisteriesRepository :
     public async Task SaveAsync(DailyFundsRegistery model)
     {
         if (model == null) return;
-        if (string.IsNullOrEmpty(model.Id)) model.Id = Guid.NewGuid().ToString();
 
+        bool isNew = string.IsNullOrEmpty(model.Id) || model.Id == Guid.Empty.ToString();
+        if (isNew) model.Id = Guid.NewGuid().ToString();
+
+        // 1. Локальный кэш
         LocalSqliteCache.SaveDocument(DocType, model.Id, model, isSynced: false);
 
+        // 2. Серверная синхронизация
         try
         {
-            await _restClient.PostAsync("/api/finance/registeries", model);
+            if (isNew)
+                await _restClient.PostAsync("/api/finance/registeries", model);
+            else
+                await _restClient.PutAsync($"/api/finance/registeries/{model.Id}", model);
+
             LocalSqliteCache.SaveDocument(DocType, model.Id, model, isSynced: true);
         }
         catch (Exception ex)

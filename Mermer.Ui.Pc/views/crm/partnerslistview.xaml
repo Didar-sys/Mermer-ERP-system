@@ -30,23 +30,28 @@
                               FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
                               SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}"
                               IsEnabled="{Binding IsBusy, Converter={dxmvvm:BooleanNegationConverter}}">
-        <dxg:GridControl.Columns>
-          <dxg:GridColumn FieldName="Code" SortOrder="Ascending" Header="{Localize Code}"/>
-          <dxg:GridColumn FieldName="Name" SortOrder="Ascending" Width="500" Header="{Localize Name}"/>
-          <dxg:GridColumn FieldName="Phone" Header="{Localize Phone}"/>
-          <dxg:GridColumn FieldName="Address" Header="{Localize Address}"/>
-          <dxg:GridColumn Binding="{Binding Tags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
-            <dxg:ColumnBase.EditSettings>
-              <dxg:LookUpEditSettings>
-                                <dxe:BaseEditSettings.StyleSettings>
-                  <dxg:TokenLookUpEditStyleSettings/>
-                </dxe:BaseEditSettings.StyleSettings>
-              </dxg:LookUpEditSettings>
-            </dxg:ColumnBase.EditSettings>
-          </dxg:GridColumn>
-          <dxg:GridColumn FieldName="Group" GroupIndex="1" Header="{Localize Group}"/>
-        </dxg:GridControl.Columns>
-      </ctrl:StyledGridControl>
+                <dxg:GridControl.Columns>
+                    <dxg:GridColumn FieldName="Code" SortOrder="Ascending" Header="{Localize Code}"/>
+                    <dxg:GridColumn FieldName="Name" SortOrder="Ascending" Width="500" Header="{Localize Name}"/>
+                    <dxg:GridColumn FieldName="Phone" Header="{Localize Phone}"/>
+                    <dxg:GridColumn FieldName="Address" Header="{Localize Address}"/>
+
+                    <!-- Колонка с тегами -->
+                    <dxg:GridColumn FieldName="Tags" Header="{Localize Tags}" Width="150">
+                        <dxg:GridColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding RowData.Row.Tags, Converter={cnv:TokenConverter}}"
+                           VerticalAlignment="Center"
+                           Margin="4,0"
+                           TextTrimming="CharacterEllipsis"/>
+                            </DataTemplate>
+                        </dxg:GridColumn.CellTemplate>
+                    </dxg:GridColumn>
+
+                    <!-- Колонка с группой -->
+                    <dxg:GridColumn FieldName="Group" GroupIndex="0" Header="{Localize Group}"/>
+                </dxg:GridControl.Columns>
+            </ctrl:StyledGridControl>
       <Grid Visibility="{Binding IsBusy, Converter={dxmvvm:BooleanToVisibilityConverter}}">
         <dx:WaitIndicator DeferedVisibility="{Binding IsBusy}"/>
       </Grid>

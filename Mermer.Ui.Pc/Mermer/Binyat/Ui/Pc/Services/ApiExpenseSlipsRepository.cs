@@ -112,18 +112,26 @@ public class ApiExpenseSlipsRepository : IRepositoryWithFacets<ExpenseSlip>, IRe
     public async Task SaveAsync(ExpenseSlip model)
     {
         if (model == null) return;
-        if (string.IsNullOrEmpty(model.Id)) model.Id = Guid.NewGuid().ToString();
 
+        bool isNew = string.IsNullOrEmpty(model.Id) || model.Id == Guid.Empty.ToString();
+        if (isNew) model.Id = Guid.NewGuid().ToString();
+
+        // 1. Сохраняем локально со статусом "не синхронизировано"
         LocalSqliteCache.SaveDocument(DocType, model.Id, model, isSynced: false);
 
         try
         {
-            await _restClient.PostAsync("/api/spending/slips", model);
+            // 2. В зависимости от того, новый это документ или нет, вызываем POST или PUT
+            if (isNew)
+                await _restClient.PostAsync("/api/spending/slips", model);
+            else
+                await _restClient.PutAsync($"/api/spending/slips/{model.Id}", model);
+
+            // 3. Отмечаем как "синхронизировано"
             LocalSqliteCache.SaveDocument(DocType, model.Id, model, isSynced: true);
         }
         catch (Exception ex)
         {
-            // ТЕПЕРЬ МЫ УВИДИМ, ПОЧЕМУ БЭКЕНД ОТКЛОНИЛ ЗАПИСЬ
             System.Windows.MessageBox.Show(
                 $"Бэкенд отклонил синхронизацию.\nОшибка: {ex.Message}",
                 "Ошибка синхронизации",

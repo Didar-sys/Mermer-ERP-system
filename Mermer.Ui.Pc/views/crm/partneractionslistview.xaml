@@ -86,16 +86,17 @@
             <dxg:GridColumn FieldName="TransactionUserName" Header="{Localize Author}"/>
             <dxg:GridColumn FieldName="TransactionIsCompleted" Width="50" Visible="false" Header="{Localize Completed}"/>
             <dxg:GridColumn FieldName="TransactionIsDisabled" Width="50" Visible="false" Header="{Localize Deleted}"/>
-            <dxg:GridColumn Visible="false" Binding="{Binding TransactionTags, Converter={cnv:TokenConverter}}"
-                            Header="{Localize Tags}">
-              <dxg:ColumnBase.EditSettings>
-                <dxg:LookUpEditSettings>
-                  <dxe:BaseEditSettings.StyleSettings>
-                    <dxg:TokenLookUpEditStyleSettings/>
-                  </dxe:BaseEditSettings.StyleSettings>
-                </dxg:LookUpEditSettings>
-              </dxg:ColumnBase.EditSettings>
+            <dxg:GridColumn FieldName="TransactionTags" Header="{Localize Tags}" Width="150" Visible="false">
+              <dxg:GridColumn.CellTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding RowData.Row.TransactionTags, Converter={cnv:TokenConverter}}"
+                             VerticalAlignment="Center"
+                             Margin="4,0"
+                             TextTrimming="CharacterEllipsis"/>
+                </DataTemplate>
+              </dxg:GridColumn.CellTemplate>
             </dxg:GridColumn>
+            <dxg:GridColumn FieldName="TransactionGroup" Visible="false" Header="{Localize Group}"/>
             <dxg:GridColumn FieldName="TransactionGroup" Visible="false" Header="{Localize Group}"/>
           </dxg:GridControlBand>
           <dxg:GridControlBand Header="{Localize Action}">

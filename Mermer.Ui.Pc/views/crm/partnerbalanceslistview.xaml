@@ -30,16 +30,19 @@
                   IsChecked="True" VerticalAlignment="Center"/>
     <dxlc:LayoutControl Margin="0" Orientation="Vertical">
       <dxlc:LayoutGroup Orientation="Vertical" Margin="10, 10, 10, 0">
-        <dxlc:LayoutItem HorizontalAlignment="Left" Width="300" Label="{Localize Office}">
-          <dxe:ComboBoxEdit ShowCustomItems="True" DisplayMember="Name" ValueMember="Id"
-                            EditValue="{Binding SelectedOfficeIds, UpdateSourceTrigger=PropertyChanged}"
-                            ItemsSource="{Binding Offices.List}">
-            <dxe:BaseEdit.StyleSettings>
-              <dxe:CheckedComboBoxStyleSettings/>
-            </dxe:BaseEdit.StyleSettings>
-          </dxe:ComboBoxEdit>
-        </dxlc:LayoutItem>
-        <dxlc:LayoutItem HorizontalAlignment="Left" Width="400" Label="{Localize Partner}">
+                <dxlc:LayoutItem HorizontalAlignment="Left" Width="300" Label="{Localize Office}">
+                    <dxe:ComboBoxEdit ShowCustomItems="False"
+                    DisplayMember="Name"
+                    NullText="{Localize 'All Offices'}"
+                    SeparatorString=", "
+                    EditValue="{Binding SelectedOfficesList, UpdateSourceTrigger=PropertyChanged}"
+                    ItemsSource="{Binding Offices.List}">
+                        <dxe:ComboBoxEdit.StyleSettings>
+                            <dxe:CheckedComboBoxStyleSettings/>
+                        </dxe:ComboBoxEdit.StyleSettings>
+                    </dxe:ComboBoxEdit>
+                </dxlc:LayoutItem>
+                <dxlc:LayoutItem HorizontalAlignment="Left" Width="400" Label="{Localize Partner}">
           <dxg:LookUpEdit NullValueButtonPlacement="EditBox" AutoPopulateColumns="false" DisplayMember="Fullname"
                           ValueMember="Id" EditValue="{Binding PartnerId, UpdateSourceTrigger=PropertyChanged}"
                           ItemsSource="{Binding Partners.List}" NullText="{Localize 'All Partners'}">

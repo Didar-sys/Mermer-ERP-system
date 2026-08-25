@@ -1,30 +1,61 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Pc.Converters.TokenConverter
-// Assembly: Mermer.Ui.Pc, Version=1.4.4.0, Culture=neutral, PublicKeyToken=null
-// MVID: D54C0BF8-E817-4120-9485-68C30ADFDFE4
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Pc.exe
-
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Data;
 using System.Windows.Markup;
 
-#nullable disable
 namespace Mermer.Ui.Pc.Converters;
 
 public class TokenConverter : MarkupExtension, IValueConverter
 {
-  public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-  {
-    return !(value is IEnumerable<string> source) ? (object) null : (object) source.Cast<object>().ToList<object>();
-  }
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        var strings = new List<string>();
 
-  public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-  {
-    return !(value is IEnumerable<object> source) ? (object) null : (object) source.Cast<string>().ToList<string>();
-  }
+        if (value is IEnumerable enumerable && !(value is string))
+        {
+            strings = enumerable.Cast<object>()
+                                .Select(x => x?.ToString())
+                                .Where(x => !string.IsNullOrWhiteSpace(x))
+                                .ToList();
+        }
+        else if (value is string str && !string.IsNullOrWhiteSpace(str))
+        {
+            strings.Add(str);
+        }
 
-  public override object ProvideValue(IServiceProvider serviceProvider) => (object) this;
+        // Если запрашивает TextBlock в списке (нужна строка)
+        if (targetType == typeof(string))
+        {
+            return string.Join(", ", strings);
+        }
+
+        // Если запрашивает редактор токенов (нужна коллекция List<object>)
+        return strings.Cast<object>().ToList();
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        // Превращаем токены обратно в список строк для сохранения в базу
+        if (value is IEnumerable<object> objectSource)
+        {
+            return objectSource.Select(x => x?.ToString())
+                               .Where(x => !string.IsNullOrWhiteSpace(x))
+                               .ToList();
+        }
+
+        if (value is string str && !string.IsNullOrWhiteSpace(str))
+        {
+            return str.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                      .Select(x => x.Trim())
+                      .Where(x => !string.IsNullOrWhiteSpace(x))
+                      .ToList();
+        }
+
+        return new List<string>();
+    }
+
+    public override object ProvideValue(IServiceProvider serviceProvider) => this;
 }

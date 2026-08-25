@@ -17,7 +17,7 @@ CREATE TABLE offices (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name            VARCHAR(200) NOT NULL,
     region          VARCHAR(200),
-    description     TEXT,
+    description      TEXT,
     tags            TEXT[],
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -29,7 +29,7 @@ CREATE TABLE warehouses (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     office_id       UUID REFERENCES offices(id),
     name            VARCHAR(200) NOT NULL,
-    description     TEXT,
+    description      TEXT,
     tags            TEXT[],
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -43,7 +43,7 @@ CREATE TABLE depositories (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     office_id       UUID REFERENCES offices(id),
     name            VARCHAR(200) NOT NULL,
-    description     TEXT,
+    description      TEXT,
     tags            TEXT[],
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -58,7 +58,7 @@ CREATE TABLE currencies (
     name            VARCHAR(100) NOT NULL,
     decimals        INT NOT NULL DEFAULT 2,
     is_default      BOOLEAN NOT NULL DEFAULT FALSE,
-    description     TEXT,
+    description      TEXT,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -90,7 +90,7 @@ CREATE TABLE users (
     password        VARCHAR(500) NOT NULL DEFAULT '',
     is_admin        BOOLEAN NOT NULL DEFAULT FALSE,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
-    description     TEXT,
+    description      TEXT,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -98,7 +98,7 @@ CREATE TABLE users (
 CREATE TABLE roles (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name            VARCHAR(200) NOT NULL,
-    description     TEXT,
+    description      TEXT,
     authorizations  TEXT,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -124,7 +124,7 @@ CREATE TABLE partners (
     group_name      VARCHAR(200),
     credit_limit    NUMERIC(18,4),
     tags            TEXT[],
-    description     TEXT,
+    description      TEXT,
     rating          NUMERIC(18,4) NOT NULL DEFAULT 0,
     currency_id     UUID REFERENCES currencies(id),
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
@@ -142,7 +142,13 @@ CREATE TABLE partner_slips (
     date            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     slip_type       VARCHAR(50) NOT NULL,
     office_id       UUID REFERENCES offices(id),
+    user_id         UUID REFERENCES users(id),
+    user_name       VARCHAR(200),
+    is_completed    BOOLEAN NOT NULL DEFAULT TRUE,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
+    group_name      VARCHAR(200),
+    tags            TEXT[],
+    description      TEXT,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -168,7 +174,13 @@ CREATE TABLE partner_transfers (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code            VARCHAR(50) NOT NULL,
     date            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id         UUID REFERENCES users(id),
+    user_name       VARCHAR(200),
+    is_completed    BOOLEAN NOT NULL DEFAULT TRUE,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
+    group_name      VARCHAR(200),
+    tags            TEXT[],
+    description      TEXT,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -206,7 +218,7 @@ CREATE TABLE stocks (
     barcodes        TEXT[],
     limit_min       NUMERIC(18,4),
     limit_max       NUMERIC(18,4),
-    description     TEXT,
+    description      TEXT,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -218,7 +230,7 @@ CREATE INDEX idx_stocks_code_trgm ON stocks USING GIN (code gin_trgm_ops) WHERE 
 CREATE INDEX idx_stocks_barcodes ON stocks USING GIN (barcodes);
 CREATE INDEX idx_stocks_is_disabled ON stocks(is_disabled) WHERE NOT is_disabled;
 
--- Stock Units (e.g., pcs, kg, box — with conversion multiplier/divider)
+-- Stock Units
 CREATE TABLE stock_units (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_id        UUID NOT NULL REFERENCES stocks(id) ON DELETE CASCADE,
@@ -233,7 +245,7 @@ CREATE TABLE stock_units (
 
 CREATE INDEX idx_stock_units_stock_id ON stock_units(stock_id);
 
--- Stock Prices (historical price entries)
+-- Stock Prices
 CREATE TABLE stock_prices (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_id        UUID NOT NULL REFERENCES stocks(id) ON DELETE CASCADE,
@@ -247,7 +259,7 @@ CREATE TABLE stock_prices (
 CREATE INDEX idx_stock_prices_stock_id ON stock_prices(stock_id);
 CREATE INDEX idx_stock_prices_lookup ON stock_prices(stock_id, price_group, valid_from DESC);
 
--- Stock Additional Prices (alternate price lists)
+-- Stock Additional Prices
 CREATE TABLE stock_additional_prices (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_id        UUID NOT NULL REFERENCES stocks(id) ON DELETE CASCADE,
@@ -259,12 +271,12 @@ CREATE TABLE stock_additional_prices (
 
 CREATE INDEX idx_stock_additional_prices_stock_id ON stock_additional_prices(stock_id);
 
--- Stock Name Composers (Конструктор названий товаров)
+-- Stock Name Composers
 CREATE TABLE stock_name_composers (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "order"         INT NOT NULL DEFAULT 0,
     name            VARCHAR(500) NOT NULL,
-    description     TEXT,
+    description      TEXT,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -272,7 +284,7 @@ CREATE TABLE stock_name_composers (
 
 CREATE INDEX idx_stock_name_composers_order ON stock_name_composers("order");
 
--- Stock Name Composer Values (Значения для конструктора названий)
+-- Stock Name Composer Values
 CREATE TABLE stock_name_composer_values (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     composer_id     UUID NOT NULL REFERENCES stock_name_composers(id) ON DELETE CASCADE,
@@ -283,17 +295,17 @@ CREATE TABLE stock_name_composer_values (
 
 CREATE INDEX idx_snc_values_composer_id ON stock_name_composer_values(composer_id);
 
--- Stock Alternatives (Аналоги/Заменители товаров)
+-- Stock Alternatives
 CREATE TABLE stock_alternatives (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name            VARCHAR(500) NOT NULL,
-    description     TEXT,
+    description      TEXT,
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Stock Alternative Lines (Связи товаров-аналогов)
+-- Stock Alternative Lines
 CREATE TABLE stock_alternative_lines (
     id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_alternative_id    UUID NOT NULL REFERENCES stock_alternatives(id) ON DELETE CASCADE,
@@ -304,10 +316,10 @@ CREATE INDEX idx_stock_alt_lines_alt_id ON stock_alternative_lines(stock_alterna
 CREATE INDEX idx_stock_alt_lines_stock_id ON stock_alternative_lines(stock_id);
 
 -- ============================================================================
--- WAREHOUSING & TRANSACTIONS (Slips, Transfers, Revisions, Orders & Templates)
+-- WAREHOUSING & TRANSACTIONS
 -- ============================================================================
 
--- Stock Slips (Складские ордера: оприходование, списание, инвентаризация)
+-- Stock Slips
 CREATE TABLE stock_slips (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code                VARCHAR(50),
@@ -315,7 +327,7 @@ CREATE TABLE stock_slips (
     is_completed        BOOLEAN NOT NULL DEFAULT FALSE,
     is_stock_income     BOOLEAN NOT NULL DEFAULT FALSE,
     display_total       NUMERIC(18,4) NOT NULL DEFAULT 0,
-    description         TEXT,
+    description          TEXT,
     tags                TEXT[],
     date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     user_id             UUID REFERENCES users(id),
@@ -328,7 +340,7 @@ CREATE INDEX idx_stock_slips_date ON stock_slips(date DESC);
 CREATE INDEX idx_stock_slips_warehouse_id ON stock_slips(warehouse_id);
 CREATE INDEX idx_stock_slips_slip_type ON stock_slips(slip_type);
 
--- Stock Slip Lines (Строки складских ордеров)
+-- Stock Slip Lines
 CREATE TABLE stock_slip_lines (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_slip_id       UUID NOT NULL REFERENCES stock_slips(id) ON DELETE CASCADE,
@@ -344,7 +356,7 @@ CREATE TABLE stock_slip_lines (
 CREATE INDEX idx_stock_slip_lines_slip_id ON stock_slip_lines(stock_slip_id);
 CREATE INDEX idx_stock_slip_lines_stock_id ON stock_slip_lines(stock_id);
 
--- Stock Transfers (Перемещения товаров между складами)
+-- Stock Transfers
 CREATE TABLE stock_transfers (
     id                          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code                        VARCHAR(50),
@@ -356,7 +368,7 @@ CREATE TABLE stock_transfers (
     is_disabled                 BOOLEAN NOT NULL DEFAULT FALSE,
     user_name                   VARCHAR(100),
     group_name                  VARCHAR(200),
-    description                 TEXT,
+    description                  TEXT,
     tags                        TEXT[],
     action_total                NUMERIC(18,4) NOT NULL DEFAULT 0,
     action_received_total       NUMERIC(18,4) NOT NULL DEFAULT 0,
@@ -368,7 +380,7 @@ CREATE INDEX idx_stock_transfers_date ON stock_transfers(date DESC);
 CREATE INDEX idx_stock_transfers_wh ON stock_transfers(warehouse_id);
 CREATE INDEX idx_stock_transfers_dest_wh ON stock_transfers(destination_warehouse_id);
 
--- Stock Transfer Lines (Строки перемещений)
+-- Stock Transfer Lines
 CREATE TABLE stock_transfer_lines (
     id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_transfer_id       UUID NOT NULL REFERENCES stock_transfers(id) ON DELETE CASCADE,
@@ -386,7 +398,7 @@ CREATE TABLE stock_transfer_lines (
 CREATE INDEX idx_stock_transfer_lines_doc ON stock_transfer_lines(stock_transfer_id);
 CREATE INDEX idx_stock_transfer_lines_stock ON stock_transfer_lines(stock_id);
 
--- Stock Revisions (Документы инвентаризации складов)
+-- Stock Revisions
 CREATE TABLE stock_revisions (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code                VARCHAR(50),
@@ -401,7 +413,7 @@ CREATE TABLE stock_revisions (
     is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
     group_name          VARCHAR(100),
     tags                TEXT[],
-    description         TEXT,
+    description          TEXT,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -409,7 +421,7 @@ CREATE TABLE stock_revisions (
 CREATE INDEX idx_stock_revisions_date ON stock_revisions(date DESC);
 CREATE INDEX idx_stock_revisions_wh ON stock_revisions(warehouse_id);
 
--- Stock Revision Lines (Строки подсчёта инвентаризации)
+-- Stock Revision Lines
 CREATE TABLE stock_revision_lines (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_revision_id   UUID NOT NULL REFERENCES stock_revisions(id) ON DELETE CASCADE,
@@ -428,7 +440,7 @@ CREATE TABLE stock_revision_lines (
 CREATE INDEX idx_stock_revision_lines_rev_id ON stock_revision_lines(stock_revision_id);
 CREATE INDEX idx_stock_revision_lines_stock_id ON stock_revision_lines(stock_id);
 
--- Stock Orders (Заказы товаров со склада / поставщикам)
+-- Stock Orders
 CREATE TABLE stock_orders (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code                VARCHAR(50),
@@ -441,7 +453,7 @@ CREATE TABLE stock_orders (
     is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
     group_name          VARCHAR(200),
     tags                TEXT[],
-    description         TEXT,
+    description          TEXT,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -450,7 +462,7 @@ CREATE INDEX idx_stock_orders_date ON stock_orders(date DESC);
 CREATE INDEX idx_stock_orders_warehouse ON stock_orders(warehouse_id);
 CREATE INDEX idx_stock_orders_partner ON stock_orders(partner_id);
 
--- Stock Order Lines (Строки заказов товаров)
+-- Stock Order Lines
 CREATE TABLE stock_order_lines (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_order_id      UUID NOT NULL REFERENCES stock_orders(id) ON DELETE CASCADE,
@@ -462,7 +474,7 @@ CREATE TABLE stock_order_lines (
 CREATE INDEX idx_stock_order_lines_order_id ON stock_order_lines(stock_order_id);
 CREATE INDEX idx_stock_order_lines_stock_id ON stock_order_lines(stock_id);
 
--- Stock Order Unit Convertions (Конвертации единиц измерения в заказе)
+-- Stock Order Unit Convertions
 CREATE TABLE stock_order_unit_convertions (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_order_id      UUID NOT NULL REFERENCES stock_orders(id) ON DELETE CASCADE,
@@ -474,19 +486,19 @@ CREATE TABLE stock_order_unit_convertions (
 
 CREATE INDEX idx_stock_order_conv_order_id ON stock_order_unit_convertions(stock_order_id);
 
--- Stock Order Templates (Шаблоны заказов товаров)
+-- Stock Order Templates
 CREATE TABLE stock_order_templates (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name                VARCHAR(500) NOT NULL,
     group_name          VARCHAR(200),
     tags                TEXT[],
-    description         TEXT,
+    description          TEXT,
     is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Stock Order Template Lines (Строки шаблонов заказов товаров)
+-- Stock Order Template Lines
 CREATE TABLE stock_order_template_lines (
     id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_order_template_id UUID NOT NULL REFERENCES stock_order_templates(id) ON DELETE CASCADE,
@@ -496,7 +508,7 @@ CREATE TABLE stock_order_template_lines (
 CREATE INDEX idx_sot_lines_template_id ON stock_order_template_lines(stock_order_template_id);
 CREATE INDEX idx_sot_lines_stock_id ON stock_order_template_lines(stock_id);
 
--- Aggregated Stock Orders (Сводные заказы товаров)
+-- Aggregated Stock Orders
 CREATE TABLE aggregated_stock_orders (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code                VARCHAR(50),
@@ -509,7 +521,7 @@ CREATE TABLE aggregated_stock_orders (
     is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
     group_name          VARCHAR(200),
     tags                TEXT[],
-    description         TEXT,
+    description          TEXT,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -518,7 +530,7 @@ CREATE INDEX idx_agg_orders_date ON aggregated_stock_orders(date DESC);
 CREATE INDEX idx_agg_orders_wh ON aggregated_stock_orders(warehouse_id);
 CREATE INDEX idx_agg_orders_partner ON aggregated_stock_orders(partner_id);
 
--- Aggregated Stock Order Lines (Строки сводных заказов товаров)
+-- Aggregated Stock Order Lines
 CREATE TABLE aggregated_stock_order_lines (
     id                          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     aggregated_stock_order_id   UUID NOT NULL REFERENCES aggregated_stock_orders(id) ON DELETE CASCADE,
@@ -564,7 +576,7 @@ CREATE INDEX idx_invoices_warehouse_id ON invoices(warehouse_id);
 CREATE INDEX idx_invoices_type ON invoices(invoice_type);
 CREATE INDEX idx_invoices_code ON invoices(code);
 
--- Invoice Lines (products within an invoice)
+-- Invoice Lines
 CREATE TABLE invoice_lines (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     invoice_id      UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
@@ -616,7 +628,7 @@ CREATE TABLE invoice_discounts (
     invoice_id      UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
     discount_type   VARCHAR(20) NOT NULL CHECK (discount_type IN ('Flat', 'Percentage')),
     amount          NUMERIC(18,4) NOT NULL DEFAULT 0,
-    description     TEXT,
+    description      TEXT,
     sort_order      INT NOT NULL DEFAULT 0
 );
 
@@ -640,7 +652,7 @@ CREATE TABLE invoice_overheads (
     invoice_id      UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
     amount          NUMERIC(18,4) NOT NULL DEFAULT 0,
     currency_id     UUID REFERENCES currencies(id),
-    description     TEXT,
+    description      TEXT,
     sort_order      INT NOT NULL DEFAULT 0
 );
 
@@ -683,7 +695,7 @@ CREATE TABLE funds_slips (
     is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
     group_name          VARCHAR(200),
     tags                TEXT[],
-    description         TEXT,
+    description          TEXT,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -713,7 +725,7 @@ CREATE TABLE funds_transfers (
     is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
     group_name          VARCHAR(200),
     tags                TEXT[],
-    description         TEXT,
+    description          TEXT,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -739,7 +751,7 @@ CREATE TABLE expenses (
     name            VARCHAR(255) NOT NULL,
     type            VARCHAR(100),
     group_name      VARCHAR(200),
-    description     TEXT,
+    description      TEXT,
     tags            TEXT[],
     is_disabled     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -764,7 +776,7 @@ CREATE TABLE expense_slips (
     is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
     group_name          VARCHAR(200),
     tags                TEXT[],
-    description         TEXT,
+    description          TEXT,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -796,7 +808,7 @@ CREATE TABLE daily_funds_registeries (
     is_disabled         BOOLEAN NOT NULL DEFAULT FALSE,
     group_name          VARCHAR(200),
     tags                TEXT[],
-    description         TEXT,
+    description          TEXT,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -821,7 +833,7 @@ CREATE TABLE IF NOT EXISTS partner_actions (
     action_type     VARCHAR(20) NOT NULL CHECK (action_type IN ('Debit','Credit')),
     amount          NUMERIC(18,4) NOT NULL DEFAULT 0,
     currency_id     UUID REFERENCES currencies(id),
-    description     TEXT,
+    description      TEXT,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

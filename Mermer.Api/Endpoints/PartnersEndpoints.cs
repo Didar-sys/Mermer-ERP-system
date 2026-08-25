@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -19,11 +20,59 @@ public static class PartnersEndpoints
     {
         var group = routes.MapGroup("/api/partners").WithTags("Partners");
 
+        // 1. СПИСОК ПАРТНЕРОВ
         group.MapGet("/", async (MermerDbContext db) =>
         {
             var partners = await db.Partners.AsNoTracking().Where(p => !p.IsDisabled).ToListAsync();
             return Results.Ok(partners);
         });
+
+        // 2. ФАСЕТЫ ДЛЯ ПАРТНЕРОВ
+        group.MapGet("/facets", async (string? fields, MermerDbContext db, CancellationToken ct) =>
+        {
+            var fieldList = fields?.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                  .Select(f => f.Trim())
+                                  .ToArray() ?? Array.Empty<string>();
+
+            var result = new Dictionary<string, Dictionary<string, int>>();
+
+            foreach (var field in fieldList)
+            {
+                if (field.Equals("Group", StringComparison.OrdinalIgnoreCase) || field.Equals("GroupNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var groups = await db.Partners
+                        .AsNoTracking()
+                        .Where(x => !string.IsNullOrEmpty(x.Group))
+                        .GroupBy(x => x.Group!)
+                        .Select(g => new { Key = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+
+                    result[field] = groups;
+                }
+                else if (field.Equals("Tags", StringComparison.OrdinalIgnoreCase) || field.Equals("TagNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var allTags = await db.Partners
+                        .AsNoTracking()
+                        .Where(x => x.Tags != null && x.Tags.Length > 0)
+                        .Select(x => x.Tags)
+                        .ToListAsync(ct);
+
+                    var tagCounts = allTags
+                        .SelectMany(t => t!)
+                        .GroupBy(t => t)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    result[field] = tagCounts;
+                }
+                else
+                {
+                    result[field] = new Dictionary<string, int>();
+                }
+            }
+
+            return Results.Ok(result);
+        })
+        .WithName("PartnersGetFacets");
 
         group.MapGet("/next-code", async (MermerDbContext db) =>
         {
@@ -32,8 +81,8 @@ public static class PartnersEndpoints
             return Results.Ok(new { code = nextCode });
         });
 
-        // 2. Расчет балансов партнёров по операциям
-        group.MapGet("/balances/by-type", async (string? partnerId, DateTime? from, DateTime? till, string[]? officeIds, MermerDbContext db) =>
+        // 3. РАСЧЕТ БАЛАНСОВ ПАРТНЕРОВ
+        group.MapGet("/balances/by-type", async (string? partnerId, DateTime? from, DateTime? till, [Microsoft.AspNetCore.Mvc.FromQuery] string[]? officeIds, MermerDbContext db) =>
         {
             var partnersQuery = db.Partners.AsNoTracking().Where(p => !p.IsDisabled);
             if (!string.IsNullOrEmpty(partnerId) && Guid.TryParse(partnerId, out var pGuid))
@@ -42,14 +91,22 @@ public static class PartnersEndpoints
             }
             var partners = await partnersQuery.ToListAsync();
 
+            var targetOfficeGuids = officeIds?
+                .Select(x => Guid.TryParse(x, out var g) ? (Guid?)g : null)
+                .Where(x => x.HasValue)
+                .Select(x => x!.Value)
+                .ToList() ?? new List<Guid>();
+
             var resultList = new List<object>();
 
             foreach (var partner in partners)
             {
-                // 1. Накладные (Invoices)
+                // Фильтр накладных с учетом офиса
                 var invoicesQuery = db.Invoices.Include(i => i.Lines).AsNoTracking().Where(i => i.PartnerId == partner.Id);
                 if (from.HasValue) invoicesQuery = invoicesQuery.Where(i => i.Date >= from.Value.ToUniversalTime());
                 if (till.HasValue) invoicesQuery = invoicesQuery.Where(i => i.Date <= till.Value.ToUniversalTime());
+                if (targetOfficeGuids.Any()) invoicesQuery = invoicesQuery.Where(i => i.OfficeId.HasValue && targetOfficeGuids.Contains(i.OfficeId.Value));
+
                 var invoices = await invoicesQuery.ToListAsync();
 
                 decimal sales = invoices.Where(i => i.InvoiceType == "Sales").Sum(i => i.Lines?.Sum(l => l.Quantity * l.Price) ?? 0m);
@@ -57,10 +114,12 @@ public static class PartnersEndpoints
                 decimal salesReturn = invoices.Where(i => i.InvoiceType == "SalesReturn").Sum(i => i.Lines?.Sum(l => l.Quantity * l.Price) ?? 0m);
                 decimal purchaseReturn = invoices.Where(i => i.InvoiceType == "PurchaseReturn").Sum(i => i.Lines?.Sum(l => l.Quantity * l.Price) ?? 0m);
 
-                // 2. Документы взаиморасчетов (PartnerSlips)
+                // Фильтр актов взаиморасчетов с учетом офиса
                 var slipsQuery = db.PartnerSlips.Include(s => s.Lines).AsNoTracking();
                 if (from.HasValue) slipsQuery = slipsQuery.Where(s => s.Date >= from.Value.ToUniversalTime());
                 if (till.HasValue) slipsQuery = slipsQuery.Where(s => s.Date <= till.Value.ToUniversalTime());
+                if (targetOfficeGuids.Any()) slipsQuery = slipsQuery.Where(s => s.OfficeId.HasValue && targetOfficeGuids.Contains(s.OfficeId.Value));
+
                 var slips = await slipsQuery.ToListAsync();
 
                 decimal opening = slips
@@ -75,13 +134,12 @@ public static class PartnersEndpoints
                     .Where(l => l.PartnerId == partner.Id)
                     .Sum(l => l.DebitAmount - l.CreditAmount);
 
-                // 3. Формула итогового баланса
                 decimal resultingBalance = opening + revision + sales - salesReturn - purchases + purchaseReturn;
 
                 resultList.Add(new
                 {
                     PartnerId = partner.Id.ToString(),
-                    OfficeId = Guid.Empty.ToString(),
+                    OfficeId = targetOfficeGuids.FirstOrDefault().ToString(),
                     StartingBalance = opening,
                     Opening = opening,
                     Revision = revision,
@@ -104,7 +162,7 @@ public static class PartnersEndpoints
             return Results.Ok(new object[] { });
         });
 
-        // 3. Сохранение партнера
+        // 4. СОХРАНЕНИЕ ПАРТНЕРА (POST / PUT)
         Func<HttpRequest, MermerDbContext, Task<IResult>> savePartnerHandler = async (request, db) =>
         {
             using var reader = new StreamReader(request.Body);
@@ -115,12 +173,16 @@ public static class PartnersEndpoints
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
 
-            string idStr = root.TryGetProperty("id", out var idProp) || root.TryGetProperty("Id", out idProp) ? idProp.GetString() : null;
+            string idStr = GetJsonString(root, "id", "Id");
             Guid partnerId = Guid.TryParse(idStr, out var parsedGuid) ? parsedGuid : Guid.NewGuid();
 
-            string code = root.TryGetProperty("code", out var codeProp) || root.TryGetProperty("Code", out codeProp) ? codeProp.GetString() : $"P-{DateTime.UtcNow:yyMMddHHmmss}";
-            string name = root.TryGetProperty("name", out var nameProp) || root.TryGetProperty("Name", out nameProp) ? nameProp.GetString() : "Новый партнер";
-            string phone = root.TryGetProperty("phone", out var phoneProp) || root.TryGetProperty("Phone", out phoneProp) ? phoneProp.GetString() : "";
+            string code = GetJsonString(root, "code", "Code") ?? $"P-{DateTime.UtcNow:yyMMddHHmmss}";
+            string name = GetJsonString(root, "name", "Name") ?? "Новый партнер";
+            string phone = GetJsonString(root, "phone", "Phone") ?? "";
+            string address = GetJsonString(root, "address", "Address") ?? "";
+            string groupName = GetJsonString(root, "group", "Group") ?? "";
+
+            var tagsList = ExtractTagsFromRawJson(root);
 
             var existing = await db.Partners.FirstOrDefaultAsync(p => p.Id == partnerId);
             if (existing == null)
@@ -131,6 +193,9 @@ public static class PartnersEndpoints
                     Code = code,
                     Name = name,
                     Phone = phone,
+                    Address = address,
+                    Group = groupName,
+                    Tags = tagsList.ToArray(),
                     IsDisabled = false,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -142,6 +207,9 @@ public static class PartnersEndpoints
                 existing.Code = code;
                 existing.Name = name;
                 existing.Phone = phone;
+                existing.Address = address;
+                existing.Group = groupName;
+                existing.Tags = tagsList.ToArray();
                 existing.UpdatedAt = DateTime.UtcNow;
             }
 
@@ -150,9 +218,60 @@ public static class PartnersEndpoints
         };
 
         group.MapPost("/", savePartnerHandler);
+        group.MapPut("/{id}", savePartnerHandler);
         routes.MapPost("/api/catalog/partners", savePartnerHandler);
 
-        // 4. Подгрузка документов PartnerSlips
+        // 5. ФАСЕТЫ ДЛЯ PARTNER SLIPS
+        group.MapGet("/slips/facets", async (HttpContext context, MermerDbContext db, CancellationToken ct) =>
+        {
+            string? fields = context.Request.Query["fields"].ToString();
+            var fieldList = string.IsNullOrEmpty(fields)
+                ? new[] { "Date", "Group", "Tags" }
+                : fields.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(f => f.Trim())
+                        .ToArray();
+
+            var result = new Dictionary<string, Dictionary<string, int>>();
+
+            foreach (var field in fieldList)
+            {
+                if (field.Equals("Group", StringComparison.OrdinalIgnoreCase) || field.Equals("GroupNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var groups = await db.PartnerSlips
+                        .AsNoTracking()
+                        .Where(x => !string.IsNullOrEmpty(x.Group))
+                        .GroupBy(x => x.Group!)
+                        .Select(g => new { Key = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+
+                    result[field] = groups;
+                }
+                else if (field.Equals("Tags", StringComparison.OrdinalIgnoreCase) || field.Equals("TagNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var allTags = await db.PartnerSlips
+                        .AsNoTracking()
+                        .Where(x => x.Tags != null && x.Tags.Length > 0)
+                        .Select(x => x.Tags)
+                        .ToListAsync(ct);
+
+                    var tagCounts = allTags
+                        .SelectMany(t => t!)
+                        .GroupBy(t => t)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    result[field] = tagCounts;
+                }
+                else
+                {
+                    result[field] = new Dictionary<string, int>();
+                }
+            }
+
+            return Results.Ok(result);
+        })
+        .WithName("PartnerSlipsGetFacets");
+
+        // 6. ПОДГРУЗКА PARTNER SLIPS
         group.MapGet("/slips", async (MermerDbContext db) =>
         {
             var slips = await db.PartnerSlips
@@ -168,8 +287,12 @@ public static class PartnersEndpoints
                 SlipType = s.SlipType == "PartnerOpeningBalance" ? 0 : 1,
                 Type = s.SlipType,
                 OfficeId = s.OfficeId?.ToString(),
+                UserName = s.UserName ?? "admin",
+                Group = s.Group ?? string.Empty,
+                Tags = s.Tags != null ? s.Tags.ToList() : new List<string>(),
+                Description = s.Description ?? string.Empty,
                 IsDisabled = s.IsDisabled,
-                IsCompleted = true,
+                IsCompleted = s.IsCompleted,
                 DocType = "PartnerSlip",
                 DebitTotal = s.Lines?.Sum(l => l.DebitAmount) ?? 0m,
                 CreditTotal = s.Lines?.Sum(l => l.CreditAmount) ?? 0m,
@@ -189,14 +312,14 @@ public static class PartnersEndpoints
 
             var jsonOptions = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = null, // Фиксируем PascalCase
+                PropertyNamingPolicy = null,
                 ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
             };
 
             return Results.Json(result, jsonOptions);
         });
 
-        // 5. Сохранение документов PartnerSlips
+        // 7. СОХРАНЕНИЕ PARTNER SLIPS
         group.MapPost("/slips", async (HttpRequest request, MermerDbContext db) =>
         {
             using var reader = new StreamReader(request.Body);
@@ -217,6 +340,11 @@ public static class PartnersEndpoints
 
             string dateStr = GetJsonString(root, "date", "Date");
             DateTime slipDate = DateTime.TryParse(dateStr, out var pDate) ? pDate.ToUniversalTime() : DateTime.UtcNow;
+
+            string groupName = GetJsonString(root, "group", "Group") ?? string.Empty;
+            string description = GetJsonString(root, "description", "Description") ?? string.Empty;
+            string userName = GetJsonString(root, "userName", "UserName") ?? "admin";
+            var tagsList = ExtractTagsFromRawJson(root);
 
             var existing = await db.PartnerSlips.FirstOrDefaultAsync(s => s.Id == slipId);
 
@@ -250,7 +378,6 @@ public static class PartnersEndpoints
                 }
             }
 
-            // Только сохраняем шапку, чтобы Entity Framework не ругался на линии
             if (existing == null)
             {
                 var entity = new PartnerSlipEntity
@@ -260,11 +387,16 @@ public static class PartnersEndpoints
                     Date = slipDate,
                     SlipType = slipType,
                     OfficeId = officeGuid,
+                    UserName = userName,
+                    Group = groupName,
+                    Tags = tagsList.ToArray(),
+                    Description = description,
+                    IsCompleted = true,
+                    IsDisabled = false,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
                 await db.PartnerSlips.AddAsync(entity);
-                await db.SaveChangesAsync();
             }
             else
             {
@@ -272,11 +404,15 @@ public static class PartnersEndpoints
                 existing.Date = slipDate;
                 existing.SlipType = slipType;
                 existing.OfficeId = officeGuid;
+                existing.UserName = userName;
+                existing.Group = groupName;
+                existing.Tags = tagsList.ToArray();
+                existing.Description = description;
                 existing.UpdatedAt = DateTime.UtcNow;
-                await db.SaveChangesAsync();
             }
 
-            // Удаляем старые строки жестким SQL-запросом и вставляем новые
+            await db.SaveChangesAsync();
+
             await db.Database.ExecuteSqlRawAsync("DELETE FROM partner_slip_lines WHERE partner_slip_id = {0}", slipId);
 
             if (linesList.Any())
@@ -288,7 +424,57 @@ public static class PartnersEndpoints
             return Results.Content($"{{\"id\":\"{slipId}\",\"code\":\"{code}\"}}", "application/json");
         });
 
-        // 7. Подгрузка документов PartnerTransfers с реальными курсами валют
+        // 8. ФАСЕТЫ ДЛЯ PARTNER TRANSFERS (GroupNames, TagNames)
+        group.MapGet("/transfers/facets", async (HttpContext context, MermerDbContext db, CancellationToken ct) =>
+        {
+            string? fields = context.Request.Query["fields"].ToString();
+            var fieldList = string.IsNullOrEmpty(fields)
+                ? new[] { "Date", "Group", "Tags" }
+                : fields.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(f => f.Trim())
+                        .ToArray();
+
+            var result = new Dictionary<string, Dictionary<string, int>>();
+
+            foreach (var field in fieldList)
+            {
+                if (field.Equals("Group", StringComparison.OrdinalIgnoreCase) || field.Equals("GroupNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var groups = await db.PartnerTransfers
+                        .AsNoTracking()
+                        .Where(x => !string.IsNullOrEmpty(x.Group))
+                        .GroupBy(x => x.Group!)
+                        .Select(g => new { Key = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+
+                    result[field] = groups;
+                }
+                else if (field.Equals("Tags", StringComparison.OrdinalIgnoreCase) || field.Equals("TagNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var allTags = await db.PartnerTransfers
+                        .AsNoTracking()
+                        .Where(x => x.Tags != null && x.Tags.Length > 0)
+                        .Select(x => x.Tags)
+                        .ToListAsync(ct);
+
+                    var tagCounts = allTags
+                        .SelectMany(t => t!)
+                        .GroupBy(t => t)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    result[field] = tagCounts;
+                }
+                else
+                {
+                    result[field] = new Dictionary<string, int>();
+                }
+            }
+
+            return Results.Ok(result);
+        })
+        .WithName("PartnerTransfersGetFacets");
+
+        // 9. ПОДГРУЗКА ПЕРЕВОДОВ PARTNER TRANSFERS
         group.MapGet("/transfers", async (MermerDbContext db) =>
         {
             var transfers = await db.PartnerTransfers
@@ -296,12 +482,10 @@ public static class PartnersEndpoints
                 .AsNoTracking()
                 .ToListAsync();
 
-            // Загружаем все курсы валют из PostgreSQL
             var allRates = await db.CurrencyRates.AsNoTracking().ToListAsync();
 
             var result = transfers.Select(t =>
             {
-                // Собираем все утилизированные валюты из документа
                 var usedCurrencyIds = t.Lines != null
                     ? t.Lines.Select(l => l.DebitCurrencyId)
                              .Union(t.Lines.Select(l => l.CreditCurrencyId))
@@ -311,11 +495,10 @@ public static class PartnersEndpoints
                              .ToList()
                     : new List<Guid>();
 
-                // Формируем список конвертаций с актуальными курсами из БД
                 var currencyConvertions = usedCurrencyIds.Select(cId =>
                 {
                     var rate = allRates
-                        .Where(r => r.CurrencyId == cId && r.ValidFrom <= t.Date) // Просто сравниваем DateTime с DateTime
+                        .Where(r => r.CurrencyId == cId && r.ValidFrom <= t.Date)
                         .OrderByDescending(r => r.ValidFrom)
                         .FirstOrDefault();
 
@@ -334,8 +517,12 @@ public static class PartnersEndpoints
                     Code = t.Code,
                     Date = t.Date,
                     Type = "PartnerTransfer",
+                    UserName = t.UserName ?? "admin",
+                    Group = t.Group ?? string.Empty,
+                    Tags = t.Tags != null ? t.Tags.ToList() : new List<string>(),
+                    Description = t.Description ?? string.Empty,
                     IsDisabled = t.IsDisabled,
-                    IsCompleted = true,
+                    IsCompleted = t.IsCompleted,
                     DocType = "PartnerTransfer",
                     Lines = t.Lines != null && t.Lines.Any()
                         ? t.Lines.Select(l => (object)new
@@ -362,7 +549,7 @@ public static class PartnersEndpoints
             return Results.Json(result, jsonOptions);
         });
 
-        // 8. Сохранение переводов PartnerTransfers
+        // 10. СОХРАНЕНИЕ ПЕРЕВОДОВ PARTNER TRANSFERS
         group.MapPost("/transfers", async (HttpRequest request, MermerDbContext db) =>
         {
             using var reader = new StreamReader(request.Body);
@@ -378,6 +565,11 @@ public static class PartnersEndpoints
             string code = GetJsonString(root, "code", "Code") ?? $"DOC-{DateTime.UtcNow:yyMMddHHmmss}";
             string dateStr = GetJsonString(root, "date", "Date");
             DateTime transferDate = DateTime.TryParse(dateStr, out var pDate) ? pDate.ToUniversalTime() : DateTime.UtcNow;
+
+            string groupName = GetJsonString(root, "group", "Group") ?? string.Empty;
+            string description = GetJsonString(root, "description", "Description") ?? string.Empty;
+            string userName = GetJsonString(root, "userName", "UserName") ?? "admin";
+            var tagsList = ExtractTagsFromRawJson(root);
 
             var existing = await db.PartnerTransfers.FirstOrDefaultAsync(t => t.Id == transferId);
 
@@ -422,20 +614,30 @@ public static class PartnersEndpoints
                     Id = transferId,
                     Code = code,
                     Date = transferDate,
+                    UserName = userName,
+                    Group = groupName,
+                    Tags = tagsList.ToArray(),
+                    Description = description,
+                    IsCompleted = true,
+                    IsDisabled = false,
                     Lines = linesList,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
                 await db.PartnerTransfers.AddAsync(entity);
-                await db.SaveChangesAsync();
             }
             else
             {
                 existing.Code = code;
                 existing.Date = transferDate;
+                existing.UserName = userName;
+                existing.Group = groupName;
+                existing.Tags = tagsList.ToArray();
+                existing.Description = description;
                 existing.UpdatedAt = DateTime.UtcNow;
-                await db.SaveChangesAsync();
             }
+
+            await db.SaveChangesAsync();
 
             await db.Database.ExecuteSqlRawAsync("DELETE FROM partner_transfer_lines WHERE partner_transfer_id = {0}", transferId);
 
@@ -448,12 +650,11 @@ public static class PartnersEndpoints
             return Results.Content($"{{\"id\":\"{transferId}\",\"code\":\"{code}\"}}", "application/json");
         });
 
-        // 6. Реестр движений по партнерам (PartnerActions)
+        // 11. РЕЕСТР ДВИЖЕНИЙ ПО ПАРТНЕРАМ (PARTNERACTIONS)
         group.MapGet("/actions", async (string? partnerId, DateTime? from, DateTime? till, string[]? officeIds, MermerDbContext db) =>
         {
             var actionsList = new List<PartnerActionDto>();
 
-            // 1. Подтягиваем накладные (Invoices)
             var invoicesQuery = db.Invoices.Include(i => i.Lines).AsNoTracking();
             if (!string.IsNullOrEmpty(partnerId) && Guid.TryParse(partnerId, out var pGuid))
                 invoicesQuery = invoicesQuery.Where(i => i.PartnerId == pGuid);
@@ -472,7 +673,7 @@ public static class PartnersEndpoints
                     TransactionId = inv.Id.ToString(),
                     TransactionCode = inv.Code ?? "DOC",
                     TransactionType = inv.InvoiceType ?? "Sales",
-                    TransactionDate = inv.Date.DateTime, // Для DateTimeOffset берем .DateTime
+                    TransactionDate = inv.Date.DateTime,
                     ActionOfficeId = inv.OfficeId?.ToString() ?? Guid.Empty.ToString(),
                     ActionPartnerId = inv.PartnerId?.ToString() ?? string.Empty,
                     ActionDebit = isSales ? total : 0m,
@@ -484,7 +685,6 @@ public static class PartnersEndpoints
                 });
             }
 
-            // 2. Подтягиваем акты взаиморасчетов (PartnerSlips)
             var slipsQuery = db.PartnerSlips.Include(s => s.Lines).AsNoTracking();
             if (from.HasValue) slipsQuery = slipsQuery.Where(s => s.Date >= from.Value.ToUniversalTime());
             if (till.HasValue) slipsQuery = slipsQuery.Where(s => s.Date <= till.Value.ToUniversalTime());
@@ -505,7 +705,7 @@ public static class PartnersEndpoints
                         TransactionId = slip.Id.ToString(),
                         TransactionCode = slip.Code ?? "DOC",
                         TransactionType = slip.SlipType ?? "PartnerOpeningBalance",
-                        TransactionDate = slip.Date, // slip.Date уже является DateTime!
+                        TransactionDate = slip.Date,
                         ActionOfficeId = slip.OfficeId?.ToString() ?? Guid.Empty.ToString(),
                         ActionPartnerId = line.PartnerId?.ToString() ?? string.Empty,
                         ActionDebit = line.DebitAmount,
@@ -518,7 +718,6 @@ public static class PartnersEndpoints
                 }
             }
 
-            // 3. Подтягиваем переводы (PartnerTransfers)
             var transfersQuery = db.PartnerTransfers.Include(t => t.Lines).AsNoTracking();
             if (from.HasValue) transfersQuery = transfersQuery.Where(t => t.Date >= from.Value.ToUniversalTime());
             if (till.HasValue) transfersQuery = transfersQuery.Where(t => t.Date <= till.Value.ToUniversalTime());
@@ -565,7 +764,51 @@ public static class PartnersEndpoints
             return Results.Json(sortedResult, jsonOptions);
         });
     }
+
     #region JSON Helpers
+    private static List<string> ExtractTagsFromRawJson(JsonElement root)
+    {
+        var list = new List<string>();
+
+        if (!root.TryGetProperty("tags", out var tagsProp) &&
+            !root.TryGetProperty("Tags", out tagsProp))
+        {
+            return list;
+        }
+
+        if (tagsProp.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in tagsProp.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    var s = item.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                }
+                else if (item.ValueKind == JsonValueKind.Object)
+                {
+                    if (item.TryGetProperty("Text", out var t) || item.TryGetProperty("Value", out t) || item.TryGetProperty("Name", out t))
+                    {
+                        var s = t.GetString();
+                        if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                    }
+                }
+            }
+        }
+        else if (tagsProp.ValueKind == JsonValueKind.String)
+        {
+            var raw = tagsProp.GetString();
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
+                list.AddRange(raw.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(x => x.Trim())
+                                 .Where(x => !string.IsNullOrWhiteSpace(x)));
+            }
+        }
+
+        return list.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
     private static bool TryGetPropertyCaseInsensitive(JsonElement element, string propName, out JsonElement value)
     {
         foreach (var prop in element.EnumerateObject())
@@ -616,8 +859,6 @@ public static class PartnersEndpoints
         public decimal ActionCredit { get; set; }
         public decimal ActionEffect { get; set; }
         public string TransactionUserName { get; set; } = null!;
-
-        // --- ВАЖНЫЕ ПОЛЯ ДЛЯ ФИЛЬТРА ИНТЕРФЕЙСА ---
         public bool TransactionIsCompleted { get; set; }
         public bool TransactionIsDisabled { get; set; }
     }

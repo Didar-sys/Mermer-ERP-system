@@ -11,8 +11,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Mermer.Data.Postgres;
 using Mermer.Data.Postgres.Abstractions;
-
-// Псевдоним только для серверной модели PostgreSQL
 using PgInvoice = Mermer.Data.Postgres.Models.Invoice;
 
 namespace Mermer.Api.Endpoints;
@@ -23,7 +21,7 @@ public static class InvoicesEndpoints
     {
         var group = app.MapGroup("/api/invoices").WithTags("Invoices");
 
-        // --- 1. СПИСОК НАКЛАДНЫХ ---
+        // 1. СПИСОК НАКЛАДНЫХ
         group.MapGet("/", async (
              DateTime? from,
              DateTime? till,
@@ -48,7 +46,7 @@ public static class InvoicesEndpoints
                 IsCompleted = i.IsCompleted,
                 IsDisabled = i.IsDisabled,
                 Group = i.Group,
-                Tags = i.Tags,
+                Tags = i.Tags ?? new List<string>(),
                 OfficeId = i.OfficeId,
                 WarehouseId = i.WarehouseId,
                 DepositoryId = i.DepositoryId,
@@ -62,7 +60,7 @@ public static class InvoicesEndpoints
         })
         .WithName("InvoicesGetInfo");
 
-        // --- 2. КОЛИЧЕСТВО НАКЛАДНЫХ ---
+        // 2. КОЛИЧЕСТВО НАКЛАДНЫХ
         group.MapGet("/count", async (DateTime? from, DateTime? till, IInvoicesRepository repo, CancellationToken ct) =>
         {
             var startDate = from ?? DateTime.MinValue;
@@ -72,7 +70,7 @@ public static class InvoicesEndpoints
         })
         .WithName("InvoicesCountInfo");
 
-        // --- 3. ФАСЕТЫ (GroupNames, TagNames) ---
+        // 3. ФАСЕТЫ
         group.MapGet("/facets", async (string? fields, MermerDbContext db, CancellationToken ct) =>
         {
             var fieldList = fields?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -118,7 +116,7 @@ public static class InvoicesEndpoints
         })
         .WithName("InvoicesGetFacets");
 
-        // --- 4. НАКЛАДНАЯ ПО ID ---
+        // 4. НАКЛАДНАЯ ПО ID
         group.MapGet("/{id}", async (string id, IInvoicesRepository repo, CancellationToken ct) =>
         {
             var inv = await repo.GetAsync(id, ct);
@@ -126,7 +124,7 @@ public static class InvoicesEndpoints
         })
         .WithName("InvoicesGetById");
 
-        // --- 5. АВТОНУМЕРАТОР НАКЛАДНЫХ ---
+        // 5. АВТОНУМЕРАТОР
         group.MapGet("/next-code", async (MermerDbContext db) =>
         {
             var count = await db.Invoices.CountAsync();
@@ -135,17 +133,24 @@ public static class InvoicesEndpoints
         })
         .WithName("InvoicesGetNextCode");
 
-        // --- 6. СОЗДАНИЕ И ОБНОВЛЕНИЕ (POST / PUT) ЧЕРЕЗ JSON ---
+        // 6. СОЗДАНИЕ И ОБНОВЛЕНИЕ
         Func<HttpRequest, IInvoicesRepository, CancellationToken, Task<IResult>> saveInvoiceHandler = async (request, repo, ct) =>
         {
             using var reader = new StreamReader(request.Body);
-            var body = await reader.ReadToEndAsync();
+            var body = await reader.ReadToEndAsync(ct);
             if (string.IsNullOrEmpty(body)) return Results.BadRequest("Empty body");
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var pgInvoice = JsonSerializer.Deserialize<PgInvoice>(body, options);
-
             if (pgInvoice == null) return Results.BadRequest("Invalid JSON");
+
+            // Извлечение тегов напрямую из исходного JSON
+            using var doc = JsonDocument.Parse(body);
+            var extractedTags = ExtractTagsFromRawJson(doc.RootElement);
+            if (extractedTags.Count > 0)
+            {
+                pgInvoice.Tags = extractedTags;
+            }
 
             var existing = await repo.GetAsync(pgInvoice.Id, ct);
 
@@ -172,7 +177,7 @@ public static class InvoicesEndpoints
         group.MapPost("/", saveInvoiceHandler).WithName("InvoicesCreate");
         group.MapPut("/{id}", async (string id, HttpRequest request, IInvoicesRepository repo, CancellationToken ct) => await saveInvoiceHandler(request, repo, ct)).WithName("InvoicesUpdate");
 
-        // --- 7. УДАЛЕНИЕ (DELETE) ---
+        // 7. УДАЛЕНИЕ
         group.MapDelete("/{id}", async (string id, IInvoicesRepository repo, CancellationToken ct) =>
         {
             await repo.DeleteAsync(id, ct);
@@ -180,6 +185,82 @@ public static class InvoicesEndpoints
         })
         .WithName("InvoicesDelete");
 
+        // --- 8. СПИСОК С ДЕТАЛИЗАЦИЕЙ ОПЛАТ (InvoicesWithPaymentInfo) ---
+        group.MapGet("/payment-info", async (
+            DateTime? from,
+            DateTime? till,
+            string? officeId,
+            string? partnerId,
+            string? displayCurrencyId,
+            IInvoicesRepository repo,
+            CancellationToken ct) =>
+        {
+            var startDate = from ?? DateTime.MinValue;
+            var endDate = till ?? DateTime.MaxValue;
+
+            var result = await repo.GetPaymentInfoAsync(startDate, endDate, officeId, partnerId, displayCurrencyId, ct);
+            return Results.Ok(result);
+        })
+        .WithName("InvoicesGetPaymentInfo");
+
+        group.MapGet("/payment-info/count", async (
+            DateTime? from,
+            DateTime? till,
+            string? officeId,
+            string? partnerId,
+            IInvoicesRepository repo,
+            CancellationToken ct) =>
+        {
+            var startDate = from ?? DateTime.MinValue;
+            var endDate = till ?? DateTime.MaxValue;
+
+            var count = await repo.CountPaymentInfoAsync(startDate, endDate, officeId, partnerId, ct);
+            return Results.Ok(new { count });
+        })
+        .WithName("InvoicesCountPaymentInfo");
+
+
         return app;
+    }
+
+    private static List<string> ExtractTagsFromRawJson(JsonElement root)
+    {
+        var list = new List<string>();
+
+        if (!root.TryGetProperty("tags", out var tagsProp) &&
+            !root.TryGetProperty("Tags", out tagsProp))
+        {
+            return list;
+        }
+
+        if (tagsProp.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in tagsProp.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    var s = item.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                }
+                else if (item.ValueKind == JsonValueKind.Object)
+                {
+                    if (item.TryGetProperty("Text", out var t) || item.TryGetProperty("Value", out t) || item.TryGetProperty("Name", out t))
+                    {
+                        var s = t.GetString();
+                        if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                    }
+                }
+            }
+        }
+        else if (tagsProp.ValueKind == JsonValueKind.String)
+        {
+            var raw = tagsProp.GetString();
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
+                list.AddRange(raw.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+            }
+        }
+
+        return list.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 }

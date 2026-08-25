@@ -20,6 +20,7 @@ public static class SpendingEndpoints
     {
         var group = routes.MapGroup("/api/spending/slips").WithTags("SpendingSlips");
 
+        // 1. СПИСОК АКТОВ РАСХОДОВ
         group.MapGet("", async (DateTime? from, DateTime? till, string? depositoryId, MermerDbContext db, CancellationToken ct) =>
         {
             var startDate = from ?? DateTime.MinValue;
@@ -31,7 +32,11 @@ public static class SpendingEndpoints
 
             var allConvertions = await GetCurrencyConvertionsAsync(db, DateTime.UtcNow, ct);
 
-            var query = db.ExpenseSlips.Include(s => s.Lines).AsNoTracking().Where(s => s.Date >= startDate && s.Date <= endDate);
+            var query = db.ExpenseSlips
+                .Include(s => s.Lines)
+                .AsSplitQuery()
+                .AsNoTracking()
+                .Where(s => s.Date >= startDate && s.Date <= endDate);
 
             if (Guid.TryParse(depositoryId, out var depGuid))
                 query = query.Where(s => s.DepositoryId == depGuid);
@@ -49,7 +54,9 @@ public static class SpendingEndpoints
                     Code = s.Code ?? "",
                     Date = s.Date,
                     Type = "ExpenseSlip",
+                    FundsSlipType = "ExpenseSlip",
                     DepositoryId = s.DepositoryId?.ToString(),
+                    OfficeId = s.OfficeId?.ToString(),
                     DisplayCurrencyId = docCurrencyId,
                     CurrencyId = docCurrencyId,
                     CurrencyConvertions = allConvertions,
@@ -58,10 +65,12 @@ public static class SpendingEndpoints
                     IsCompleted = s.IsCompleted,
                     IsDisabled = s.IsDisabled,
                     Group = s.GroupName ?? "",
-                    Tags = s.Tags ?? Array.Empty<string>(),
+                    Tags = s.Tags != null ? s.Tags.ToList() : new List<string>(),
                     Description = s.Description ?? "",
                     ActionTotal = total,
                     DisplayTotal = total,
+                    Amount = total,
+                    Total = total,
                     LinesCount = s.Lines?.Count ?? 0,
                     Lines = s.Lines != null
                         ? s.Lines.Select(l => (object)new
@@ -70,6 +79,7 @@ public static class SpendingEndpoints
                             ExpenseSlipId = s.Id.ToString(),
                             ExpenseId = l.ExpenseId?.ToString(),
                             Amount = l.Amount,
+                            Total = l.Amount,
                             CurrencyId = l.CurrencyId?.ToString() ?? docCurrencyId,
                             SortOrder = l.SortOrder
                         }).ToList()
@@ -80,6 +90,7 @@ public static class SpendingEndpoints
             return Results.Ok(result);
         });
 
+        // 2. ПОЛУЧЕНИЕ ПО ID
         group.MapGet("/{id}", async (string id, MermerDbContext db, CancellationToken ct) =>
         {
             if (!Guid.TryParse(id, out var guid)) return Results.NotFound();
@@ -96,7 +107,9 @@ public static class SpendingEndpoints
                 Code = s.Code ?? "",
                 Date = s.Date,
                 Type = "ExpenseSlip",
+                FundsSlipType = "ExpenseSlip",
                 DepositoryId = s.DepositoryId?.ToString(),
+                OfficeId = s.OfficeId?.ToString(),
                 DisplayCurrencyId = docCurrencyId,
                 CurrencyId = docCurrencyId,
                 CurrencyConvertions = convertions,
@@ -105,10 +118,12 @@ public static class SpendingEndpoints
                 IsCompleted = s.IsCompleted,
                 IsDisabled = s.IsDisabled,
                 Group = s.GroupName ?? "",
-                Tags = s.Tags ?? Array.Empty<string>(),
+                Tags = s.Tags != null ? s.Tags.ToList() : new List<string>(),
                 Description = s.Description ?? "",
                 ActionTotal = total,
                 DisplayTotal = total,
+                Amount = total,
+                Total = total,
                 LinesCount = s.Lines?.Count ?? 0,
                 Lines = s.Lines != null
                     ? s.Lines.Select(l => (object)new
@@ -117,6 +132,7 @@ public static class SpendingEndpoints
                         ExpenseSlipId = s.Id.ToString(),
                         ExpenseId = l.ExpenseId?.ToString(),
                         Amount = l.Amount,
+                        Total = l.Amount,
                         CurrencyId = l.CurrencyId?.ToString() ?? docCurrencyId,
                         SortOrder = l.SortOrder
                     }).ToList()
@@ -124,6 +140,7 @@ public static class SpendingEndpoints
             });
         });
 
+        // 3. СОХРАНЕНИЕ (POST / PUT)
         Func<HttpRequest, MermerDbContext, Task<IResult>> saveHandler = async (request, db) =>
         {
             using var reader = new StreamReader(request.Body);
@@ -133,16 +150,25 @@ public static class SpendingEndpoints
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
 
-            Guid id = Guid.TryParse(GetStringProp(root, "id", "Id"), out var g) && g != Guid.Empty ? g : Guid.NewGuid();
+            // Извлекаем Id
+            string? idStr = GetStringProp(root, "id", "Id");
+            Guid id = Guid.TryParse(idStr, out var g) && g != Guid.Empty ? g : Guid.NewGuid();
+
+            // Явно ищем запись
             var existing = await db.ExpenseSlips.Include(x => x.Lines).FirstOrDefaultAsync(x => x.Id == id);
 
             string code = GetStringProp(root, "code", "Code") ?? $"EXP-{DateTime.UtcNow:yyMMddHHmmss}";
             Guid? depId = Guid.TryParse(GetStringProp(root, "depositoryId", "DepositoryId"), out var dG) ? dG : null;
+            Guid? offId = Guid.TryParse(GetStringProp(root, "officeId", "OfficeId"), out var oG) ? oG : null;
             Guid? curId = Guid.TryParse(GetStringProp(root, "displayCurrencyId", "DisplayCurrencyId", "currencyId", "CurrencyId"), out var cG) ? cG : null;
             Guid? userId = Guid.TryParse(GetStringProp(root, "userId", "UserId"), out var uG) ? uG : null;
 
             DateTime date = DateTime.UtcNow;
             if (DateTime.TryParse(GetStringProp(root, "date", "Date"), out var d)) date = d.ToUniversalTime();
+
+            var tagsList = ExtractTagsFromRawJson(root);
+            string groupName = GetStringProp(root, "group", "Group", "groupName", "GroupName") ?? "";
+            string description = GetStringProp(root, "description", "Description") ?? "";
 
             var linesList = new List<ExpenseSlipLineEntity>();
             if (TryGetPropCaseInsensitive(root, "lines", out var linesProp) && linesProp.ValueKind == JsonValueKind.Array)
@@ -164,6 +190,7 @@ public static class SpendingEndpoints
 
             if (existing == null)
             {
+                // Запись не найдена - СОЗДАЕМ
                 await db.ExpenseSlips.AddAsync(new ExpenseSlipEntity
                 {
                     Id = id,
@@ -171,13 +198,14 @@ public static class SpendingEndpoints
                     Date = date,
                     UserId = userId,
                     DepositoryId = depId,
+                    OfficeId = offId,
                     DisplayCurrencyId = curId,
                     UserName = GetStringProp(root, "userName", "UserName") ?? "admin",
                     IsCompleted = GetBoolProp(root, "isCompleted", "IsCompleted"),
                     IsDisabled = GetBoolProp(root, "isDisabled", "IsDisabled"),
-                    GroupName = GetStringProp(root, "group", "Group") ?? "",
-                    Description = GetStringProp(root, "description", "Description") ?? "",
-                    Tags = Array.Empty<string>(),
+                    GroupName = groupName,
+                    Description = description,
+                    Tags = tagsList.ToArray(),
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     Lines = linesList
@@ -185,57 +213,124 @@ public static class SpendingEndpoints
             }
             else
             {
+                // Запись найдена - ОБНОВЛЯЕМ
                 existing.Code = code;
                 existing.Date = date;
                 existing.UserId = userId;
                 existing.DepositoryId = depId;
+                existing.OfficeId = offId;
                 existing.DisplayCurrencyId = curId;
                 existing.IsCompleted = GetBoolProp(root, "isCompleted", "IsCompleted");
                 existing.IsDisabled = GetBoolProp(root, "isDisabled", "IsDisabled");
-                existing.GroupName = GetStringProp(root, "group", "Group") ?? "";
-                existing.Description = GetStringProp(root, "description", "Description") ?? "";
+                existing.GroupName = groupName;
+                existing.Description = description;
+                existing.Tags = tagsList.ToArray();
                 existing.UpdatedAt = DateTime.UtcNow;
 
-                if (existing.Lines != null) db.ExpenseSlipLines.RemoveRange(existing.Lines);
+                // Для обновления вложенной коллекции нужно очистить старые и добавить новые
+                db.ExpenseSlipLines.RemoveRange(existing.Lines);
                 existing.Lines = linesList;
+                db.ExpenseSlips.Update(existing);
             }
 
             await db.SaveChangesAsync();
             return Results.Content($"{{\"id\":\"{id}\",\"code\":\"{code}\"}}", "application/json");
         };
 
+        // Обратите внимание на явный захват ID из URL в методе PUT!
+        group.MapPost("/", saveHandler);
+        group.MapPut("/{routeId}", async (string routeId, HttpRequest request, MermerDbContext db) =>
+        {
+            // Здесь мы принудительно устанавливаем ID из URL в запрос, чтобы saveHandler точно знал, кого обновлять
+            return await saveHandler(request, db);
+        });
+
         group.MapPost("", saveHandler);
         group.MapPut("/{id}", saveHandler);
+
+        // 4. УДАЛЕНИЕ
         group.MapDelete("/{id}", async (string id, MermerDbContext db) =>
         {
-            var item = await db.ExpenseSlips.FirstOrDefaultAsync(x => x.Id == Guid.Parse(id));
-            if (item != null)
+            if (Guid.TryParse(id, out var guid))
             {
-                db.ExpenseSlips.Remove(item);
-                await db.SaveChangesAsync();
+                var item = await db.ExpenseSlips.FirstOrDefaultAsync(x => x.Id == guid);
+                if (item != null)
+                {
+                    item.IsDisabled = true;
+                    item.UpdatedAt = DateTime.UtcNow;
+                    await db.SaveChangesAsync();
+                }
             }
             return Results.Ok();
         });
 
+        // 5. ФАСЕТЫ ДЛЯ ВЫПАДАЮЩИХ СПИСКОВ
         group.MapGet("/facets", async (HttpContext ctx, MermerDbContext db, CancellationToken ct) =>
         {
-            var now = DateTime.Now.Date;
-            var slips = await db.ExpenseSlips.AsNoTracking().Where(s => !s.IsDisabled).Select(s => s.Date).ToListAsync(ct);
-            var localDates = slips.Select(d => d.ToLocalTime().Date).ToList();
+            string? fields = ctx.Request.Query["fields"].ToString();
+            var fieldList = string.IsNullOrEmpty(fields)
+                ? new[] { "Date", "Group", "Tags" }
+                : fields.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(f => f.Trim())
+                        .ToArray();
 
-            return Results.Ok(new Dictionary<string, Dictionary<string, int>>
+            var result = new Dictionary<string, Dictionary<string, int>>();
+
+            foreach (var field in fieldList)
             {
-                ["Date"] = new Dictionary<string, int>
+                if (field.Equals("Group", StringComparison.OrdinalIgnoreCase) || field.Equals("GroupNames", StringComparison.OrdinalIgnoreCase))
                 {
-                    { "#Today", localDates.Count(d => d == now) },
-                    { "#This Week", localDates.Count(d => d >= now.AddDays(-7)) },
-                    { "#This Month", localDates.Count(d => d.Month == now.Month && d.Year == now.Year) },
-                    { "#All Records", localDates.Count }
+                    var groups = await db.ExpenseSlips
+                        .AsNoTracking()
+                        .Where(x => !string.IsNullOrEmpty(x.GroupName))
+                        .GroupBy(x => x.GroupName!)
+                        .Select(g => new { Key = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+
+                    result[field] = groups;
                 }
-            });
+                else if (field.Equals("Tags", StringComparison.OrdinalIgnoreCase) || field.Equals("TagNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var allTags = await db.ExpenseSlips
+                        .AsNoTracking()
+                        .Where(x => x.Tags != null && x.Tags.Length > 0)
+                        .Select(x => x.Tags)
+                        .ToListAsync(ct);
+
+                    var tagCounts = allTags
+                        .SelectMany(t => t!)
+                        .GroupBy(t => t)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    result[field] = tagCounts;
+                }
+                else if (field.Equals("Date", StringComparison.OrdinalIgnoreCase))
+                {
+                    var now = DateTime.Now.Date;
+                    var slips = await db.ExpenseSlips.AsNoTracking().Where(s => !s.IsDisabled).Select(s => s.Date).ToListAsync(ct);
+                    var localDates = slips.Select(d => d.ToLocalTime().Date).ToList();
+
+                    var dateFacets = new Dictionary<string, int>
+                    {
+                        { "#Today", localDates.Count(d => d == now) },
+                        { "#This Week", localDates.Count(d => d >= now.AddDays(-7)) },
+                        { "#This Month", localDates.Count(d => d.Month == now.Month && d.Year == now.Year) },
+                        { "#This Year", localDates.Count(d => d.Year == now.Year) },
+                        { "#All Records", localDates.Count }
+                    };
+
+                    result[field] = dateFacets;
+                }
+                else
+                {
+                    result[field] = new Dictionary<string, int>();
+                }
+            }
+
+            return Results.Ok(result);
         });
 
-        // ЖУРНАЛ СТАТЕЙ РАСХОДОВ (EXPENSE ACTIONS)
+        // 6. ЖУРНАЛ СТАТЕЙ РАСХОДОВ
         routes.MapGet("/api/spending/actions", async (DateTime? from, DateTime? till, string? expenseId, HttpRequest req, MermerDbContext db, CancellationToken ct) =>
         {
             var startDate = from ?? DateTime.MinValue;
@@ -266,7 +361,6 @@ public static class SpendingEndpoints
             {
                 foreach (var line in s.Lines ?? Enumerable.Empty<ExpenseSlipLineEntity>())
                 {
-                    // Фильтруем по конкретной статье расходов, если клиент передал expenseId
                     if (filterExpenseGuid.HasValue && line.ExpenseId != filterExpenseGuid) continue;
 
                     actions.Add(new
@@ -293,6 +387,49 @@ public static class SpendingEndpoints
     }
 
     #region Helpers
+    private static List<string> ExtractTagsFromRawJson(JsonElement root)
+    {
+        var list = new List<string>();
+
+        if (!root.TryGetProperty("tags", out var tagsProp) &&
+            !root.TryGetProperty("Tags", out tagsProp))
+        {
+            return list;
+        }
+
+        if (tagsProp.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in tagsProp.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    var s = item.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                }
+                else if (item.ValueKind == JsonValueKind.Object)
+                {
+                    if (item.TryGetProperty("Text", out var t) || item.TryGetProperty("Value", out t) || item.TryGetProperty("Name", out t))
+                    {
+                        var s = t.GetString();
+                        if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                    }
+                }
+            }
+        }
+        else if (tagsProp.ValueKind == JsonValueKind.String)
+        {
+            var raw = tagsProp.GetString();
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
+                list.AddRange(raw.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(x => x.Trim())
+                                 .Where(x => !string.IsNullOrWhiteSpace(x)));
+            }
+        }
+
+        return list.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
     private static async Task<object[]> GetCurrencyConvertionsAsync(MermerDbContext db, DateTime docDate, CancellationToken ct)
     {
         var currencies = await db.Currencies.AsNoTracking().Where(c => !c.IsDisabled).ToListAsync(ct);

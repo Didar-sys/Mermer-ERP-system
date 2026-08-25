@@ -24,12 +24,12 @@
             <menu:CommonClose/>
         </dxwui:AppBar>
         <ctrl:ListFilterControl DockPanel.Dock="Left"
-                            Visibility="{Binding ElementName=ExpandButton, Path=IsChecked, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
+                                Visibility="{Binding ElementName=ExpandButton, Path=IsChecked, Converter={dxmvvm:BooleanToVisibilityConverter}}"/>
         <ToggleButton x:Name="ExpandButton" DockPanel.Dock="Left" Style="{StaticResource HideButtonStyle}"
-                  IsChecked="True" VerticalAlignment="Center"/>
+                      IsChecked="True" VerticalAlignment="Center"/>
         <ctrl:StyledGridControl x:Name="GridControl" PrintButton="{Binding ElementName=PrintButton, Mode=OneWay}"
-                            FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
-                            SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}">
+                                FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
+                                SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}">
             <dxg:GridControl.Columns>
                 <dxg:GridColumn FieldName="Date" SortOrder="Ascending" Header="{Localize Date}">
                     <dxg:ColumnBase.EditSettings>
@@ -60,29 +60,31 @@
                 <dxg:GridColumn FieldName="PartnerId" Header="{Localize Partner}" ColumnFilterMode="DisplayText">
                     <dxg:ColumnBase.EditSettings>
                         <dxg:LookUpEditSettings DisplayMember="Fullname" 
-                                    ValueMember="Id" 
-                                    ItemsSource="{Binding Partners.List}"
-                                    AutoComplete="True" 
-                                    IncrementalFiltering="True" 
-                                    ImmediatePopup="True" 
-                                    FilterCondition="Contains"/>
+                                                ValueMember="Id" 
+                                                ItemsSource="{Binding Partners.List}"
+                                                AutoComplete="True" 
+                                                IncrementalFiltering="True" 
+                                                ImmediatePopup="True" 
+                                                FilterCondition="Contains"/>
                     </dxg:ColumnBase.EditSettings>
-                    </dxg:GridColumn>
-                    <dxg:GridColumn FieldName="ActionTotal" Style="{StaticResource AmountDisplayFormat}" Header="{Localize SubTotal}"/>
+                </dxg:GridColumn>
+                <dxg:GridColumn FieldName="ActionTotal" Style="{StaticResource AmountDisplayFormat}" Header="{Localize SubTotal}"/>
                 <dxg:GridColumn FieldName="ActionDiscountsTotal" Style="{StaticResource AmountDisplayFormat}" Header="{Localize DiscountsTotal}"/>
                 <dxg:GridColumn FieldName="ActionGrandTotal" Style="{StaticResource AmountDisplayFormat}" Header="{Localize GrandTotal}"/>
                 <dxg:GridColumn FieldName="IsCash" Width="50" Header="{Localize Cash}"/>
                 <dxg:GridColumn FieldName="IsCompleted" Width="50" Header="{Localize Completed}"/>
                 <dxg:GridColumn FieldName="IsDisabled" Width="50" Header="{Localize Deleted}"/>
                 <dxg:GridColumn FieldName="UserName" Header="{Localize Author}"/>
-                <dxg:GridColumn Binding="{Binding Tags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
-                    <dxg:ColumnBase.EditSettings>
-                        <dxg:LookUpEditSettings>
-                            <dxe:BaseEditSettings.StyleSettings>
-                                <dxg:TokenLookUpEditStyleSettings/>
-                            </dxe:BaseEditSettings.StyleSettings>
-                        </dxg:LookUpEditSettings>
-                    </dxg:ColumnBase.EditSettings>
+                <dxg:GridColumn FieldName="Tags" Header="{Localize Tags}" Width="150">
+                    <dxg:GridColumn.CellTemplate>
+                        <DataTemplate>
+                            <!-- Биндимся напрямую к RowData.Row.Tags -->
+                            <TextBlock Text="{Binding RowData.Row.Tags, Converter={cnv:TokenConverter}}"
+                       VerticalAlignment="Center"
+                       Margin="4,0"
+                       TextTrimming="CharacterEllipsis"/>
+                        </DataTemplate>
+                    </dxg:GridColumn.CellTemplate>
                 </dxg:GridColumn>
                 <dxg:GridColumn FieldName="Group" GroupIndex="0" Header="{Localize Group}"/>
             </dxg:GridControl.Columns>

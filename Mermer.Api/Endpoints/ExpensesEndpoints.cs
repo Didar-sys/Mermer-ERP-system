@@ -1,16 +1,16 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Mermer.Data.Postgres;
-using Mermer.Data.Postgres.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using Mermer.Data.Postgres;
+using Mermer.Data.Postgres.Entities;
 
 namespace Mermer.Api.Endpoints;
 
@@ -23,7 +23,7 @@ public static class ExpensesEndpoints
         // 1. Получение списка всех статей
         group.MapGet("/", async (MermerDbContext db, CancellationToken ct) =>
         {
-            var expenses = await db.Expenses.AsNoTracking().ToListAsync(ct);
+            var expenses = await db.Expenses.AsNoTracking().Where(e => !e.IsDisabled).ToListAsync(ct);
             var result = expenses.Select(e => new
             {
                 Id = e.Id.ToString(),
@@ -31,7 +31,7 @@ public static class ExpensesEndpoints
                 Type = e.Type ?? string.Empty,
                 Group = e.Group ?? string.Empty,
                 Description = e.Description ?? string.Empty,
-                Tags = e.Tags ?? Array.Empty<string>(),
+                Tags = e.Tags != null ? e.Tags.ToList() : new List<string>(),
                 IsDisabled = e.IsDisabled
             });
             return Results.Ok(result);
@@ -53,13 +53,13 @@ public static class ExpensesEndpoints
                 Type = e.Type ?? string.Empty,
                 Group = e.Group ?? string.Empty,
                 Description = e.Description ?? string.Empty,
-                Tags = e.Tags ?? Array.Empty<string>(),
+                Tags = e.Tags != null ? e.Tags.ToList() : new List<string>(),
                 IsDisabled = e.IsDisabled
             });
         });
 
-        // 3. Создание новой статьи
-        group.MapPost("/", async (HttpRequest request, MermerDbContext db, CancellationToken ct) =>
+        // 3. Создание / сохранение новой статьи
+        Func<HttpRequest, MermerDbContext, CancellationToken, Task<IResult>> saveExpenseHandler = async (request, db, ct) =>
         {
             using var reader = new StreamReader(request.Body);
             var body = await reader.ReadToEndAsync(ct);
@@ -71,94 +71,73 @@ public static class ExpensesEndpoints
             string? idStr = GetStringProperty(root, "id", "Id");
             Guid entityId = Guid.TryParse(idStr, out var parsedGuid) && parsedGuid != Guid.Empty ? parsedGuid : Guid.NewGuid();
 
-            var tagsList = new List<string>();
-            if (TryGetPropertyCaseInsensitive(root, "tags", out var tagsProp) && tagsProp.ValueKind == JsonValueKind.Array)
+            var tagsList = ExtractTagsFromRawJson(root);
+
+            string name = GetStringProperty(root, "name", "Name") ?? string.Empty;
+            string? type = GetStringProperty(root, "type", "Type");
+            string? groupName = GetStringProperty(root, "group", "Group");
+            string? description = GetStringProperty(root, "description", "Description");
+            bool isDisabled = GetBoolProperty(root, "isDisabled", "IsDisabled");
+
+            var existing = await db.Expenses.FirstOrDefaultAsync(e => e.Id == entityId, ct);
+            if (existing == null)
             {
-                foreach (var tag in tagsProp.EnumerateArray())
+                var entity = new ExpenseEntity
                 {
-                    if (tag.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(tag.GetString()))
-                        tagsList.Add(tag.GetString()!);
-                }
+                    Id = entityId,
+                    Name = name,
+                    Type = type,
+                    Group = groupName,
+                    Description = description,
+                    IsDisabled = isDisabled,
+                    Tags = tagsList.ToArray(),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                await db.Expenses.AddAsync(entity, ct);
+                await db.SaveChangesAsync(ct);
+
+                return Results.Ok(new
+                {
+                    Id = entity.Id.ToString(),
+                    Name = entity.Name,
+                    Type = entity.Type ?? string.Empty,
+                    Group = entity.Group ?? string.Empty,
+                    Description = entity.Description ?? string.Empty,
+                    Tags = entity.Tags != null ? entity.Tags.ToList() : new List<string>(),
+                    IsDisabled = entity.IsDisabled
+                });
             }
-
-            var entity = new ExpenseEntity
+            else
             {
-                Id = entityId,
-                Name = GetStringProperty(root, "name", "Name") ?? string.Empty,
-                Type = GetStringProperty(root, "type", "Type"),
-                Group = GetStringProperty(root, "group", "Group"),
-                Description = GetStringProperty(root, "description", "Description"),
-                IsDisabled = GetBoolProperty(root, "isDisabled", "IsDisabled"),
-                Tags = tagsList.ToArray(),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            await db.Expenses.AddAsync(entity, ct);
-            await db.SaveChangesAsync(ct);
-
-            return Results.Ok(new
-            {
-                Id = entity.Id.ToString(),
-                Name = entity.Name,
-                Type = entity.Type ?? string.Empty,
-                Group = entity.Group ?? string.Empty,
-                Description = entity.Description ?? string.Empty,
-                Tags = entity.Tags ?? Array.Empty<string>(),
-                IsDisabled = entity.IsDisabled
-            });
-        });
-
-        // 4. Обновление существующей статьи
-        group.MapPut("/{id}", async (string id, HttpRequest request, MermerDbContext db, CancellationToken ct) =>
-        {
-            if (!Guid.TryParse(id, out var guidId))
-                return Results.NotFound();
-
-            var existing = await db.Expenses.FindAsync(new object[] { guidId }, ct);
-            if (existing == null) return Results.NotFound();
-
-            using var reader = new StreamReader(request.Body);
-            var body = await reader.ReadToEndAsync(ct);
-            if (!string.IsNullOrWhiteSpace(body))
-            {
-                using var doc = JsonDocument.Parse(body);
-                var root = doc.RootElement;
-
-                var tagsList = new List<string>();
-                if (TryGetPropertyCaseInsensitive(root, "tags", out var tagsProp) && tagsProp.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var tag in tagsProp.EnumerateArray())
-                    {
-                        if (tag.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(tag.GetString()))
-                            tagsList.Add(tag.GetString()!);
-                    }
-                }
-
-                existing.Name = GetStringProperty(root, "name", "Name") ?? existing.Name;
-                existing.Type = GetStringProperty(root, "type", "Type") ?? existing.Type;
-                existing.Group = GetStringProperty(root, "group", "Group") ?? existing.Group;
-                existing.Description = GetStringProperty(root, "description", "Description");
-                existing.IsDisabled = GetBoolProperty(root, "isDisabled", "IsDisabled");
+                existing.Name = name;
+                existing.Type = type;
+                existing.Group = groupName;
+                existing.Description = description;
+                existing.IsDisabled = isDisabled;
                 existing.Tags = tagsList.ToArray();
                 existing.UpdatedAt = DateTime.UtcNow;
 
                 await db.SaveChangesAsync(ct);
+
+                return Results.Ok(new
+                {
+                    Id = existing.Id.ToString(),
+                    Name = existing.Name,
+                    Type = existing.Type ?? string.Empty,
+                    Group = existing.Group ?? string.Empty,
+                    Description = existing.Description ?? string.Empty,
+                    Tags = existing.Tags != null ? existing.Tags.ToList() : new List<string>(),
+                    IsDisabled = existing.IsDisabled
+                });
             }
+        };
 
-            return Results.Ok(new
-            {
-                Id = existing.Id.ToString(),
-                Name = existing.Name,
-                Type = existing.Type ?? string.Empty,
-                Group = existing.Group ?? string.Empty,
-                Description = existing.Description ?? string.Empty,
-                Tags = existing.Tags ?? Array.Empty<string>(),
-                IsDisabled = existing.IsDisabled
-            });
-        });
+        group.MapPost("/", saveExpenseHandler);
+        group.MapPut("/{id}", saveExpenseHandler);
 
-        // 5. Удаление статьи
+        // 4. Удаление статьи
         group.MapDelete("/{id}", async (string id, MermerDbContext db, CancellationToken ct) =>
         {
             if (Guid.TryParse(id, out var guidId))
@@ -166,18 +145,19 @@ public static class ExpensesEndpoints
                 var existing = await db.Expenses.FindAsync(new object[] { guidId }, ct);
                 if (existing != null)
                 {
-                    db.Expenses.Remove(existing);
+                    existing.IsDisabled = true;
+                    existing.UpdatedAt = DateTime.UtcNow;
                     await db.SaveChangesAsync(ct);
                 }
             }
             return Results.NoContent();
         });
 
-        // 6. Фасеты для выпадающих списков
+        // 5. Фасеты для выпадающих списков (TypeNames, GroupNames, TagNames)
         group.MapGet("/facets", async (HttpContext context, MermerDbContext db, CancellationToken ct) =>
         {
             var result = new Dictionary<string, Dictionary<string, int>>();
-            var all = await db.Expenses.AsNoTracking().ToListAsync(ct);
+            var all = await db.Expenses.AsNoTracking().Where(e => !e.IsDisabled).ToListAsync(ct);
 
             var typeDict = all.Where(x => !string.IsNullOrWhiteSpace(x.Type))
                               .GroupBy(x => x.Type!)
@@ -199,15 +179,67 @@ public static class ExpensesEndpoints
                 if (!groupDict.ContainsKey(dg)) groupDict[dg] = 0;
             }
 
+            var tagDict = all.Where(x => x.Tags != null && x.Tags.Length > 0)
+                             .SelectMany(x => x.Tags!)
+                             .Where(x => !string.IsNullOrWhiteSpace(x))
+                             .GroupBy(x => x)
+                             .ToDictionary(g => g.Key, g => g.Count());
+
             result["TypeNames"] = typeDict;
             result["GroupNames"] = groupDict;
-            result["TagNames"] = new Dictionary<string, int>();
+            result["TagNames"] = tagDict;
+            result["Tags"] = tagDict;
+            result["Group"] = groupDict;
+            result["Type"] = typeDict;
 
             return Results.Ok(result);
         });
     }
 
     #region Helpers
+    private static List<string> ExtractTagsFromRawJson(JsonElement root)
+    {
+        var list = new List<string>();
+
+        if (!root.TryGetProperty("tags", out var tagsProp) &&
+            !root.TryGetProperty("Tags", out tagsProp))
+        {
+            return list;
+        }
+
+        if (tagsProp.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in tagsProp.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    var s = item.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                }
+                else if (item.ValueKind == JsonValueKind.Object)
+                {
+                    if (item.TryGetProperty("Text", out var t) || item.TryGetProperty("Value", out t) || item.TryGetProperty("Name", out t))
+                    {
+                        var s = t.GetString();
+                        if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                    }
+                }
+            }
+        }
+        else if (tagsProp.ValueKind == JsonValueKind.String)
+        {
+            var raw = tagsProp.GetString();
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
+                list.AddRange(raw.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(x => x.Trim())
+                                 .Where(x => !string.IsNullOrWhiteSpace(x)));
+            }
+        }
+
+        return list.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
     private static bool TryGetPropertyCaseInsensitive(JsonElement element, string propName, out JsonElement value)
     {
         foreach (var prop in element.EnumerateObject())

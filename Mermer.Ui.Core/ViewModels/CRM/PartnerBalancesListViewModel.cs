@@ -66,7 +66,23 @@ public class PartnerBalancesListViewModel :
     }
   }
 
-  public string[] OfficeIds
+    private List<object> _selectedOfficesList;
+    public List<object> SelectedOfficesList
+    {
+        get => _selectedOfficesList;
+        set
+        {
+            if (SetProperty(ref _selectedOfficesList, value, nameof(SelectedOfficesList)) && !IsBusy)
+            {
+                SelectedOfficeIds = value?
+                    .OfType<Office>()
+                    .Select(o => (object)o.Id)
+                    .ToList() ?? new List<object>();
+            }
+        }
+    }
+
+    public string[] OfficeIds
   {
     get
     {
@@ -105,18 +121,32 @@ public class PartnerBalancesListViewModel :
 
   protected override async Task PreLoad()
   {
-    PartnerBalancesListViewModel balancesListViewModel = this;
-    if (!balancesListViewModel._loaded && !((IEnumerable<string>) balancesListViewModel.OfficeIds).Any<string>())
-    {
-      AppSettings configAsync = await balancesListViewModel._configurator.GetConfigAsync<AppSettings>();
-      balancesListViewModel.SelectedOfficeIds = new System.Collections.Generic.List<object>((IEnumerable<object>) new object[1]
-      {
-        (object) configAsync.DefaultOfficeId
-      });
-    }
-    balancesListViewModel._loaded = true;
-    await Task.WhenAll(balancesListViewModel.Offices.Initialize(), balancesListViewModel.Partners.Initialize(), balancesListViewModel.Currencies.Initialize());
-    balancesListViewModel.CurrencyId = balancesListViewModel.Currencies.List.FirstOrDefault<Currency>((Func<Currency, bool>) (x => x.IsDefault)).Id;
+        if (!_loaded && (OfficeIds == null || !OfficeIds.Any()))
+        {
+            AppSettings config = await _configurator.GetConfigAsync<AppSettings>();
+            if (!string.IsNullOrEmpty(config?.DefaultOfficeId))
+            {
+                SelectedOfficeIds = new List<object> { config.DefaultOfficeId };
+            }
+            else
+            {
+                SelectedOfficeIds = new List<object>();
+            }
+        }
+
+        _loaded = true;
+
+        await Task.WhenAll(
+            Offices.Initialize(), 
+            Partners.Initialize(), 
+            Currencies.Initialize()
+        );
+
+        if (string.IsNullOrEmpty(CurrencyId) && Currencies.List != null)
+        {
+            CurrencyId = Currencies.List.FirstOrDefault(x => x.IsDefault)?.Id 
+                         ?? Currencies.List.FirstOrDefault()?.Id;
+        }
   }
 
   protected override async Task<IEnumerable<PartnerBalanceByTypeWithBalance>> GetFilteredListByDateAsync(

@@ -135,15 +135,21 @@ public class InvoicePaymentInfo
     public string? Id { get; set; }
     public string? Code { get; set; }
     public DateTime Date { get; set; }
+    public DateTime? DueDate { get; set; }
+    public string? UserName { get; set; }
+    public string? OfficeId { get; set; }
+    public string? PartnerId { get; set; }
+    public string? PartnerName { get; set; }
     public InvoiceType InvoiceType { get; set; }
     public bool IsCompleted { get; set; }
 
-    public string? PartnerId { get; set; }
-    public string? PartnerName { get; set; }
-
-    public decimal GrandTotal { get; set; }
+    public decimal Total { get; set; }
     public decimal PaymentsTotal { get; set; }
     public decimal ChangesTotal { get; set; }
     public decimal PartnerDebit { get; set; }
     public decimal PartnerCredit { get; set; }
+    public DateTime? LastPaymentDate { get; set; }
+
+    public bool IsPayed => Total > 0 && PaymentsTotal >= Total;
+    public bool IsOverDue => DueDate.HasValue && DateTime.UtcNow > DueDate.Value && !IsPayed;
 }

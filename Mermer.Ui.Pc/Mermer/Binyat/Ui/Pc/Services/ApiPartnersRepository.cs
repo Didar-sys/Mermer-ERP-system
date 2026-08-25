@@ -64,6 +64,7 @@ public class ApiPartnersRepository : IRepository<Partner>, IReadOnlyRepository<P
         return _ramCache;
     }
 
+
     public async Task<Partner> GetAsync(string id)
     {
         if (string.IsNullOrEmpty(id)) return null;
@@ -143,6 +144,18 @@ public class ApiPartnersRepository : IRepository<Partner>, IReadOnlyRepository<P
         {
             foreach (var field in fields) result[field] = new Dictionary<string, int>();
         }
-        return await Task.FromResult(result);
+
+        try
+        {
+            var fieldsParam = fields != null && fields.Length > 0 ? string.Join(",", fields) : "";
+            var apiResult = await _restClient.GetAsync<Dictionary<string, Dictionary<string, int>>>($"/api/partners/facets?fields={fieldsParam}");
+            if (apiResult != null)
+            {
+                foreach (var kvp in apiResult) result[kvp.Key] = kvp.Value;
+            }
+        }
+        catch { }
+
+        return result;
     }
 }

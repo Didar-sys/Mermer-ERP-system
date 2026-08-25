@@ -160,7 +160,7 @@ public class ApiFundsSlipsRepository : IRepositoryWithFacets<FundsSlip>, IReposi
         try
         {
             var fieldsParam = fields != null && fields.Length > 0 ? string.Join(",", fields) : "Date";
-            var apiResult = await _restClient.GetAsync<Dictionary<string, Dictionary<string, int>>>($"/api/bills/facets?fields={fieldsParam}");
+            var apiResult = await _restClient.GetAsync<Dictionary<string, Dictionary<string, int>>>($"/api/finance/slips/facets?fields={fieldsParam}");
             if (apiResult != null)
             {
                 foreach (var kvp in apiResult) dict[kvp.Key] = kvp.Value;
