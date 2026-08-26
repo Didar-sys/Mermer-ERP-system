@@ -13,7 +13,10 @@ public class ApiStockSlipsRepository : IRepository<StockSlip>, IReadOnlyReposito
 {
     private readonly RestClient _restClient;
     private const string DocType = "StockSlip";
-    private static bool _isSyncing = false;
+
+    // In-memory кэш для мгновенной фильтрации на UI
+    private static List<StockSlip> _memoryCache = new();
+    private static DateTime _lastFetchTime = DateTime.MinValue;
     private static readonly object _syncLock = new();
 
     public ApiStockSlipsRepository(RestClient restClient)
@@ -23,86 +26,78 @@ public class ApiStockSlipsRepository : IRepository<StockSlip>, IReadOnlyReposito
 
     public async Task<IEnumerable<StockSlip>> GetAllAsync()
     {
-        // 1. Быстро отдаем локальный кэш
-        var localSlips = LocalSqliteCache.GetAllDocuments<StockSlip>(DocType)?.ToList() ?? new List<StockSlip>();
-
-        // 2. Если кэш пустой — делаем прямой синхронный запрос, чтобы сразу показать данные
-        if (!localSlips.Any())
+        // 1. Если данные в оперативной памяти свежие (< 30 секунд), отдаем мгновенно
+        lock (_syncLock)
         {
-            try
+            if (_memoryCache.Any() && (DateTime.UtcNow - _lastFetchTime).TotalSeconds < 30)
             {
-                var remote = await _restClient.GetAsync<List<StockSlip>>("/api/catalog/slips");
-                if (remote != null && remote.Any())
+                return _memoryCache;
+            }
+        }
+
+        // 2. Быстрая загрузка с сервера
+        try
+        {
+            var remote = await _restClient.GetAsync<List<StockSlip>>("/api/catalog/slips");
+            if (remote != null)
+            {
+                lock (_syncLock)
+                {
+                    _memoryCache = remote;
+                    _lastFetchTime = DateTime.UtcNow;
+                }
+
+                // В фоне сохраняем в локальный SQLite
+                _ = Task.Run(() =>
                 {
                     foreach (var slip in remote)
                     {
                         LocalSqliteCache.SaveDocument(DocType, slip.Id, slip, isSynced: true);
                     }
-                    return remote;
-                }
-            }
-            catch { }
-        }
-        else
-        {
-            // 3. Фоновая синхронизация с защитой от параллельных запусков
-            bool shouldSync = false;
-            lock (_syncLock)
-            {
-                if (!_isSyncing)
-                {
-                    _isSyncing = true;
-                    shouldSync = true;
-                }
-            }
-
-            if (shouldSync)
-            {
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        // Досылаем несохраненные оффлайн-записи
-                        var unsynced = LocalSqliteCache.GetUnsyncedDocuments<StockSlip>(DocType);
-                        if (unsynced != null)
-                        {
-                            foreach (var item in unsynced)
-                            {
-                                await _restClient.PostAsync("/api/catalog/slips", item.entity);
-                                LocalSqliteCache.SaveDocument(DocType, item.id, item.entity, isSynced: true);
-                            }
-                        }
-
-                        // Обновляем актуальные данные с сервера
-                        var remote = await _restClient.GetAsync<List<StockSlip>>("/api/catalog/slips");
-                        if (remote != null && remote.Any())
-                        {
-                            foreach (var slip in remote)
-                            {
-                                LocalSqliteCache.SaveDocument(DocType, slip.Id, slip, isSynced: true);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[StockSlips Sync Error]: {ex.Message}");
-                    }
-                    finally
-                    {
-                        lock (_syncLock) { _isSyncing = false; }
-                    }
                 });
+
+                return remote;
             }
         }
+        catch { }
 
+        // 3. Фолбэк на SQLite кэш, если сервер недоступен
+        var localSlips = LocalSqliteCache.GetAllDocuments<StockSlip>(DocType)?.ToList() ?? new List<StockSlip>();
+        lock (_syncLock)
+        {
+            _memoryCache = localSlips;
+        }
         return localSlips;
     }
 
     public async Task<StockSlip> GetAsync(string id)
     {
         if (string.IsNullOrEmpty(id)) return null;
-        var all = await GetAllAsync();
-        return all.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase));
+
+        // Ищем в памяти
+        lock (_syncLock)
+        {
+            var cached = _memoryCache.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase));
+            if (cached != null && cached.Lines != null && cached.Lines.Any())
+                return cached;
+        }
+
+        // Запрашиваем полный документ с сервера с его Lines
+        try
+        {
+            var remote = await _restClient.GetAsync<StockSlip>($"/api/catalog/slips/{id}");
+            if (remote != null)
+            {
+                LocalSqliteCache.SaveDocument(DocType, remote.Id, remote, isSynced: true);
+                return remote;
+            }
+        }
+        catch { }
+
+        var local = LocalSqliteCache.GetAllDocuments<StockSlip>(DocType)?
+            .FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase));
+
+        return local;
     }
 
     public async Task<IEnumerable<StockSlip>> GetAsync(string[] ids)
@@ -119,7 +114,8 @@ public class ApiStockSlipsRepository : IRepository<StockSlip>, IReadOnlyReposito
         var query = all.AsQueryable();
         if (predicates != null)
         {
-            foreach (var p in predicates.Where(x => x != null)) query = query.Where(p);
+            foreach (var p in predicates.Where(x => x != null))
+                query = query.Where(p);
         }
         return query.ToList();
     }
@@ -136,6 +132,12 @@ public class ApiStockSlipsRepository : IRepository<StockSlip>, IReadOnlyReposito
 
         bool isNew = string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString();
         if (isNew) entity.Id = Guid.NewGuid().ToString();
+
+        // Сбрасываем кэш
+        lock (_syncLock)
+        {
+            _lastFetchTime = DateTime.MinValue;
+        }
 
         LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, isSynced: false);
 
@@ -155,13 +157,20 @@ public class ApiStockSlipsRepository : IRepository<StockSlip>, IReadOnlyReposito
     public async Task DeleteAsync(string id)
     {
         if (string.IsNullOrEmpty(id)) return;
+
+        lock (_syncLock)
+        {
+            _lastFetchTime = DateTime.MinValue;
+        }
+
         try { await _restClient.DeleteAsync($"/api/catalog/slips/{id}"); } catch { }
     }
 
     public async Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
     {
         var dict = new Dictionary<string, Dictionary<string, int>>();
-        if (fields != null) foreach (var f in fields) dict[f] = new Dictionary<string, int>();
+        if (fields != null)
+            foreach (var f in fields) dict[f] = new Dictionary<string, int>();
 
         try
         {

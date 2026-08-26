@@ -187,7 +187,7 @@ public class StockBalancesByStatusesListViewModel : ListViewModelBaseWithFilter<
         var displayCurrencyRate = displayCurrency.GetRate();
         int displayCurrencyDecimals = displayCurrency.Decimals;
 
-       
+
         var query =
             from s in stocks
             join c in Currencies.List on s.CurrencyId equals c.Id
@@ -201,9 +201,9 @@ public class StockBalancesByStatusesListViewModel : ListViewModelBaseWithFilter<
                 StockName = s.Name,
                 StockUnit = s.Unit,
                 StockPrice = Math.Round(s.Price * currencyRate.Multiplier / currencyRate.Divider / displayCurrencyRate.Multiplier * displayCurrencyRate.Divider, displayCurrencyDecimals),
-                StockGroup = s.Group,
-                StockType = s.Type,
-                StockTags = s.Tags,
+                StockGroup = s.Group ?? string.Empty,
+                StockType = s.Type ?? string.Empty,
+                StockTags = s.Tags ?? Array.Empty<string>(),
                 Income = sb?.Income ?? 0M,
                 Expense = sb?.Expense ?? 0M,
                 IsExisting = (sb?.Balance ?? 0M) > 0M,

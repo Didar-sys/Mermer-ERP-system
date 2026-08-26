@@ -328,6 +328,7 @@ CREATE TABLE stock_slips (
     is_stock_income     BOOLEAN NOT NULL DEFAULT FALSE,
     display_total       NUMERIC(18,4) NOT NULL DEFAULT 0,
     description          TEXT,
+    group_name          VARCHAR(200),
     tags                TEXT[],
     date                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     user_id             UUID REFERENCES users(id),

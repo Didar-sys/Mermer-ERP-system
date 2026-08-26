@@ -13,19 +13,67 @@ public class ApiStockTransfersRepository : IRepositoryWithFacets<StockTransfer>,
 {
     private readonly RestClient _restClient;
     private const string DocType = "StockTransfer";
+    private static List<StockTransfer> _memoryCache = new();
+    private static DateTime _lastFetchTime = DateTime.MinValue;
+    private static readonly object _syncLock = new();
 
     public ApiStockTransfersRepository(RestClient restClient)
     {
         _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
     }
 
+    public async Task<IEnumerable<StockTransfer>> GetAllAsync()
+    {
+        lock (_syncLock)
+        {
+            if (_memoryCache.Any() && (DateTime.UtcNow - _lastFetchTime).TotalSeconds < 30)
+            {
+                return _memoryCache;
+            }
+        }
+
+        try
+        {
+            var remote = await _restClient.GetAsync<List<StockTransfer>>("/api/warehousing/transfers");
+            if (remote != null)
+            {
+                lock (_syncLock)
+                {
+                    _memoryCache = remote;
+                    _lastFetchTime = DateTime.UtcNow;
+                }
+
+                _ = Task.Run(() =>
+                {
+                    foreach (var item in remote)
+                    {
+                        LocalSqliteCache.SaveDocument(DocType, item.Id, item, isSynced: true);
+                    }
+                });
+
+                return remote;
+            }
+        }
+        catch { }
+
+        var localItems = LocalSqliteCache.GetAllDocuments<StockTransfer>(DocType)?.ToList() ?? new List<StockTransfer>();
+        lock (_syncLock)
+        {
+            _memoryCache = localItems;
+        }
+        return localItems;
+    }
+
     public async Task<StockTransfer> GetAsync(string id)
     {
         if (string.IsNullOrEmpty(id)) return null;
 
-        var allLocal = LocalSqliteCache.GetAllDocuments<StockTransfer>(DocType);
-        var local = allLocal?.FirstOrDefault(x => string.Equals(x.Id, id, StringComparison.OrdinalIgnoreCase));
-        if (local != null) return local;
+        lock (_syncLock)
+        {
+            var cached = _memoryCache.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase));
+            if (cached != null && cached.Lines != null && cached.Lines.Any())
+                return cached;
+        }
 
         try
         {
@@ -38,7 +86,8 @@ public class ApiStockTransfersRepository : IRepositoryWithFacets<StockTransfer>,
         }
         catch { }
 
-        return null;
+        return LocalSqliteCache.GetAllDocuments<StockTransfer>(DocType)?
+            .FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase));
     }
 
     public async Task<IEnumerable<StockTransfer>> GetAsync(string[] ids)
@@ -65,66 +114,32 @@ public class ApiStockTransfersRepository : IRepositoryWithFacets<StockTransfer>,
         return query.ToList();
     }
 
-    private async Task<IEnumerable<StockTransfer>> GetAllAsync()
-    {
-        // 1. Досылаем неотправленные перемещения
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                var unsynced = LocalSqliteCache.GetUnsyncedDocuments<StockTransfer>(DocType);
-                if (unsynced != null)
-                {
-                    foreach (var item in unsynced)
-                    {
-                        await _restClient.PostAsync("/api/warehousing/transfers", item.entity);
-                        LocalSqliteCache.SaveDocument(DocType, item.id, item.entity, isSynced: true);
-                    }
-                }
-            }
-            catch { }
-        });
-
-        // 2. Локальный кэш
-        var localItems = LocalSqliteCache.GetAllDocuments<StockTransfer>(DocType)?.ToList() ?? new List<StockTransfer>();
-
-        // 3. Запрос с сервера
-        try
-        {
-            var remote = await _restClient.GetAsync<IEnumerable<StockTransfer>>("/api/warehousing/transfers");
-            if (remote != null && remote.Any())
-            {
-                foreach (var item in remote)
-                {
-                    LocalSqliteCache.SaveDocument(DocType, item.Id, item, isSynced: true);
-                }
-                return remote.ToList();
-            }
-        }
-        catch { }
-
-        return localItems;
-    }
-
     public async Task<int> CountAsync(params Expression<Func<StockTransfer, bool>>[] predicates)
     {
         return (await GetAsync(predicates)).Count();
     }
 
-    public async Task CreateAsync(StockTransfer model) => await SaveAsync(model);
-
-    public async Task UpdateAsync(StockTransfer model) => await SaveAsync(model);
-
     public async Task SaveAsync(StockTransfer model)
     {
         if (model == null) return;
-        if (string.IsNullOrEmpty(model.Id)) model.Id = Guid.NewGuid().ToString();
+
+        bool isNew = string.IsNullOrEmpty(model.Id) || model.Id == Guid.Empty.ToString();
+        if (isNew) model.Id = Guid.NewGuid().ToString();
+
+        lock (_syncLock)
+        {
+            _lastFetchTime = DateTime.MinValue;
+        }
 
         LocalSqliteCache.SaveDocument(DocType, model.Id, model, isSynced: false);
 
         try
         {
-            await _restClient.PostAsync("/api/warehousing/transfers", model);
+            if (isNew)
+                await _restClient.PostAsync("/api/warehousing/transfers", model);
+            else
+                await _restClient.PutAsync($"/api/warehousing/transfers/{model.Id}", model);
+
             LocalSqliteCache.SaveDocument(DocType, model.Id, model, isSynced: true);
         }
         catch (Exception ex)
@@ -133,9 +148,18 @@ public class ApiStockTransfersRepository : IRepositoryWithFacets<StockTransfer>,
         }
     }
 
+    public async Task CreateAsync(StockTransfer model) => await SaveAsync(model);
+    public async Task UpdateAsync(StockTransfer model) => await SaveAsync(model);
+
     public async Task DeleteAsync(string id)
     {
         if (string.IsNullOrEmpty(id)) return;
+
+        lock (_syncLock)
+        {
+            _lastFetchTime = DateTime.MinValue;
+        }
+
         try
         {
             await _restClient.DeleteAsync($"/api/warehousing/transfers/{id}");

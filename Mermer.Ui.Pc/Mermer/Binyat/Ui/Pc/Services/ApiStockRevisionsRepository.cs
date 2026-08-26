@@ -76,23 +76,24 @@ namespace Mermer.Ui.Pc.Services
 
         public async Task SaveAsync(StockRevision entity)
         {
-            if (string.IsNullOrEmpty(entity.Id)) entity.Id = Guid.NewGuid().ToString();
+            if (entity == null) return;
+            bool isNew = string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString();
+            if (isNew) entity.Id = Guid.NewGuid().ToString();
+
             LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, false);
             try
             {
-                await _restClient.PostAsync("/api/warehousing/revisions", entity);
+                if (isNew)
+                    await _restClient.PostAsync("/api/warehousing/revisions", entity);
+                else
+                    await _restClient.PutAsync($"/api/warehousing/revisions/{entity.Id}", entity);
+
                 LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, true);
             }
             catch { }
         }
 
-        public Task CreateAsync(StockRevision entity)
-        {
-            if (string.IsNullOrEmpty(entity.Id)) entity.Id = Guid.NewGuid().ToString();
-            // Сохраняем ТОЛЬКО в локальный кэш, на сервер не отправляем!
-            LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, false);
-            return Task.CompletedTask;
-        }
+        public Task CreateAsync(StockRevision entity) => SaveAsync(entity);
         public Task UpdateAsync(StockRevision entity) => SaveAsync(entity);
 
         public async Task DeleteAsync(string id)
@@ -101,11 +102,23 @@ namespace Mermer.Ui.Pc.Services
             try { await _restClient.DeleteAsync($"/api/warehousing/revisions/{id}"); } catch { }
         }
 
-        public Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
+        public async Task<Dictionary<string, Dictionary<string, int>>> GetFacets(params string[] fields)
         {
             var dict = new Dictionary<string, Dictionary<string, int>>();
             if (fields != null) foreach (var f in fields) dict[f] = new Dictionary<string, int>();
-            return Task.FromResult(dict);
+
+            try
+            {
+                var fieldsParam = fields != null && fields.Length > 0 ? string.Join(",", fields) : "Date";
+                var apiResult = await _restClient.GetAsync<Dictionary<string, Dictionary<string, int>>>($"/api/warehousing/revisions/facets?fields={fieldsParam}");
+                if (apiResult != null)
+                {
+                    foreach (var kvp in apiResult) dict[kvp.Key] = kvp.Value;
+                }
+            }
+            catch { }
+
+            return dict;
         }
 
         public async Task<IEnumerable<StockRevisionLine>> GetLinesAsync(string revisionId, params string[] lineIds)

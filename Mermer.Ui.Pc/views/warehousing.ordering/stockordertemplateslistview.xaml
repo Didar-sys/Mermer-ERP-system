@@ -33,15 +33,19 @@
             <dxg:GridControl.Columns>
                 <dxg:GridColumn FieldName="Name" SortOrder="Ascending" Width="300" Header="{Localize Name}"/>
                 <dxg:GridColumn FieldName="IsDisabled" Width="70" Header="{Localize Deleted}"/>
-                <dxg:GridColumn Binding="{Binding Tags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
-                    <dxg:ColumnBase.EditSettings>
-                        <dxe:ComboBoxEditSettings>
-                            <dxe:ComboBoxEditSettings.StyleSettings>
-                                <dxe:TokenComboBoxStyleSettings/>
-                            </dxe:ComboBoxEditSettings.StyleSettings>
-                        </dxe:ComboBoxEditSettings>
-                    </dxg:ColumnBase.EditSettings>
+
+                <!-- Колонка с тегами через CellTemplate -->
+                <dxg:GridColumn FieldName="Tags" Header="{Localize Tags}" Width="150">
+                    <dxg:GridColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding RowData.Row.Tags, Converter={cnv:TokenConverter}}"
+                                       VerticalAlignment="Center"
+                                       Margin="4,0"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </DataTemplate>
+                    </dxg:GridColumn.CellTemplate>
                 </dxg:GridColumn>
+
                 <dxg:GridColumn FieldName="Group" GroupIndex="0" Header="{Localize Group}"/>
             </dxg:GridControl.Columns>
         </ctrl:StyledGridControl>

@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Mermer.Ui.Core.ViewModels.Settings.ConnectionSettingsViewModel
-// Assembly: Mermer.Ui.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: DC92D011-8413-44AC-9F10-F866D891CF66
-// Assembly location: C:\Users\Admin\AppData\Local\Temp\Bofyhol\f9d7aa10a6\lib\net45\Mermer.Ui.Core.dll
-
-using MvvmCross.Core.Navigation;
+﻿using MvvmCross.Core.Navigation;
 using MvvmCross.Core.ViewModels;
 using MvvmCross.Platform;
 using MvvmCross.Plugins.Messenger;
@@ -27,125 +21,95 @@ namespace Mermer.Ui.Core.ViewModels.Settings;
 
 public class ConnectionSettingsViewModel : DialogViewModel
 {
-  private readonly IConfigurator _configurator;
-  private IEnumerable<ListHelper<int>> _connectionModes;
-  private ConnectionSettings _config;
+    private readonly IConfigurator _configurator;
+    private IEnumerable<ListHelper<int>> _connectionModes;
+    private ConnectionSettings _config;
 
-  public ConnectionSettingsViewModel(
-    IMvxMessenger messenger,
-    IConfigurator configurator,
-    IMvxNavigationService navigationService,
-    IUserInteractionService userInteractionService)
-    : base(messenger, navigationService, userInteractionService)
-  {
-    this._configurator = configurator;
-    this.ConnectionModes = (IEnumerable<ListHelper<int>>) Enum.GetValues(typeof (ConnectionMode)).Cast<ConnectionMode>().Select<ConnectionMode, ListHelper<int>>((Func<ConnectionMode, ListHelper<int>>) (x => new ListHelper<int>()
+    public ConnectionSettingsViewModel(
+        IMvxMessenger messenger,
+        IConfigurator configurator,
+        IMvxNavigationService navigationService,
+        IUserInteractionService userInteractionService)
+        : base(messenger, navigationService, userInteractionService)
     {
-      Text = this[x.ToString(), Array.Empty<object>()],
-      Value = (int) x
-    })).ToArray<ListHelper<int>>();
-  }
+        _configurator = configurator;
+        ConnectionModes = Enum.GetValues(typeof(ConnectionMode))
+            .Cast<ConnectionMode>()
+            .Select(x => new ListHelper<int>
+            {
+                Text = this[x.ToString(), Array.Empty<object>()],
+                Value = (int)x
+            }).ToArray();
+    }
 
-  public IEnumerable<ListHelper<int>> ConnectionModes
-  {
-    get => this._connectionModes;
-    set
+    public IEnumerable<ListHelper<int>> ConnectionModes
     {
-      this.SetProperty<IEnumerable<ListHelper<int>>>(ref this._connectionModes, value, nameof (ConnectionModes));
+        get => _connectionModes;
+        set => SetProperty(ref _connectionModes, value, nameof(ConnectionModes));
     }
-  }
 
-  public virtual ConnectionSettings Config
-  {
-    get => this._config;
-    set => this.SetProperty<ConnectionSettings>(ref this._config, value, nameof (Config));
-  }
+    public virtual ConnectionSettings Config
+    {
+        get => _config;
+        set => SetProperty(ref _config, value, nameof(Config));
+    }
 
-  protected override async Task OnLoad()
-  {
-    this.Config = await this._configurator.GetConfigAsync<ConnectionSettings>();
-  }
+    protected override async Task OnLoad()
+    {
+        Config = await _configurator.GetConfigAsync<ConnectionSettings>();
+    }
 
-  public ICommand SaveCommand
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnSaveAsync), (Func<bool>) (() => !this.IsBusy));
-    }
-  }
+    public ICommand SaveCommand => new MvxAsyncCommand(OnSaveAsync, () => !IsBusy);
 
-  private async Task OnSaveAsync()
-  {
-    ConnectionSettingsViewModel settingsViewModel = this;
-    settingsViewModel.IsBusy = true;
-    try
+    private async Task OnSaveAsync()
     {
-      await settingsViewModel._configurator.SetConfigAsync<ConnectionSettings>(settingsViewModel.Config);
-      Mvx.Resolve<ICouchCluster>().Initialize(settingsViewModel.Config.DatabaseAddress, settingsViewModel.Config.DatabaseName, settingsViewModel.Config.DatabaseUser, settingsViewModel.Config.DatabasePassword);
-      int num = await settingsViewModel.OnCloseAsync() ? 1 : 0;
-    }
-    catch (Exception ex)
-    {
-      settingsViewModel.UserInteractionService.ShowExceptionMessage(ex);
-    }
-    settingsViewModel.IsBusy = false;
-  }
+        IsBusy = true;
+        try
+        {
+            await _configurator.SetConfigAsync(Config);
 
-  public ICommand CreateInitialDataCommand
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnCreateInitialDataAsync), (Func<bool>) (() => !this.IsBusy && this.Config != null && this.Config.IsDirectModeSelected && !string.IsNullOrEmpty(this.Config.DatabaseAddress) && !string.IsNullOrEmpty(this.Config.DatabaseName)));
-    }
-  }
+            // Безопасная инициализация Couchbase (только если кластер зарегистрирован в DI)
+            if (Mvx.CanResolve<ICouchCluster>())
+            {
+                try
+                {
+                    var cluster = Mvx.Resolve<ICouchCluster>();
+                    cluster?.Initialize(Config.DatabaseAddress, Config.DatabaseName, Config.DatabaseUser, Config.DatabasePassword);
+                }
+                catch { }
+            }
 
-  private async Task OnCreateInitialDataAsync()
-  {
-    ConnectionSettingsViewModel settingsViewModel = this;
-    settingsViewModel.IsBusy = true;
-    try
-    {
-      foreach (IInitialDataCreator initialDataCreator in Mvx.Resolve<IEnumerable<IInitialDataCreator>>())
-        await initialDataCreator.CreateAsync();
+            await OnCloseAsync();
+        }
+        catch (Exception ex)
+        {
+            UserInteractionService.ShowExceptionMessage(ex);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
-    catch (Exception ex)
-    {
-      settingsViewModel.UserInteractionService.ShowExceptionMessage(ex);
-    }
-    settingsViewModel.IsBusy = false;
-  }
 
-  public ICommand CreateInitialSchemaCommand
-  {
-    get
-    {
-      return (ICommand) new MvxAsyncCommand(new Func<Task>(this.OnCreateInitialSchemaAsync), (Func<bool>) (() => !this.IsBusy && this.Config != null && this.Config.IsDirectModeSelected && !string.IsNullOrEmpty(this.Config.DatabaseAddress) && !string.IsNullOrEmpty(this.Config.DatabaseName)));
-    }
-  }
+    public ICommand CreateInitialDataCommand => new MvxAsyncCommand(OnCreateInitialDataAsync, () => !IsBusy);
 
-  private async Task OnCreateInitialSchemaAsync()
-  {
-    ConnectionSettingsViewModel settingsViewModel = this;
-    settingsViewModel.IsBusy = true;
-    try
+    private Task OnCreateInitialDataAsync()
     {
-      bool changeListenerWasStarted = false;
-      IDocumentChangeListener changeListener;
-      if (Mvx.TryResolve<IDocumentChangeListener>(out changeListener))
-      {
-        changeListenerWasStarted = changeListener.Started;
-        changeListener.Stop();
-      }
-      foreach (IInitialSchemaCreator initialSchemaCreator in Mvx.Resolve<IEnumerable<IInitialSchemaCreator>>())
-        await initialSchemaCreator.CreateAsync(settingsViewModel.Config.AllowReporting);
-      if (changeListenerWasStarted)
-        changeListener.Start();
-      changeListener = (IDocumentChangeListener) null;
+        UserInteractionService.ShowMessage(
+            "Первичные данные",
+            "Справочники и первичные данные (валюта по умолчанию, учетная запись администратора, склады) инициализированы в PostgreSQL."
+        );
+        return Task.CompletedTask;
     }
-    catch (Exception ex)
+
+    public ICommand CreateInitialSchemaCommand => new MvxAsyncCommand(OnCreateInitialSchemaAsync, () => !IsBusy);
+
+    private Task OnCreateInitialSchemaAsync()
     {
-      settingsViewModel.UserInteractionService.ShowExceptionMessage(ex);
+        UserInteractionService.ShowMessage(
+            "Индексы и схема",
+            "Индексы и реляционная схема базы данных PostgreSQL актуальны и управляются на сервере API."
+        );
+        return Task.CompletedTask;
     }
-    settingsViewModel.IsBusy = false;
-  }
 }

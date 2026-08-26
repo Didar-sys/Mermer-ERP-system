@@ -169,11 +169,18 @@ namespace Mermer.Ui.Pc.Services
 
         public async Task SaveAsync(AggregatedStockOrder entity)
         {
-            if (string.IsNullOrEmpty(entity.Id)) entity.Id = Guid.NewGuid().ToString();
+            if (entity == null) return;
+            bool isNew = string.IsNullOrEmpty(entity.Id) || entity.Id == Guid.Empty.ToString();
+            if (isNew) entity.Id = Guid.NewGuid().ToString();
+
             LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, false);
             try
             {
-                await _restClient.PostAsync("/api/warehousing/aggregated-orders", entity);
+                if (isNew)
+                    await _restClient.PostAsync("/api/warehousing/aggregated-orders", entity);
+                else
+                    await _restClient.PutAsync($"/api/warehousing/aggregated-orders/{entity.Id}", entity);
+
                 LocalSqliteCache.SaveDocument(DocType, entity.Id, entity, true);
             }
             catch { }

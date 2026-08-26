@@ -85,24 +85,32 @@
                 <dxg:LookUpEditSettings DisplayMember="Name" ValueMember="Id" ItemsSource="{Binding Currencies.List}"/>
               </dxg:ColumnBase.EditSettings>
             </dxg:GridColumn>
-            <dxg:GridColumn Binding="{Binding Barcodes, Converter={cnv:TokenConverter}}" Header="{Localize Barcodes}">
-              <dxg:ColumnBase.EditSettings>
-                <dxg:LookUpEditSettings>
-                  <dxe:BaseEditSettings.StyleSettings>
-                    <dxg:TokenLookUpEditStyleSettings/>
-                  </dxe:BaseEditSettings.StyleSettings>
-                </dxg:LookUpEditSettings>
-              </dxg:ColumnBase.EditSettings>
+
+            <!-- Штрихкоды через CellTemplate -->
+            <dxg:GridColumn FieldName="Barcodes" Header="{Localize Barcodes}" Width="150">
+              <dxg:GridColumn.CellTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding RowData.Row.Barcodes, Converter={cnv:TokenConverter}}"
+                             VerticalAlignment="Center"
+                             Margin="4,0"
+                             TextTrimming="CharacterEllipsis"/>
+                </DataTemplate>
+              </dxg:GridColumn.CellTemplate>
             </dxg:GridColumn>
-            <dxg:GridColumn Binding="{Binding Tags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
-              <dxg:ColumnBase.EditSettings>
-                <dxg:LookUpEditSettings>
-                  <dxe:BaseEditSettings.StyleSettings>
-                    <dxg:TokenLookUpEditStyleSettings/>
-                  </dxe:BaseEditSettings.StyleSettings>
-                </dxg:LookUpEditSettings>
-              </dxg:ColumnBase.EditSettings>
+
+            <!-- Теги через CellTemplate -->
+            <dxg:GridColumn FieldName="Tags" Header="{Localize Tags}" Width="150">
+              <dxg:GridColumn.CellTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding RowData.Row.Tags, Converter={cnv:TokenConverter}}"
+                             VerticalAlignment="Center"
+                             Margin="4,0"
+                             TextTrimming="CharacterEllipsis"/>
+                </DataTemplate>
+              </dxg:GridColumn.CellTemplate>
             </dxg:GridColumn>
+
+            <!-- Группировка -->
             <dxg:GridColumn FieldName="Group" GroupIndex="1" Header="{Localize Group}"/>
             <dxg:GridColumn FieldName="Type" GroupIndex="0" Header="{Localize Type}"/>
           </dxg:GridControl.Columns>

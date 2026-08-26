@@ -60,22 +60,27 @@
                               FilterButton="{Binding ElementName=FilterButton, Mode=OneWay}"
                               SearchControl="{Binding ElementName=SearchControl, Mode=OneWay}">
         <dxg:GridControl.Bands>
-          <dxg:GridControlBand Header="{Localize Stock}">
-            <dxg:GridColumn FieldName="StockCode" SortOrder="Ascending" Header="{Localize Code}"/>
-            <dxg:GridColumn FieldName="StockName" SortOrder="Ascending" Width="300" Header="{Localize Name}"/>
-            <dxg:GridColumn Binding="{Binding StockTags, Converter={cnv:TokenConverter}}" Header="{Localize Tags}">
-              <dxg:ColumnBase.EditSettings>
-                <dxg:LookUpEditSettings>
-                  <dxe:BaseEditSettings.StyleSettings>
-                    <dxg:TokenLookUpEditStyleSettings/>
-                  </dxe:BaseEditSettings.StyleSettings>
-                </dxg:LookUpEditSettings>
-              </dxg:ColumnBase.EditSettings>
-            </dxg:GridColumn>
-            <dxg:GridColumn FieldName="StockGroup" GroupIndex="1" Header="{Localize Group}"/>
-            <dxg:GridColumn FieldName="StockType" GroupIndex="0" Header="{Localize Type}"/>
-          </dxg:GridControlBand>
-          <dxg:GridControlBand Header="{Localize Balance}">
+                    <dxg:GridControlBand Header="{Localize Stock}">
+                        <dxg:GridColumn FieldName="StockCode" SortOrder="Ascending" Header="{Localize Code}"/>
+                        <dxg:GridColumn FieldName="StockName" SortOrder="Ascending" Width="300" Header="{Localize Name}"/>
+
+                        <!-- Колонка с тегами через CellTemplate -->
+                        <dxg:GridColumn FieldName="StockTags" Header="{Localize Tags}" Width="150">
+                            <dxg:GridColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding RowData.Row.StockTags, Converter={cnv:TokenConverter}}"
+                             VerticalAlignment="Center"
+                             Margin="4,0"
+                             TextTrimming="CharacterEllipsis"/>
+                                </DataTemplate>
+                            </dxg:GridColumn.CellTemplate>
+                        </dxg:GridColumn>
+
+                        <!-- Колонки группировки -->
+                        <dxg:GridColumn FieldName="StockGroup" GroupIndex="1" Header="{Localize Group}"/>
+                        <dxg:GridColumn FieldName="StockType" GroupIndex="0" Header="{Localize Type}"/>
+                    </dxg:GridControlBand>
+                    <dxg:GridControlBand Header="{Localize Balance}">
             <dxg:GridColumn FieldName="Income" Width="80" Style="{StaticResource QuantityDisplayFormat}"
                             Header="{Localize Income}"/>
             <dxg:GridColumn FieldName="Expense" Width="80" Style="{StaticResource QuantityDisplayFormat}"
