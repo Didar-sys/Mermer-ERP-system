@@ -20,18 +20,11 @@ public static class StockOrderTemplatesEndpoints
     {
         var group = app.MapGroup("/api/warehousing/order-templates").WithTags("StockOrderTemplates");
 
-        JsonElement GetProp(JsonElement el, string name)
-        {
-            if (el.TryGetProperty(name, out var val)) return val;
-            if (el.TryGetProperty(char.ToLower(name[0]) + name.Substring(1), out val)) return val;
-            return default;
-        }
-
+        // 1. СПИСОК ШАБЛОНОВ
         group.MapGet("/", async (MermerDbContext db, CancellationToken ct) =>
         {
             var list = await db.StockOrderTemplates
                 .Include(t => t.Lines)
-                .AsSplitQuery()
                 .AsNoTracking()
                 .OrderBy(t => t.Name)
                 .ToListAsync(ct);
@@ -42,7 +35,7 @@ public static class StockOrderTemplatesEndpoints
                 Name = t.Name,
                 IsDisabled = t.IsDisabled,
                 Group = t.GroupName ?? "",
-                Tags = t.Tags ?? Array.Empty<string>(),
+                Tags = t.Tags != null ? t.Tags.ToList() : new List<string>(),
                 Description = t.Description ?? "",
                 Lines = t.Lines.Select(l => new
                 {
@@ -52,33 +45,64 @@ public static class StockOrderTemplatesEndpoints
             }));
         });
 
-        group.MapGet("/facets", async (string? fields, MermerDbContext db, CancellationToken ct) =>
+        // 2. ПОЛУЧЕНИЕ ПО ID
+        group.MapGet("/{id}", async (string id, MermerDbContext db, CancellationToken ct) =>
         {
-            var dict = new Dictionary<string, Dictionary<string, int>>();
+            if (!Guid.TryParse(id, out var guid)) return Results.NotFound();
 
-            // Загружаем фасеты Групп
+            var t = await db.StockOrderTemplates
+                .Include(x => x.Lines)
+                .FirstOrDefaultAsync(x => x.Id == guid, ct);
+
+            if (t == null) return Results.NotFound();
+
+            return Results.Ok(new
+            {
+                Id = t.Id.ToString(),
+                Name = t.Name,
+                IsDisabled = t.IsDisabled,
+                Group = t.GroupName ?? "",
+                Tags = t.Tags != null ? t.Tags.ToList() : new List<string>(),
+                Description = t.Description ?? "",
+                Lines = t.Lines.Select(l => new
+                {
+                    Id = l.Id.ToString(),
+                    StockId = l.StockId?.ToString()
+                })
+            });
+        });
+
+        // 3. ФАСЕТЫ
+        group.MapGet("/facets", async (HttpContext ctx, MermerDbContext db, CancellationToken ct) =>
+        {
             var allGroups = await db.StockOrderTemplates
-                .Where(x => x.GroupName != null && x.GroupName != "")
+                .AsNoTracking()
+                .Where(x => !string.IsNullOrEmpty(x.GroupName))
                 .GroupBy(x => x.GroupName!)
                 .Select(g => new { Key = g.Key, Count = g.Count() })
-                .ToListAsync(ct);
-            dict["GroupNames"] = allGroups.ToDictionary(x => x.Key, x => x.Count);
+                .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
 
-            // Загружаем фасеты Тегов
             var tagsList = await db.StockOrderTemplates
-                .Where(x => x.Tags != null)
+                .AsNoTracking()
+                .Where(x => x.Tags != null && x.Tags.Length > 0)
                 .Select(x => x.Tags)
                 .ToListAsync(ct);
 
             var tagCounts = tagsList.SelectMany(t => t!)
                 .GroupBy(t => t)
                 .ToDictionary(g => g.Key, g => g.Count());
-            dict["TagNames"] = tagCounts;
+
+            var dict = new Dictionary<string, Dictionary<string, int>>
+            {
+                ["GroupNames"] = allGroups,
+                ["TagNames"] = tagCounts
+            };
 
             return Results.Ok(dict);
         });
 
-        group.MapPost("/", async (HttpRequest req, MermerDbContext db) =>
+        // 4. СОХРАНЕНИЕ ШАБЛОНА (POST / PUT)
+        Func<HttpRequest, MermerDbContext, Task<IResult>> saveTemplateHandler = async (req, db) =>
         {
             using var reader = new StreamReader(req.Body);
             var body = await reader.ReadToEndAsync();
@@ -87,67 +111,73 @@ public static class StockOrderTemplatesEndpoints
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
 
-            var ip = GetProp(root, "Id");
-            Guid templateId = ip.ValueKind != JsonValueKind.Undefined && Guid.TryParse(ip.GetString(), out var parsedGuid) && parsedGuid != Guid.Empty ? parsedGuid : Guid.NewGuid();
+            string? idStr = GetStringProp(root, "id", "Id");
+            Guid templateId = Guid.TryParse(idStr, out var parsedGuid) && parsedGuid != Guid.Empty ? parsedGuid : Guid.NewGuid();
 
-            var existing = await db.StockOrderTemplates.Include(t => t.Lines).AsSplitQuery().FirstOrDefaultAsync(r => r.Id == templateId);
-            if (existing == null)
+            var existing = await db.StockOrderTemplates.FirstOrDefaultAsync(r => r.Id == templateId);
+
+            string name = GetStringProp(root, "name", "Name") ?? "";
+            string groupName = GetStringProp(root, "group", "Group", "groupName", "GroupName") ?? "";
+            string description = GetStringProp(root, "description", "Description") ?? "";
+            bool isDisabled = GetBoolProp(root, "isDisabled", "IsDisabled");
+            var tagsList = ExtractTagsFromRawJson(root);
+
+            var linesList = new List<StockOrderTemplateLineEntity>();
+            if (TryGetPropCaseInsensitive(root, "lines", out var linesElem) && linesElem.ValueKind == JsonValueKind.Array)
             {
-                existing = new StockOrderTemplateEntity { Id = templateId, CreatedAt = DateTimeOffset.UtcNow };
-                await db.StockOrderTemplates.AddAsync(existing);
-            }
-
-            var np = GetProp(root, "Name");
-            if (np.ValueKind != JsonValueKind.Undefined) existing.Name = np.GetString() ?? "";
-
-            var dis = GetProp(root, "IsDisabled");
-            if (dis.ValueKind == JsonValueKind.True || dis.ValueKind == JsonValueKind.False) existing.IsDisabled = dis.GetBoolean();
-
-            var gp = GetProp(root, "Group");
-            if (gp.ValueKind != JsonValueKind.Undefined) existing.GroupName = gp.GetString();
-
-            var dp = GetProp(root, "Description");
-            if (dp.ValueKind != JsonValueKind.Undefined) existing.Description = dp.GetString();
-
-            // Сохранение тегов
-            var tagsElem = GetProp(root, "Tags");
-            if (tagsElem.ValueKind == JsonValueKind.Array)
-            {
-                existing.Tags = tagsElem.EnumerateArray()
-                    .Select(x => x.GetString())
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .ToArray()!;
-            }
-            else if (tagsElem.ValueKind == JsonValueKind.Null)
-            {
-                existing.Tags = null;
-            }
-
-            existing.UpdatedAt = DateTimeOffset.UtcNow;
-
-            var linesElem = GetProp(root, "Lines");
-            if (linesElem.ValueKind == JsonValueKind.Array)
-            {
-                db.StockOrderTemplateLines.RemoveRange(existing.Lines);
                 foreach (var le in linesElem.EnumerateArray())
                 {
-                    var lidProp = GetProp(le, "Id");
-                    var lStockProp = GetProp(le, "StockId");
+                    string? lidStr = GetStringProp(le, "id", "Id");
+                    string? lStockStr = GetStringProp(le, "stockId", "StockId");
 
-                    var line = new StockOrderTemplateLineEntity
+                    linesList.Add(new StockOrderTemplateLineEntity
                     {
-                        Id = lidProp.ValueKind != JsonValueKind.Undefined && Guid.TryParse(lidProp.GetString(), out var lG) ? lG : Guid.NewGuid(),
+                        Id = Guid.TryParse(lidStr, out var lG) && lG != Guid.Empty ? lG : Guid.NewGuid(),
                         StockOrderTemplateId = templateId,
-                        StockId = lStockProp.ValueKind != JsonValueKind.Undefined && Guid.TryParse(lStockProp.GetString(), out var stG) ? stG : null
-                    };
-                    await db.StockOrderTemplateLines.AddAsync(line);
+                        StockId = Guid.TryParse(lStockStr, out var stG) ? stG : null
+                    });
                 }
             }
 
-            await db.SaveChangesAsync();
-            return Results.Ok(new { id = templateId });
-        });
+            if (existing == null)
+            {
+                await db.StockOrderTemplates.AddAsync(new StockOrderTemplateEntity
+                {
+                    Id = templateId,
+                    Name = name,
+                    GroupName = groupName,
+                    Description = description,
+                    IsDisabled = isDisabled,
+                    Tags = tagsList.ToArray(),
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    Lines = linesList
+                });
+            }
+            else
+            {
+                existing.Name = name;
+                existing.GroupName = groupName;
+                existing.Description = description;
+                existing.IsDisabled = isDisabled;
+                existing.Tags = tagsList.ToArray();
+                existing.UpdatedAt = DateTimeOffset.UtcNow;
 
+                var oldLines = await db.StockOrderTemplateLines.Where(l => l.StockOrderTemplateId == templateId).ToListAsync();
+                if (oldLines.Any()) db.StockOrderTemplateLines.RemoveRange(oldLines);
+                if (linesList.Any()) await db.StockOrderTemplateLines.AddRangeAsync(linesList);
+
+                db.StockOrderTemplates.Update(existing);
+            }
+
+            await db.SaveChangesAsync();
+            return Results.Content($"{{\"id\":\"{templateId}\"}}", "application/json");
+        };
+
+        group.MapPost("/", saveTemplateHandler);
+        group.MapPut("/{id}", saveTemplateHandler);
+
+        // 5. УДАЛЕНИЕ
         group.MapDelete("/{id}", async (string id, MermerDbContext db) =>
         {
             if (Guid.TryParse(id, out var guid))
@@ -155,7 +185,8 @@ public static class StockOrderTemplatesEndpoints
                 var o = await db.StockOrderTemplates.FirstOrDefaultAsync(x => x.Id == guid);
                 if (o != null)
                 {
-                    db.StockOrderTemplates.Remove(o);
+                    o.IsDisabled = true;
+                    o.UpdatedAt = DateTimeOffset.UtcNow;
                     await db.SaveChangesAsync();
                 }
             }
@@ -164,4 +195,86 @@ public static class StockOrderTemplatesEndpoints
 
         return app;
     }
+
+    #region Helpers
+    private static List<string> ExtractTagsFromRawJson(JsonElement root)
+    {
+        var list = new List<string>();
+
+        if (!root.TryGetProperty("tags", out var tagsProp) &&
+            !root.TryGetProperty("Tags", out tagsProp))
+        {
+            return list;
+        }
+
+        if (tagsProp.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in tagsProp.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    var s = item.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                }
+                else if (item.ValueKind == JsonValueKind.Object)
+                {
+                    if (item.TryGetProperty("Text", out var t) || item.TryGetProperty("Value", out t) || item.TryGetProperty("Name", out t))
+                    {
+                        var s = t.GetString();
+                        if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                    }
+                }
+            }
+        }
+        else if (tagsProp.ValueKind == JsonValueKind.String)
+        {
+            var raw = tagsProp.GetString();
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
+                list.AddRange(raw.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(x => x.Trim())
+                                 .Where(x => !string.IsNullOrWhiteSpace(x)));
+            }
+        }
+
+        return list.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    private static bool TryGetPropCaseInsensitive(JsonElement el, string name, out JsonElement val)
+    {
+        foreach (var p in el.EnumerateObject())
+        {
+            if (string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                val = p.Value;
+                return true;
+            }
+        }
+        val = default;
+        return false;
+    }
+
+    private static string? GetStringProp(JsonElement el, params string[] names)
+    {
+        foreach (var n in names)
+        {
+            if (TryGetPropCaseInsensitive(el, n, out var p) && p.ValueKind == JsonValueKind.String)
+                return p.GetString();
+        }
+        return null;
+    }
+
+    private static bool GetBoolProp(JsonElement el, params string[] names)
+    {
+        foreach (var n in names)
+        {
+            if (TryGetPropCaseInsensitive(el, n, out var p))
+            {
+                if (p.ValueKind == JsonValueKind.True) return true;
+                if (p.ValueKind == JsonValueKind.False) return false;
+            }
+        }
+        return false;
+    }
+    #endregion
 }

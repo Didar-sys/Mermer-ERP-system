@@ -101,7 +101,7 @@ app.MapAggregatedReportsEndpoints();
 app.MapRevenueReportsEndpoints();
 app.MapUsersEndpoints();
 app.MapRolesEndpoints();
-
+app.MapStockOrderTemplatesEndpoints();
 
 
 app.Run();

@@ -21,6 +21,7 @@ public static class StocksEndpoints
     {
         var group = app.MapGroup("/api/stocks").WithTags("Stocks");
 
+        // 1. СПИСОК ТОВАРОВ
         group.MapGet("/", async (MermerDbContext db, CancellationToken ct) =>
         {
             var list = await db.Stocks
@@ -70,8 +71,8 @@ public static class StocksEndpoints
                     IsDisabled = s.IsDisabled,
                     Type = s.Type ?? string.Empty,
                     Group = s.Group ?? string.Empty,
-                    Barcodes = s.Barcodes ?? Array.Empty<string>(),
-                    Tags = s.Tags ?? Array.Empty<string>(),
+                    Barcodes = s.Barcodes != null ? s.Barcodes.ToList() : new List<string>(),
+                    Tags = s.Tags != null ? s.Tags.ToList() : new List<string>(),
 
                     Price = currentPrice?.Price ?? 0m,
                     CurrencyId = currentPrice?.CurrencyId?.ToString(),
@@ -87,6 +88,7 @@ public static class StocksEndpoints
         })
         .WithName("StocksList");
 
+        // 2. ПОИСК
         group.MapGet("/search", async (string q, string? warehouseId, string? priceGroup, int? limit, double? minSimilarity, IStockSearchService search, CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(q)) return Results.BadRequest(new { error = "Query parameter 'q' is required." });
@@ -95,6 +97,7 @@ public static class StocksEndpoints
         })
         .WithName("StocksSearch");
 
+        // 3. СЛЕДУЮЩИЙ КОД ТОВАРА
         group.MapGet("/next-code", async (MermerDbContext db) =>
         {
             var count = await db.Stocks.CountAsync();
@@ -102,23 +105,118 @@ public static class StocksEndpoints
         })
         .WithName("StocksGetNextCode");
 
-        group.MapGet("/{id}", async (string id, IStocksRepository repo, CancellationToken ct) =>
+        // 4. ПОЛУЧЕНИЕ ПО ID
+        group.MapGet("/{id}", async (string id, MermerDbContext db, CancellationToken ct) =>
         {
-            var stock = await repo.GetAsync(id, ct);
-            return stock is null ? Results.NotFound() : Results.Ok(stock);
+            if (!Guid.TryParse(id, out var stockGuid)) return Results.NotFound();
+
+            var s = await db.Stocks
+                .Include(x => x.Prices)
+                .Include(x => x.Units)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(x => x.Id == stockGuid, ct);
+
+            if (s == null) return Results.NotFound();
+
+            var currentPrice = s.Prices?.OrderByDescending(p => p.ValidFrom).FirstOrDefault();
+            var defaultUnit = s.Units?.FirstOrDefault(u => u.IsDefault) ?? s.Units?.FirstOrDefault();
+
+            return Results.Ok(new
+            {
+                Id = s.Id.ToString(),
+                Code = s.Code ?? string.Empty,
+                Name = s.Name ?? string.Empty,
+                ShortName = s.ShortName ?? string.Empty,
+                Type = s.Type ?? string.Empty,
+                Group = s.Group ?? string.Empty,
+                Description = s.Description ?? string.Empty,
+                Barcodes = s.Barcodes != null ? s.Barcodes.ToList() : new List<string>(),
+                Tags = s.Tags != null ? s.Tags.ToList() : new List<string>(),
+                Price = currentPrice?.Price ?? 0m,
+                CurrencyId = currentPrice?.CurrencyId?.ToString(),
+                Unit = defaultUnit?.Name ?? string.Empty,
+                UnitId = defaultUnit?.Id.ToString(),
+                IsDisabled = s.IsDisabled,
+                Prices = s.Prices?.Select(p => new
+                {
+                    Id = p.Id.ToString(),
+                    Price = p.Price,
+                    CurrencyId = p.CurrencyId?.ToString(),
+                    PriceGroup = p.PriceGroup,
+                    ValidFrom = p.ValidFrom
+                }),
+                Units = s.Units?.Select(u => new
+                {
+                    Id = u.Id.ToString(),
+                    Name = u.Name,
+                    Multiplier = u.Multiplier,
+                    Divider = u.Divider,
+                    IsDefault = u.IsDefault
+                })
+            });
         })
         .WithName("StocksGetById");
 
-        group.MapGet("/facets", async (string fields, IStocksRepository repo, CancellationToken ct) =>
+        // 5. ФАСЕТЫ (GroupNames, TagNames, PriceGroupNames)
+        group.MapGet("/facets", async (HttpContext context, MermerDbContext db, CancellationToken ct) =>
         {
-            var fieldList = fields.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (fieldList.Length == 0) return Results.BadRequest(new { error = "Provide fields." });
-            var facets = await repo.GetFacetsAsync(fieldList, ct);
-            return Results.Ok(facets);
+            string? fields = context.Request.Query["fields"].ToString();
+            var fieldList = string.IsNullOrEmpty(fields)
+                ? new[] { "Group", "Tags", "PriceGroupNames" }
+                : fields.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            var result = new Dictionary<string, Dictionary<string, int>>();
+
+            foreach (var field in fieldList)
+            {
+                if (field.Equals("Group", StringComparison.OrdinalIgnoreCase) || field.Equals("GroupNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var groups = await db.Stocks
+                        .AsNoTracking()
+                        .Where(x => !string.IsNullOrEmpty(x.Group))
+                        .GroupBy(x => x.Group!)
+                        .Select(g => new { Key = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+
+                    result[field] = groups;
+                }
+                else if (field.Equals("Tags", StringComparison.OrdinalIgnoreCase) || field.Equals("TagNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var allTags = await db.Stocks
+                        .AsNoTracking()
+                        .Where(x => x.Tags != null && x.Tags.Length > 0)
+                        .Select(x => x.Tags)
+                        .ToListAsync(ct);
+
+                    var tagCounts = allTags
+                        .SelectMany(t => t!)
+                        .GroupBy(t => t)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    result[field] = tagCounts;
+                }
+                else if (field.Equals("PriceGroupNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var priceGroups = await db.StockPrices
+                        .AsNoTracking()
+                        .Where(x => !string.IsNullOrEmpty(x.PriceGroup))
+                        .GroupBy(x => x.PriceGroup!)
+                        .Select(g => new { Key = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+
+                    result[field] = priceGroups;
+                }
+                else
+                {
+                    result[field] = new Dictionary<string, int>();
+                }
+            }
+
+            return Results.Ok(result);
         })
         .WithName("StocksFacets");
 
-        // --- ЖУРНАЛ ДВИЖЕНИЯ ТОВАРОВ (STOCK ACTIONS) ---
+        // 6. ЖУРНАЛ ДВИЖЕНИЯ ТОВАРОВ (STOCK ACTIONS)
         group.MapGet("/actions", async (DateTime? from, DateTime? till, string? stockId, HttpRequest req, MermerDbContext db, CancellationToken ct) =>
         {
             DateTimeOffset startDate = from.HasValue ? new DateTimeOffset(from.Value.ToUniversalTime()) : DateTimeOffset.MinValue;
@@ -129,7 +227,7 @@ public static class StocksEndpoints
 
             var actions = new List<object>();
 
-            // 1. Из складских ордеров (StockSlips) — IsDisabled убран
+            // 1. Из складских ордеров (StockSlips)
             var slipsQuery = db.StockSlips.Include(s => s.Lines).ThenInclude(l => l.Stock).AsSplitQuery().AsNoTracking()
                 .Where(s => s.Date >= startDate && s.Date <= endDate);
 
@@ -175,7 +273,6 @@ public static class StocksEndpoints
                 {
                     if (filterStockGuid.HasValue && l.StockId != filterStockGuid) continue;
 
-                    // Списание со склада-источника
                     if (!whIds.Any() || (t.WarehouseId.HasValue && whIds.Contains(t.WarehouseId.Value)))
                     {
                         actions.Add(new
@@ -199,7 +296,6 @@ public static class StocksEndpoints
                         });
                     }
 
-                    // Приход на склад-получатель
                     if (!whIds.Any() || (t.DestinationWarehouseId.HasValue && whIds.Contains(t.DestinationWarehouseId.Value)))
                     {
                         actions.Add(new
@@ -225,7 +321,7 @@ public static class StocksEndpoints
                 }
             }
 
-            // 3. Из продаж и закупок (Invoices)
+            // 3. Из накладных (Invoices)
             var invQuery = db.Invoices.Include(i => i.Lines).ThenInclude(l => l.Stock).AsSplitQuery().AsNoTracking()
                 .Where(i => i.Date >= startDate && i.Date <= endDate && !i.IsDisabled && i.IsCompleted);
 
@@ -264,7 +360,7 @@ public static class StocksEndpoints
             return Results.Ok(actions.OrderByDescending(a => ((dynamic)a).TransactionDate));
         });
 
-        // --- СОХРАНЕНИЕ ---
+        // 7. СОХРАНЕНИЕ ТОВАРА (POST / PUT)
         Func<HttpRequest, MermerDbContext, Task<IResult>> saveStockHandler = async (request, db) =>
         {
             using var reader = new StreamReader(request.Body);
@@ -274,12 +370,19 @@ public static class StocksEndpoints
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
 
-            string idStr = root.TryGetProperty("id", out var idProp) || root.TryGetProperty("Id", out idProp) ? idProp.GetString() : null;
-            Guid stockId = Guid.TryParse(idStr, out var parsedGuid) ? parsedGuid : Guid.NewGuid();
+            string? idStr = GetStringProp(root, "id", "Id");
+            Guid stockId = Guid.TryParse(idStr, out var parsedGuid) && parsedGuid != Guid.Empty ? parsedGuid : Guid.NewGuid();
 
-            string code = root.TryGetProperty("code", out var codeProp) || root.TryGetProperty("Code", out codeProp) ? codeProp.GetString() : $"ST-{DateTime.UtcNow:yyMMddHHmmss}";
-            string name = root.TryGetProperty("name", out var nameProp) || root.TryGetProperty("Name", out nameProp) ? nameProp.GetString() : "Новый товар";
-            string type = root.TryGetProperty("type", out var typeProp) || root.TryGetProperty("Type", out typeProp) ? typeProp.GetString() : "";
+            string code = GetStringProp(root, "code", "Code") ?? $"ST-{DateTime.UtcNow:yyMMddHHmmss}";
+            string name = GetStringProp(root, "name", "Name") ?? "Новый товар";
+            string shortName = GetStringProp(root, "shortName", "ShortName") ?? string.Empty;
+            string type = GetStringProp(root, "type", "Type") ?? string.Empty;
+            string groupName = GetStringProp(root, "group", "Group", "groupName", "GroupName") ?? string.Empty;
+            string description = GetStringProp(root, "description", "Description") ?? string.Empty;
+            bool isDisabled = GetBoolProp(root, "isDisabled", "IsDisabled");
+
+            var tagsList = ExtractArrayProp(root, "tags", "Tags");
+            var barcodesList = ExtractArrayProp(root, "barcodes", "Barcodes");
 
             var existing = await db.Stocks.FirstOrDefaultAsync(p => p.Id == stockId);
             if (existing == null)
@@ -289,8 +392,13 @@ public static class StocksEndpoints
                     Id = stockId,
                     Code = code,
                     Name = name,
+                    ShortName = shortName,
                     Type = type,
-                    IsDisabled = false,
+                    Group = groupName,
+                    Description = description,
+                    Tags = tagsList.ToArray(),
+                    Barcodes = barcodesList.ToArray(),
+                    IsDisabled = isDisabled,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 });
@@ -299,8 +407,15 @@ public static class StocksEndpoints
             {
                 existing.Code = code;
                 existing.Name = name;
+                existing.ShortName = shortName;
                 existing.Type = type;
+                existing.Group = groupName;
+                existing.Description = description;
+                existing.Tags = tagsList.ToArray();
+                existing.Barcodes = barcodesList.ToArray();
+                existing.IsDisabled = isDisabled;
                 existing.UpdatedAt = DateTime.UtcNow;
+                db.Stocks.Update(existing);
             }
 
             await db.SaveChangesAsync();
@@ -310,13 +425,104 @@ public static class StocksEndpoints
         group.MapPost("/", saveStockHandler);
         group.MapPut("/{id}", saveStockHandler);
 
-        group.MapDelete("/{id}", async (string id, IStocksRepository repo, CancellationToken ct) =>
+        // 8. УДАЛЕНИЕ
+        group.MapDelete("/{id}", async (string id, MermerDbContext db, CancellationToken ct) =>
         {
-            await repo.DeleteAsync(id, ct);
+            if (Guid.TryParse(id, out var guid))
+            {
+                var stock = await db.Stocks.FirstOrDefaultAsync(x => x.Id == guid, ct);
+                if (stock != null)
+                {
+                    stock.IsDisabled = true;
+                    stock.UpdatedAt = DateTime.UtcNow;
+                    await db.SaveChangesAsync(ct);
+                }
+            }
             return Results.NoContent();
         })
         .WithName("StocksDelete");
 
         return app;
     }
+
+    #region Helpers
+    private static List<string> ExtractArrayProp(JsonElement root, params string[] propNames)
+    {
+        var list = new List<string>();
+        foreach (var name in propNames)
+        {
+            if (TryGetPropCaseInsensitive(root, name, out var prop))
+            {
+                if (prop.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in prop.EnumerateArray())
+                    {
+                        if (item.ValueKind == JsonValueKind.String)
+                        {
+                            var s = item.GetString();
+                            if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                        }
+                        else if (item.ValueKind == JsonValueKind.Object)
+                        {
+                            if (item.TryGetProperty("Text", out var t) || item.TryGetProperty("Value", out t) || item.TryGetProperty("Name", out t))
+                            {
+                                var s = t.GetString();
+                                if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                            }
+                        }
+                    }
+                }
+                else if (prop.ValueKind == JsonValueKind.String)
+                {
+                    var raw = prop.GetString();
+                    if (!string.IsNullOrWhiteSpace(raw))
+                    {
+                        list.AddRange(raw.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries)
+                                         .Select(x => x.Trim())
+                                         .Where(x => !string.IsNullOrWhiteSpace(x)));
+                    }
+                }
+                break;
+            }
+        }
+        return list.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    private static bool TryGetPropCaseInsensitive(JsonElement el, string name, out JsonElement val)
+    {
+        foreach (var p in el.EnumerateObject())
+        {
+            if (string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                val = p.Value;
+                return true;
+            }
+        }
+        val = default;
+        return false;
+    }
+
+    private static string? GetStringProp(JsonElement el, params string[] names)
+    {
+        foreach (var n in names)
+        {
+            if (TryGetPropCaseInsensitive(el, n, out var p) && p.ValueKind == JsonValueKind.String)
+                return p.GetString();
+        }
+        return null;
+    }
+
+    private static bool GetBoolProp(JsonElement el, params string[] names)
+    {
+        foreach (var n in names)
+        {
+            if (TryGetPropCaseInsensitive(el, n, out var p))
+            {
+                if (p.ValueKind == JsonValueKind.True) return true;
+                if (p.ValueKind == JsonValueKind.False) return false;
+            }
+        }
+        return false;
+    }
+    #endregion
 }

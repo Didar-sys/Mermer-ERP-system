@@ -20,21 +20,21 @@ public static class AggregatedStockOrdersEndpoints
     {
         var group = app.MapGroup("/api/warehousing/aggregated-orders").WithTags("AggregatedStockOrders");
 
-        JsonElement GetProp(JsonElement el, string name)
+        // 1. СПИСОК СВОДНЫХ ЗАКАЗОВ
+        group.MapGet("/", async (DateTime? from, DateTime? till, string? warehouseId, MermerDbContext db, CancellationToken ct) =>
         {
-            if (el.TryGetProperty(name, out var val)) return val;
-            if (el.TryGetProperty(char.ToLower(name[0]) + name.Substring(1), out val)) return val;
-            return default;
-        }
+            DateTimeOffset startDate = from.HasValue ? new DateTimeOffset(from.Value.ToUniversalTime()) : DateTimeOffset.MinValue;
+            DateTimeOffset endDate = till.HasValue ? new DateTimeOffset(till.Value.ToUniversalTime()) : DateTimeOffset.MaxValue;
 
-        group.MapGet("/", async (MermerDbContext db, CancellationToken ct) =>
-        {
-            var list = await db.AggregatedStockOrders
+            var query = db.AggregatedStockOrders
                 .Include(o => o.Lines)
-                .AsSplitQuery()
                 .AsNoTracking()
-                .OrderByDescending(o => o.Date)
-                .ToListAsync(ct);
+                .Where(o => o.Date >= startDate && o.Date <= endDate);
+
+            if (Guid.TryParse(warehouseId, out var wG))
+                query = query.Where(o => o.WarehouseId == wG);
+
+            var list = await query.OrderByDescending(o => o.Date).ToListAsync(ct);
 
             return Results.Ok(list.Select(o => new
             {
@@ -44,37 +44,127 @@ public static class AggregatedStockOrdersEndpoints
                 WarehouseId = o.WarehouseId?.ToString(),
                 PartnerId = o.PartnerId?.ToString(),
                 UserId = o.UserId?.ToString(),
-                UserName = o.UserName ?? "",
+                UserName = o.UserName ?? "admin",
                 IsCompleted = o.IsCompleted,
                 IsDisabled = o.IsDisabled,
                 Group = o.GroupName ?? "",
-                Tags = o.Tags ?? Array.Empty<string>(),
+                Tags = o.Tags != null ? o.Tags.ToList() : new List<string>(),
                 Description = o.Description ?? "",
                 Lines = o.Lines.Select(l => new
                 {
                     Id = l.Id.ToString(),
+                    AggregatedStockOrderId = o.Id.ToString(),
                     StockId = l.StockId?.ToString(),
                     UnitId = l.UnitId?.ToString(),
-                    Orders = JsonSerializer.Deserialize<Dictionary<string, decimal>>(l.OrdersJson) ?? new Dictionary<string, decimal>()
+                    Orders = !string.IsNullOrEmpty(l.OrdersJson)
+                        ? (JsonSerializer.Deserialize<Dictionary<string, decimal>>(l.OrdersJson) ?? new Dictionary<string, decimal>())
+                        : new Dictionary<string, decimal>()
                 })
             }));
         });
 
-        group.MapGet("/facets", async (string? fields, MermerDbContext db, CancellationToken ct) =>
+        // 2. ПОЛУЧЕНИЕ ПО ID
+        group.MapGet("/{id}", async (string id, MermerDbContext db, CancellationToken ct) =>
         {
-            var dict = new Dictionary<string, Dictionary<string, int>>();
-            var allGroups = await db.AggregatedStockOrders
-                .Where(x => x.GroupName != null && x.GroupName != "")
-                .GroupBy(x => x.GroupName!)
-                .Select(g => new { Key = g.Key, Count = g.Count() })
-                .ToListAsync(ct);
+            if (!Guid.TryParse(id, out var orderId)) return Results.NotFound();
 
-            dict["GroupNames"] = allGroups.ToDictionary(x => x.Key, x => x.Count);
-            dict["TagNames"] = new Dictionary<string, int>();
-            return Results.Ok(dict);
+            var o = await db.AggregatedStockOrders
+                .Include(x => x.Lines)
+                .FirstOrDefaultAsync(x => x.Id == orderId, ct);
+
+            if (o == null) return Results.NotFound();
+
+            return Results.Ok(new
+            {
+                Id = o.Id.ToString(),
+                Code = o.Code ?? "",
+                Date = o.Date.UtcDateTime,
+                WarehouseId = o.WarehouseId?.ToString(),
+                PartnerId = o.PartnerId?.ToString(),
+                UserId = o.UserId?.ToString(),
+                UserName = o.UserName ?? "admin",
+                IsCompleted = o.IsCompleted,
+                IsDisabled = o.IsDisabled,
+                Group = o.GroupName ?? "",
+                Tags = o.Tags != null ? o.Tags.ToList() : new List<string>(),
+                Description = o.Description ?? "",
+                Lines = o.Lines.Select(l => new
+                {
+                    Id = l.Id.ToString(),
+                    AggregatedStockOrderId = o.Id.ToString(),
+                    StockId = l.StockId?.ToString(),
+                    UnitId = l.UnitId?.ToString(),
+                    Orders = !string.IsNullOrEmpty(l.OrdersJson)
+                        ? (JsonSerializer.Deserialize<Dictionary<string, decimal>>(l.OrdersJson) ?? new Dictionary<string, decimal>())
+                        : new Dictionary<string, decimal>()
+                })
+            });
         });
 
-        group.MapPost("/", async (HttpRequest req, MermerDbContext db) =>
+        // 3. ФАСЕТЫ
+        group.MapGet("/facets", async (HttpContext ctx, MermerDbContext db, CancellationToken ct) =>
+        {
+            string? fields = ctx.Request.Query["fields"].ToString();
+            var fieldList = string.IsNullOrEmpty(fields)
+                ? new[] { "Date", "Group", "Tags", "GroupNames", "TagNames" }
+                : fields.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            var result = new Dictionary<string, Dictionary<string, int>>();
+
+            foreach (var field in fieldList)
+            {
+                if (field.Equals("Group", StringComparison.OrdinalIgnoreCase) || field.Equals("GroupNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var groups = await db.AggregatedStockOrders
+                        .AsNoTracking()
+                        .Where(x => !string.IsNullOrEmpty(x.GroupName))
+                        .GroupBy(x => x.GroupName!)
+                        .Select(g => new { Key = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+
+                    result[field] = groups;
+                }
+                else if (field.Equals("Tags", StringComparison.OrdinalIgnoreCase) || field.Equals("TagNames", StringComparison.OrdinalIgnoreCase))
+                {
+                    var allTags = await db.AggregatedStockOrders
+                        .AsNoTracking()
+                        .Where(x => x.Tags != null && x.Tags.Length > 0)
+                        .Select(x => x.Tags)
+                        .ToListAsync(ct);
+
+                    var tagCounts = allTags
+                        .SelectMany(t => t!)
+                        .GroupBy(t => t)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    result[field] = tagCounts;
+                }
+                else if (field.Equals("Date", StringComparison.OrdinalIgnoreCase))
+                {
+                    var now = DateTime.Now.Date;
+                    var orders = await db.AggregatedStockOrders.AsNoTracking().Where(r => !r.IsDisabled).Select(r => r.Date).ToListAsync(ct);
+                    var localDates = orders.Select(d => d.ToLocalTime().Date).ToList();
+
+                    var dateFacets = new Dictionary<string, int>
+                    {
+                        { "#Today", localDates.Count(d => d == now) },
+                        { "#This Week", localDates.Count(d => d >= now.AddDays(-7)) },
+                        { "#This Month", localDates.Count(d => d.Month == now.Month && d.Year == now.Year) },
+                        { "#All Records", localDates.Count }
+                    };
+                    result[field] = dateFacets;
+                }
+                else
+                {
+                    result[field] = new Dictionary<string, int>();
+                }
+            }
+
+            return Results.Ok(result);
+        });
+
+        // 4. СОХРАНЕНИЕ (POST / PUT)
+        Func<HttpRequest, MermerDbContext, Task<IResult>> saveAggregatedOrderHandler = async (req, db) =>
         {
             using var reader = new StreamReader(req.Body);
             var body = await reader.ReadToEndAsync();
@@ -83,73 +173,105 @@ public static class AggregatedStockOrdersEndpoints
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
 
-            var ip = GetProp(root, "Id");
-            Guid orderId = ip.ValueKind != JsonValueKind.Undefined && Guid.TryParse(ip.GetString(), out var parsedGuid) && parsedGuid != Guid.Empty ? parsedGuid : Guid.NewGuid();
+            string? idStr = GetStringProp(root, "id", "Id");
+            Guid orderId = Guid.TryParse(idStr, out var parsedGuid) && parsedGuid != Guid.Empty ? parsedGuid : Guid.NewGuid();
 
-            var existing = await db.AggregatedStockOrders.Include(o => o.Lines).AsSplitQuery().FirstOrDefaultAsync(r => r.Id == orderId);
-            if (existing == null)
+            var existing = await db.AggregatedStockOrders.FirstOrDefaultAsync(r => r.Id == orderId);
+
+            string code = GetStringProp(root, "code", "Code") ?? $"AGR-{DateTime.UtcNow:yyMMddHHmmss}";
+            Guid? wId = Guid.TryParse(GetStringProp(root, "warehouseId", "WarehouseId"), out var wG) ? wG : null;
+            Guid? pId = Guid.TryParse(GetStringProp(root, "partnerId", "PartnerId"), out var pG) ? pG : null;
+            Guid? uId = Guid.TryParse(GetStringProp(root, "userId", "UserId"), out var uG) ? uG : null;
+            string userName = GetStringProp(root, "userName", "UserName") ?? "admin";
+            string groupName = GetStringProp(root, "group", "Group", "groupName", "GroupName") ?? string.Empty;
+            string description = GetStringProp(root, "description", "Description") ?? string.Empty;
+            bool isCompleted = GetBoolProp(root, "isCompleted", "IsCompleted");
+            bool isDisabled = GetBoolProp(root, "isDisabled", "IsDisabled");
+
+            DateTimeOffset date = DateTimeOffset.UtcNow;
+            string? dateStr = GetStringProp(root, "date", "Date");
+            if (!string.IsNullOrEmpty(dateStr) && DateTimeOffset.TryParse(dateStr, out var pDate))
+                date = pDate.ToUniversalTime();
+
+            var tagsList = ExtractTagsFromRawJson(root);
+
+            var linesList = new List<AggregatedStockOrderLineEntity>();
+            if (TryGetPropCaseInsensitive(root, "lines", out var linesElem) && linesElem.ValueKind == JsonValueKind.Array)
             {
-                existing = new AggregatedStockOrderEntity { Id = orderId, CreatedAt = DateTimeOffset.UtcNow };
-                await db.AggregatedStockOrders.AddAsync(existing);
-            }
-
-            var cp = GetProp(root, "Code");
-            if (cp.ValueKind != JsonValueKind.Undefined) existing.Code = cp.GetString();
-
-            var wp = GetProp(root, "WarehouseId");
-            if (wp.ValueKind != JsonValueKind.Undefined && Guid.TryParse(wp.GetString(), out var wG)) existing.WarehouseId = wG;
-
-            var pp = GetProp(root, "PartnerId");
-            if (pp.ValueKind != JsonValueKind.Undefined && Guid.TryParse(pp.GetString(), out var pG)) existing.PartnerId = pG;
-
-            var usrp = GetProp(root, "UserId");
-            if (usrp.ValueKind != JsonValueKind.Undefined && Guid.TryParse(usrp.GetString(), out var usrG)) existing.UserId = usrG;
-
-            var unp = GetProp(root, "UserName");
-            if (unp.ValueKind != JsonValueKind.Undefined) existing.UserName = unp.GetString();
-
-            var comp = GetProp(root, "IsCompleted");
-            if (comp.ValueKind == JsonValueKind.True || comp.ValueKind == JsonValueKind.False) existing.IsCompleted = comp.GetBoolean();
-
-            var dis = GetProp(root, "IsDisabled");
-            if (dis.ValueKind == JsonValueKind.True || dis.ValueKind == JsonValueKind.False) existing.IsDisabled = dis.GetBoolean();
-
-            var gp = GetProp(root, "Group");
-            if (gp.ValueKind != JsonValueKind.Undefined) existing.GroupName = gp.GetString();
-
-            var dp = GetProp(root, "Description");
-            if (dp.ValueKind != JsonValueKind.Undefined) existing.Description = dp.GetString();
-
-            existing.Date = DateTimeOffset.UtcNow;
-            existing.UpdatedAt = DateTimeOffset.UtcNow;
-
-            var linesElem = GetProp(root, "Lines");
-            if (linesElem.ValueKind == JsonValueKind.Array)
-            {
-                db.AggregatedStockOrderLines.RemoveRange(existing.Lines);
                 foreach (var le in linesElem.EnumerateArray())
                 {
-                    var lidProp = GetProp(le, "Id");
-                    var lStockProp = GetProp(le, "StockId");
-                    var lUnitProp = GetProp(le, "UnitId");
-                    var lOrdersProp = GetProp(le, "Orders");
+                    string? lidStr = GetStringProp(le, "id", "Id");
+                    string? lStockStr = GetStringProp(le, "stockId", "StockId");
+                    string? lUnitStr = GetStringProp(le, "unitId", "UnitId");
 
-                    var line = new AggregatedStockOrderLineEntity
+                    string ordersJson = "{}";
+                    if (TryGetPropCaseInsensitive(le, "orders", out var ordersProp))
                     {
-                        Id = lidProp.ValueKind != JsonValueKind.Undefined && Guid.TryParse(lidProp.GetString(), out var lG) ? lG : Guid.NewGuid(),
+                        ordersJson = ordersProp.ValueKind == JsonValueKind.Object ? ordersProp.GetRawText() : "{}";
+                    }
+
+                    linesList.Add(new AggregatedStockOrderLineEntity
+                    {
+                        Id = Guid.TryParse(lidStr, out var lG) && lG != Guid.Empty ? lG : Guid.NewGuid(),
                         AggregatedStockOrderId = orderId,
-                        StockId = lStockProp.ValueKind != JsonValueKind.Undefined && Guid.TryParse(lStockProp.GetString(), out var stG) ? stG : null,
-                        UnitId = lUnitProp.ValueKind != JsonValueKind.Undefined && Guid.TryParse(lUnitProp.GetString(), out var uG) ? uG : null,
-                        OrdersJson = lOrdersProp.ValueKind == JsonValueKind.Object ? lOrdersProp.GetRawText() : "{}"
-                    };
-                    await db.AggregatedStockOrderLines.AddAsync(line);
+                        StockId = Guid.TryParse(lStockStr, out var stG) ? stG : null,
+                        UnitId = Guid.TryParse(lUnitStr, out var unitG) ? unitG : null,
+                        OrdersJson = ordersJson
+                    });
                 }
             }
 
-            await db.SaveChangesAsync();
-            return Results.Ok(new { id = orderId });
-        });
+            if (existing == null)
+            {
+                await db.AggregatedStockOrders.AddAsync(new AggregatedStockOrderEntity
+                {
+                    Id = orderId,
+                    Code = code,
+                    Date = date,
+                    WarehouseId = wId,
+                    PartnerId = pId,
+                    UserId = uId,
+                    UserName = userName,
+                    IsCompleted = isCompleted,
+                    IsDisabled = isDisabled,
+                    GroupName = groupName,
+                    Description = description,
+                    Tags = tagsList.ToArray(),
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    Lines = linesList
+                });
+            }
+            else
+            {
+                existing.Code = code;
+                existing.Date = date;
+                existing.WarehouseId = wId;
+                existing.PartnerId = pId;
+                if (uId.HasValue) existing.UserId = uId;
+                if (!string.IsNullOrEmpty(userName)) existing.UserName = userName;
+                existing.IsCompleted = isCompleted;
+                existing.IsDisabled = isDisabled;
+                existing.GroupName = groupName;
+                existing.Description = description;
+                existing.Tags = tagsList.ToArray();
+                existing.UpdatedAt = DateTimeOffset.UtcNow;
 
+                var oldLines = await db.AggregatedStockOrderLines.Where(l => l.AggregatedStockOrderId == orderId).ToListAsync();
+                if (oldLines.Any()) db.AggregatedStockOrderLines.RemoveRange(oldLines);
+                if (linesList.Any()) await db.AggregatedStockOrderLines.AddRangeAsync(linesList);
+
+                db.AggregatedStockOrders.Update(existing);
+            }
+
+            await db.SaveChangesAsync();
+            return Results.Ok(new { id = orderId, code });
+        };
+
+        group.MapPost("/", saveAggregatedOrderHandler);
+        group.MapPut("/{id}", saveAggregatedOrderHandler);
+
+        // 5. УДАЛЕНИЕ
         group.MapDelete("/{id}", async (string id, MermerDbContext db) =>
         {
             if (Guid.TryParse(id, out var guid))
@@ -157,7 +279,8 @@ public static class AggregatedStockOrdersEndpoints
                 var o = await db.AggregatedStockOrders.FirstOrDefaultAsync(x => x.Id == guid);
                 if (o != null)
                 {
-                    db.AggregatedStockOrders.Remove(o);
+                    o.IsDisabled = true;
+                    o.UpdatedAt = DateTimeOffset.UtcNow;
                     await db.SaveChangesAsync();
                 }
             }
@@ -166,4 +289,86 @@ public static class AggregatedStockOrdersEndpoints
 
         return app;
     }
+
+    #region Helpers
+    private static List<string> ExtractTagsFromRawJson(JsonElement root)
+    {
+        var list = new List<string>();
+
+        if (!root.TryGetProperty("tags", out var tagsProp) &&
+            !root.TryGetProperty("Tags", out tagsProp))
+        {
+            return list;
+        }
+
+        if (tagsProp.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in tagsProp.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    var s = item.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                }
+                else if (item.ValueKind == JsonValueKind.Object)
+                {
+                    if (item.TryGetProperty("Text", out var t) || item.TryGetProperty("Value", out t) || item.TryGetProperty("Name", out t))
+                    {
+                        var s = t.GetString();
+                        if (!string.IsNullOrWhiteSpace(s)) list.Add(s.Trim());
+                    }
+                }
+            }
+        }
+        else if (tagsProp.ValueKind == JsonValueKind.String)
+        {
+            var raw = tagsProp.GetString();
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
+                list.AddRange(raw.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(x => x.Trim())
+                                 .Where(x => !string.IsNullOrWhiteSpace(x)));
+            }
+        }
+
+        return list.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    private static bool TryGetPropCaseInsensitive(JsonElement el, string name, out JsonElement val)
+    {
+        foreach (var p in el.EnumerateObject())
+        {
+            if (string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                val = p.Value;
+                return true;
+            }
+        }
+        val = default;
+        return false;
+    }
+
+    private static string? GetStringProp(JsonElement el, params string[] names)
+    {
+        foreach (var n in names)
+        {
+            if (TryGetPropCaseInsensitive(el, n, out var p) && p.ValueKind == JsonValueKind.String)
+                return p.GetString();
+        }
+        return null;
+    }
+
+    private static bool GetBoolProp(JsonElement el, params string[] names)
+    {
+        foreach (var n in names)
+        {
+            if (TryGetPropCaseInsensitive(el, n, out var p))
+            {
+                if (p.ValueKind == JsonValueKind.True) return true;
+                if (p.ValueKind == JsonValueKind.False) return false;
+            }
+        }
+        return false;
+    }
+    #endregion
 }
