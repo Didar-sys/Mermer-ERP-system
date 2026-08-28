@@ -1,25 +1,27 @@
-# 1. Сборка приложения (.NET 8 / 9 SDK)
+# 1. Сборка приложения (.NET 8 SDK)
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Копируем файлы проектов для восстановления зависимостей
+# Копируем проекты для restore
 COPY ["Mermer.Api/Mermer.Api.csproj", "Mermer.Api/"]
 COPY ["Mermer.Data.Postgres/Mermer.Data.Postgres.csproj", "Mermer.Data.Postgres/"]
 
 RUN dotnet restore "Mermer.Api/Mermer.Api.csproj"
 
-# Копируем весь исходный код и собираем
+# Копируем остальные исходники
 COPY . .
 WORKDIR "/src/Mermer.Api"
-RUN dotnet build "Mermer.Api.csproj" -c Release -o /app/build
-
-FROM build AS publish
 RUN dotnet publish "Mermer.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# 2. Финальный образ для запуска (Runtime)
+# 2. Финальный образ для запуска
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+
+# Явно задаем порт 8080 для .NET 8 Kestrel
+ENV ASPNETCORE_HTTP_PORTS=8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+EXPOSE 8080
+
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Mermer.Api.dll"]
